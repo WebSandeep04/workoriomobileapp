@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../screens/HomeScreen';
 import LeadScreen from '../screens/LeadScreen';
-import AttandanceScreen from '../screens/AttandanceScreen';
+
 import Header from '../components/Header';
 import Subscription from '../screens/Subscription';
 
@@ -24,8 +24,6 @@ export default function BottomTabs() {
                         iconName = focused ? 'home' : 'home-outline';
                     } else if (route.name === 'Lead') {
                         iconName = focused ? 'people' : 'people-outline';
-                    } else if (route.name === 'Attandance') {
-                        iconName = focused ? 'calendar' : 'calendar-outline';
                     } else if (route.name === 'Subscription') {
                         iconName = focused ? 'ticket' : 'ticket-outline';
                     }
@@ -38,7 +36,6 @@ export default function BottomTabs() {
         >
             <Tab.Screen name="Home" component={HomeScreen} />
             <Tab.Screen name="Lead" component={LeadScreen} />
-            <Tab.Screen name="Attandance" component={AttandanceScreen} />
             <Tab.Screen name="Subscription" component={Subscription} />
         </Tab.Navigator>
     );

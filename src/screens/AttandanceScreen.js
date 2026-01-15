@@ -1,25 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    Modal,
-    TextInput,
-    ScrollView,
-    Alert,
-    ActivityIndicator,
-    RefreshControl
-} from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, ScrollView, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-    fetchAttendanceStatus,
-    punchIn,
-    punchOut,
-    toggleBreak,
-    clearMessages
-} from '../store/slices/attendanceSlice';
+import { fetchAttendanceStatus, punchIn, punchOut, toggleBreak, clearMessages } from '../store/slices/attendanceSlice';
 import { styles, COLORS } from '../css/AttandanceStyles';
+
 
 const AttandanceScreen = ({ navigation }) => {
     const dispatch = useDispatch();
@@ -65,36 +50,12 @@ const AttandanceScreen = ({ navigation }) => {
         if (validationError) {
             // Check for specific 'require_late_reason' flag
             if (validationError.require_late_reason) {
-                // If we don't know the type, we might have an issue, but usually we set pendingAction 
-                // BEFORE dispatching if we knew. But here the API told us.
-                // NOTE: In the Thunk, we caught 422. 
-                // Ideally, we should know WHICH action caused this. 
-                // Since `punchIn` sets `validationError`, we can assume it triggered the modal requirement.
-                // However, our local `handlePunchIn` sets the pendingAction state *optimistically* 
-                // or we need to infer it. 
-
-                // Let's rely on the local handler to set the pending action before dispatching?
-                // Actually, if the API fails with "Late Reason Required", we need to know for WHICH type.
-                // The API response might not say "office" or "field".
-                // So, we should handle the logic of "opening modal" inside the local handler 
-                // by checking the 422 rejection there OR letting the effect handle it if `pendingAction` is set.
-
-                // REVISION: The previous local logic was better for flow control:
-                // try { create } catch (422) { if late_reason open modal }
-                // With Redux, the error state updates.
-                // Let's simplify: 
-                // We'll keep the "intent" locally when calling dispatch.
-
-                if (validationError.require_late_reason) {
-                    setLateModalVisible(true);
-                } else {
-                    Alert.alert("Action Failed", validationError.message || "Validation Error");
-                }
+                setLateModalVisible(true);
             } else {
                 Alert.alert("Action Failed", validationError.message || "Validation Error");
             }
-            dispatch(clearMessages());
         }
+        dispatch(clearMessages());
     }, [successMessage, error, validationError, dispatch]);
 
 

@@ -1,23 +1,61 @@
-import { View, Text, StyleSheet } from 'react-native';
-const HomeScreen = () => {
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
+import { fetchAttendanceStatus } from '../store/slices/attendanceSlice';
+import AttendanceCard from '../components/AttendanceCard';
+
+const HomeScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const { loading } = useSelector(state => state.attendance);
+
+  const loadData = useCallback(() => {
+    dispatch(fetchAttendanceStatus());
+  }, [dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>HomeScreen</Text>
-    </View>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} />}
+    >
+      <View style={styles.header}>
+        <Text style={styles.welcomeText}>Welcome back,</Text>
+        <Text style={styles.userName}>Employee</Text>
+      </View>
+
+      <AttendanceCard />
+
+      {/* Other Dashboard Widgets could go here */}
+
+    </ScrollView>
   );
 };
 
-export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
+    flexGrow: 1,
+    backgroundColor: '#f8fafc',
+    paddingVertical: 20,
   },
-  text: {
+  header: {
+    paddingHorizontal: 24,
+    marginBottom: 20,
+  },
+  welcomeText: {
+    fontSize: 16,
+    color: '#64748b',
+  },
+  userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#0f172a',
   },
 });
+
+export default HomeScreen;
