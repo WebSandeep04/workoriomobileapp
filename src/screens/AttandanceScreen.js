@@ -7,11 +7,14 @@ import {
     Modal,
     TextInput,
     ScrollView,
-    Alert
+    Alert,
+    Dimensions
 } from 'react-native';
 
+const { width } = Dimensions.get('window');
+
 const AttandanceScreen = ({ navigation }) => {
-    // Mock Data State to simulate API response
+    // Mock Data State
     const [status, setStatus] = useState({
         office: {
             status: "Punched Out",
@@ -40,7 +43,6 @@ const AttandanceScreen = ({ navigation }) => {
         message: ""
     });
 
-    // Late Reason Modal State
     const [lateModalVisible, setLateModalVisible] = useState(false);
     const [lateReason, setLateReason] = useState('');
     const [pendingAction, setPendingAction] = useState(null);
@@ -48,21 +50,17 @@ const AttandanceScreen = ({ navigation }) => {
     //--- Actions (Mock Logic) ---
 
     const handlePunchIn = (type) => {
-        // Simulate Late Check Logic (Randomly trigger late modal for demo)
         const isLate = Math.random() > 0.7;
-
         if (isLate) {
             setPendingAction({ type, action: 'in' });
             setLateModalVisible(true);
             return;
         }
-
         performPunchIn(type);
     };
 
     const performPunchIn = (type, reason = null) => {
-        // Update mock state
-        const time = new Date().toLocaleTimeString();
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const newStatus = { ...status };
 
         if (type === 'office') {
@@ -73,7 +71,6 @@ const AttandanceScreen = ({ navigation }) => {
                 can_end: true,
                 last_action_time: time
             };
-            // Implicitly auto-switch field out if needed
             if (newStatus.field.can_end) {
                 newStatus.field = { ...newStatus.field, status: "Field Out", can_start: true, can_end: false };
             }
@@ -85,14 +82,12 @@ const AttandanceScreen = ({ navigation }) => {
                 can_end: true,
                 last_action_time: time
             };
-            // Implicitly auto-switch office out if needed
             if (newStatus.office.can_end) {
                 newStatus.office = { ...newStatus.office, status: "Punched Out", can_start: true, can_end: false };
             }
         }
 
         setStatus(newStatus);
-        Alert.alert('Success', `Punched In (${type}) successfully! ${reason ? `(Reason: ${reason})` : ''}`);
         setLateModalVisible(false);
         setLateReason('');
         setPendingAction(null);
@@ -107,15 +102,13 @@ const AttandanceScreen = ({ navigation }) => {
     };
 
     const handlePunchOut = (type) => {
-        // Simulate Task Blocker (Randomly trigger task alert)
         const hasPendingTasks = Math.random() > 0.8;
-
         if (hasPendingTasks) {
             Alert.alert('Pending Tasks', 'Please update your pending tasks before leaving.');
             return;
         }
 
-        const time = new Date().toLocaleTimeString();
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const newStatus = { ...status };
 
         if (type === 'office') {
@@ -135,9 +128,7 @@ const AttandanceScreen = ({ navigation }) => {
                 last_action_time: time
             };
         }
-
         setStatus(newStatus);
-        Alert.alert('Success', `Punched Out (${type}) successfully!`);
     };
 
     const handleBreak = (action) => {
@@ -149,7 +140,6 @@ const AttandanceScreen = ({ navigation }) => {
                 can_start: false,
                 can_end: true
             };
-            Alert.alert('Success', 'Break Started');
         } else {
             newStatus.break = {
                 status: "Not on Break",
@@ -157,370 +147,377 @@ const AttandanceScreen = ({ navigation }) => {
                 can_start: true,
                 can_end: false
             };
-            Alert.alert('Success', 'Break Ended');
         }
         setStatus(newStatus);
     };
 
-    //--- UI Renders ---
+    //--- Render Helpers ---
 
-    // Worklog Blocker
+    const StatusCard = ({ title, data, onStart, onEnd, startLabel, endLabel, isBreak = false }) => {
+        const isOnBreak = status.break.can_end;
+        const isDisabled = !isBreak && isOnBreak;
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>{title}</Text>
+                    <View style={[styles.badge, { backgroundColor: getBadgeColor(data.badge_class) }]}>
+                        <Text style={styles.badgeText}>{data.status}</Text>
+                    </View>
+                </View>
+
+                {data.last_action_time && (
+                    <Text style={styles.timeText}>Last Action: <Text style={styles.timeValue}>{data.last_action_time}</Text></Text>
+                )}
+
+                <View style={styles.buttonContainer}>
+                    {data.can_start && (
+                        <TouchableOpacity
+                            style={[styles.actionButton, styles.startBtn, isDisabled && styles.disabledButton]}
+                            onPress={onStart}
+                            disabled={isDisabled}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.btnText}>{startLabel}</Text>
+                        </TouchableOpacity>
+                    )}
+                    {data.can_end && (
+                        <TouchableOpacity
+                            style={[styles.actionButton, styles.endBtn, isDisabled && styles.disabledButton]}
+                            onPress={onEnd}
+                            disabled={isDisabled}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.btnText}>{endLabel}</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
+        );
+    };
+
+    //--- Main Render ---
+
     if (!worklogValidation.can_perform_attendance) {
         return (
             <View style={styles.centerContainer}>
-                <Text style={styles.errorText}>Action Required</Text>
-                <Text style={styles.messageText}>{worklogValidation.message}</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={() => setWorklogValidation({ ...worklogValidation, can_perform_attendance: true })}>
-                    <Text style={styles.buttonText}>Simulate Fix Worklog</Text>
-                </TouchableOpacity>
+                <View style={[styles.card, { alignItems: 'center' }]}>
+                    <Text style={[styles.errorText, { marginBottom: 10 }]}>Action Required</Text>
+                    <Text style={styles.messageText}>{worklogValidation.message}</Text>
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.startBtn, { marginTop: 20, width: '100%' }]}
+                        onPress={() => setWorklogValidation({ ...worklogValidation, can_perform_attendance: true })}
+                    >
+                        <Text style={styles.btnText}>Simulate Fix</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         );
     }
 
-    const isOnBreak = status.break.can_end;
-
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.headerTitle}>Attendance (UI Demo)</Text>
-
-            {/* Office Section */}
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>Office</Text>
-                <View style={styles.statusRow}>
-                    <Text style={styles.statusLabel}>Status:</Text>
-                    <View style={[styles.badge, { backgroundColor: getBadgeColor(status.office.badge_class) }]}>
-                        <Text style={styles.badgeText}>{status.office.status}</Text>
-                    </View>
-                </View>
-                {status.office.last_action_time && (
-                    <Text style={styles.timeText}>Last Action: {status.office.last_action_time}</Text>
-                )}
-
-                <View style={styles.buttonRow}>
-                    {status.office.can_start && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.inButton, isOnBreak && styles.disabledButton]}
-                            onPress={() => handlePunchIn('office')}
-                            disabled={isOnBreak}
-                        >
-                            <Text style={styles.buttonText}>Punch In</Text>
-                        </TouchableOpacity>
-                    )}
-                    {status.office.can_end && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.outButton, isOnBreak && styles.disabledButton]}
-                            onPress={() => handlePunchOut('office')}
-                            disabled={isOnBreak}
-                        >
-                            <Text style={styles.buttonText}>Punch Out</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Attendance</Text>
+                <Text style={styles.headerDate}>{new Date().toDateString()}</Text>
             </View>
 
-            {/* Field Section */}
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>Field Work</Text>
-                <View style={styles.statusRow}>
-                    <Text style={styles.statusLabel}>Status:</Text>
-                    <View style={[styles.badge, { backgroundColor: getBadgeColor(status.field.badge_class) }]}>
-                        <Text style={styles.badgeText}>{status.field.status}</Text>
-                    </View>
-                </View>
-                {status.field.last_action_time && (
-                    <Text style={styles.timeText}>Last Action: {status.field.last_action_time}</Text>
-                )}
+            <StatusCard
+                title="Office"
+                data={status.office}
+                startLabel="Punch In"
+                endLabel="Punch Out"
+                onStart={() => handlePunchIn('office')}
+                onEnd={() => handlePunchOut('office')}
+            />
 
-                <View style={styles.buttonRow}>
-                    {status.field.can_start && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.inButton, isOnBreak && styles.disabledButton]}
-                            onPress={() => handlePunchIn('field')}
-                            disabled={isOnBreak}
-                        >
-                            <Text style={styles.buttonText}>Field In</Text>
-                        </TouchableOpacity>
-                    )}
-                    {status.field.can_end && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.outButton, isOnBreak && styles.disabledButton]}
-                            onPress={() => handlePunchOut('field')}
-                            disabled={isOnBreak}
-                        >
-                            <Text style={styles.buttonText}>Field Out</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
+            <StatusCard
+                title="Field Work"
+                data={status.field}
+                startLabel="Field In"
+                endLabel="Field Out"
+                onStart={() => handlePunchIn('field')}
+                onEnd={() => handlePunchOut('field')}
+            />
 
-            {/* Break Section */}
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>Break</Text>
-                <View style={styles.statusRow}>
-                    <Text style={styles.statusLabel}>Status:</Text>
-                    <View style={[styles.badge, { backgroundColor: getBadgeColor(status.break.badge_class) }]}>
-                        <Text style={styles.badgeText}>{status.break.status}</Text>
-                    </View>
-                </View>
-
-                <View style={styles.buttonRow}>
-                    {status.break.can_start && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.breakButton]}
-                            onPress={() => handleBreak('start')}
-                        >
-                            <Text style={styles.buttonText}>Start Break</Text>
-                        </TouchableOpacity>
-                    )}
-                    {status.break.can_end && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.breakButton]}
-                            onPress={() => handleBreak('end')}
-                        >
-                            <Text style={styles.buttonText}>End Break</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
+            <StatusCard
+                title="Break"
+                data={status.break}
+                startLabel="Start Break"
+                endLabel="End Break"
+                onStart={() => handleBreak('start')}
+                onEnd={() => handleBreak('end')}
+                isBreak={true}
+            />
 
             {/* Late Reason Modal */}
             <Modal
                 visible={lateModalVisible}
                 transparent
-                animationType="slide"
+                animationType="fade"
+                statusBarTranslucent
             >
-                <View style={styles.modalContainer}>
+                <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Late Reason Required</Text>
-                        <Text style={styles.modalSubtitle}>You are punching in late. Please provide a reason.</Text>
+                        <Text style={styles.modalTitle}>Running Late?</Text>
+                        <Text style={styles.modalSubtitle}>Please provide a reason for the late punch-in.</Text>
 
                         <TextInput
                             style={styles.input}
-                            placeholder="Enter reason (e.g., Traffic)"
+                            placeholder="e.g. Traffic, Doctor's appointment..."
+                            placeholderTextColor="#999"
                             value={lateReason}
                             onChangeText={setLateReason}
                             multiline
+                            numberOfLines={3}
                         />
 
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
+                                style={[styles.modalBtn, styles.cancelBtn]}
                                 onPress={() => {
                                     setLateModalVisible(false);
                                     setLateReason('');
                                     setPendingAction(null);
                                 }}
                             >
-                                <Text style={styles.modalButtonText}>Cancel</Text>
+                                <Text style={[styles.modalBtnText, { color: '#666' }]}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.submitButton]}
+                                style={[styles.modalBtn, styles.submitBtn]}
                                 onPress={submitLateReason}
                             >
-                                <Text style={styles.modalButtonText}>Submit</Text>
+                                <Text style={[styles.modalBtnText, { color: '#fff' }]}>Submit</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
             </Modal>
 
-            {/* Demo Controls */}
-            <View style={styles.demoControls}>
-                <Text style={styles.demoText}>Demo Controls:</Text>
-                <TouchableOpacity onPress={() => setWorklogValidation({ can_perform_attendance: false, message: "Demo: Pending Worklogs Block!" })}>
-                    <Text style={styles.demoLink}>Simulate Worklog Block</Text>
-                </TouchableOpacity>
-            </View>
+            {/* Subtle Mock Control */}
+            <TouchableOpacity
+                style={styles.demoTrigger}
+                onPress={() => setWorklogValidation({ can_perform_attendance: false, message: "Use Case: Pending Worklogs from yesterday preventing check-in." })}
+            >
+                <Text style={styles.demoText}>Simulate Block</Text>
+            </TouchableOpacity>
 
         </ScrollView>
     );
 };
 
-// Helper for badge colors
+// Colors
+const COLORS = {
+    primary: '#4F46E5', // Indigo
+    background: '#F3F4F6', // Cool Gray
+    cardBg: '#FFFFFF',
+    textDark: '#1F2937',
+    textLight: '#6B7280',
+    success: '#10B981',
+    warning: '#F59E0B',
+    danger: '#EF4444',
+    secondary: '#9CA3AF',
+    border: '#E5E7EB'
+};
+
 const getBadgeColor = (badgeClass) => {
-    if (badgeClass?.includes('success')) return '#28a745';
-    if (badgeClass?.includes('warning')) return '#ffc107';
-    if (badgeClass?.includes('danger')) return '#dc3545';
-    if (badgeClass?.includes('secondary')) return '#6c757d';
-    return '#007bff';
+    if (badgeClass?.includes('success')) return COLORS.success;
+    if (badgeClass?.includes('warning')) return COLORS.warning;
+    if (badgeClass?.includes('danger')) return COLORS.danger;
+    return COLORS.secondary;
 };
 
 const styles = StyleSheet.create({
     container: {
         padding: 20,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: COLORS.background,
         flexGrow: 1,
+        paddingBottom: 40,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: COLORS.background,
         padding: 20,
     },
+    header: {
+        marginBottom: 24,
+        marginTop: 10,
+    },
     headerTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#333',
+        fontSize: 28,
+        fontWeight: '800',
+        color: COLORS.textDark,
+        letterSpacing: -0.5,
+    },
+    headerDate: {
+        fontSize: 16,
+        color: COLORS.textLight,
+        marginTop: 4,
+        fontWeight: '500',
     },
     card: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 15,
+        backgroundColor: COLORS.cardBg,
+        borderRadius: 16,
+        padding: 20,
         marginBottom: 20,
+        // Soft Shadow
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
         elevation: 3,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.02)',
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
     },
     cardTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#333',
-    },
-    statusRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    statusLabel: {
-        fontSize: 16,
-        color: '#666',
-        marginRight: 10,
+        fontWeight: '700',
+        color: COLORS.textDark,
     },
     badge: {
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 15,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
     },
     badgeText: {
         color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 14,
+        fontWeight: '700',
+        fontSize: 12,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     timeText: {
         fontSize: 14,
-        color: '#888',
-        marginBottom: 15,
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    button: {
-        flex: 1,
-        paddingVertical: 12,
+        color: COLORS.textLight,
+        marginBottom: 20,
+        backgroundColor: '#F9FAFB',
+        padding: 8,
         borderRadius: 8,
+        overflow: 'hidden',
+    },
+    timeValue: {
+        color: COLORS.textDark,
+        fontWeight: '600',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    actionButton: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 12,
         alignItems: 'center',
-        marginHorizontal: 5,
+        justifyContent: 'center',
     },
-    inButton: {
-        backgroundColor: '#28a745',
+    startBtn: {
+        backgroundColor: COLORS.primary,
     },
-    outButton: {
-        backgroundColor: '#dc3545',
-    },
-    breakButton: {
-        backgroundColor: '#ffc107',
-    },
-    retryButton: {
-        marginTop: 20,
-        backgroundColor: '#007bff',
-        padding: 10,
-        borderRadius: 5
+    endBtn: {
+        backgroundColor: COLORS.danger,
     },
     disabledButton: {
-        backgroundColor: '#ccc',
+        backgroundColor: '#E5E7EB',
         opacity: 0.7,
     },
-    buttonText: {
+    btnText: {
         color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
+        fontWeight: '700',
+        fontSize: 15,
     },
-    errorText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#dc3545',
-        marginBottom: 10,
-    },
-    messageText: {
-        fontSize: 16,
-        color: '#333',
-        textAlign: 'center',
-    },
-    // Modal Styles
-    modalContainer: {
+    // Modal
+    modalOverlay: {
         flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.4)',
         justifyContent: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        padding: 20,
+        padding: 24,
     },
     modalContent: {
         backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
-        alignItems: 'center',
+        borderRadius: 20,
+        padding: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 10,
     },
     modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    modalSubtitle: {
-        fontSize: 16,
-        color: '#666',
-        marginBottom: 20,
+        fontSize: 22,
+        fontWeight: '700',
+        color: COLORS.textDark,
+        marginBottom: 8,
         textAlign: 'center',
     },
+    modalSubtitle: {
+        fontSize: 15,
+        color: COLORS.textLight,
+        marginBottom: 24,
+        textAlign: 'center',
+        lineHeight: 22,
+    },
     input: {
+        backgroundColor: '#F9FAFB',
         borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 10,
-        width: '100%',
-        minHeight: 80,
+        borderColor: COLORS.border,
+        borderRadius: 12,
+        padding: 16,
+        fontSize: 16,
+        color: COLORS.textDark,
+        minHeight: 100,
         textAlignVertical: 'top',
-        marginBottom: 20,
+        marginBottom: 24,
     },
     modalButtons: {
         flexDirection: 'row',
-        width: '100%',
-        justifyContent: 'space-between',
+        gap: 12,
     },
-    modalButton: {
+    modalBtn: {
         flex: 1,
-        padding: 12,
-        borderRadius: 8,
+        paddingVertical: 14,
+        borderRadius: 12,
         alignItems: 'center',
-        marginHorizontal: 5,
     },
-    cancelButton: {
-        backgroundColor: '#6c757d',
+    cancelBtn: {
+        backgroundColor: '#F3F4F6',
     },
-    submitButton: {
-        backgroundColor: '#007bff',
+    submitBtn: {
+        backgroundColor: COLORS.primary,
     },
-    modalButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
+    modalBtnText: {
+        fontWeight: '600',
+        fontSize: 16,
     },
-    demoControls: {
-        marginTop: 20,
-        alignItems: 'center',
-        paddingTop: 20,
-        borderTopWidth: 1,
-        borderColor: '#ddd'
+    // Error / Blocked
+    errorText: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: COLORS.danger,
+    },
+    messageText: {
+        fontSize: 16,
+        color: COLORS.textLight,
+        textAlign: 'center',
+        lineHeight: 24,
+    },
+    // Demo
+    demoTrigger: {
+        marginTop: 40,
+        alignSelf: 'center',
+        padding: 10,
     },
     demoText: {
-        color: '#999',
-        fontSize: 12
-    },
-    demoLink: {
-        color: '#007bff',
-        marginTop: 5
+        color: COLORS.textLight,
+        fontSize: 12,
+        opacity: 0.5,
     }
 });
 
