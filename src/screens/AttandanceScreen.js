@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     TouchableOpacity,
     Modal,
     TextInput,
@@ -12,188 +11,136 @@ import {
     RefreshControl
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import api from '../api/client';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+    fetchAttendanceStatus,
+    punchIn,
+    punchOut,
+    toggleBreak,
+    clearMessages
+} from '../store/slices/attendanceSlice';
+import { styles, COLORS } from '../css/AttandanceStyles';
 
 const AttandanceScreen = ({ navigation }) => {
-    const [loading, setLoading] = useState(true);
-    const [actionLoading, setActionLoading] = useState(false);
+    const dispatch = useDispatch();
+    const {
+        status,
+        worklogValidation,
+        loading,
+        actionLoading,
+        error,
+        successMessage,
+        validationError
+    } = useSelector(state => state.attendance);
 
-    // Data State
-    const [status, setStatus] = useState({
-        office: {
-            status: "Loading...",
-            badge_class: "badge-secondary",
-            can_start: false,
-            can_end: false,
-            last_action_time: null
-        },
-        field: {
-            status: "Loading...",
-            badge_class: "badge-secondary",
-            can_start: false,
-            can_end: false,
-            last_action_time: null
-        },
-        break: {
-            status: "Loading...",
-            badge_class: "badge-secondary",
-            can_start: false,
-            can_end: false
-        }
-    });
-
-    const [worklogValidation, setWorklogValidation] = useState({
-        can_perform_attendance: true,
-        message: ""
-    });
-
-    // Late Reason Modal State
+    // Local UI State for Modal
     const [lateModalVisible, setLateModalVisible] = useState(false);
     const [lateReason, setLateReason] = useState('');
     const [pendingAction, setPendingAction] = useState(null); // { type: 'office' | 'field' }
 
-    //--- API Actions ---
-
-    const fetchTodayStatus = async () => {
-        try {
-            const response = await api.get('/attendance/today-status');
-            const data = response.data;
-            if (data.status) {
-                setStatus(data.status);
-            }
-            if (data.worklog_validation) {
-                setWorklogValidation(data.worklog_validation);
-            }
-        } catch (error) {
-            console.error("Fetch Status Error:", error);
-            Alert.alert("Error", "Failed to load attendance status.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    //--- Side Effects ---
 
     useFocusEffect(
         useCallback(() => {
-            fetchTodayStatus();
-        }, [])
+            dispatch(fetchAttendanceStatus());
+        }, [dispatch])
     );
 
-    const onRefresh = useCallback(() => {
-        setLoading(true);
-        fetchTodayStatus();
-    }, []);
+    // Handle Messages & Errors
+    useEffect(() => {
+        if (successMessage) {
+            Alert.alert("Success", successMessage);
+            dispatch(clearMessages());
+            // Close modal if open
+            setLateModalVisible(false);
+            setLateReason('');
+            setPendingAction(null);
+        }
+
+        if (error) {
+            Alert.alert("Error", error);
+            dispatch(clearMessages());
+        }
+
+        if (validationError) {
+            // Check for specific 'require_late_reason' flag
+            if (validationError.require_late_reason) {
+                // If we don't know the type, we might have an issue, but usually we set pendingAction 
+                // BEFORE dispatching if we knew. But here the API told us.
+                // NOTE: In the Thunk, we caught 422. 
+                // Ideally, we should know WHICH action caused this. 
+                // Since `punchIn` sets `validationError`, we can assume it triggered the modal requirement.
+                // However, our local `handlePunchIn` sets the pendingAction state *optimistically* 
+                // or we need to infer it. 
+
+                // Let's rely on the local handler to set the pending action before dispatching?
+                // Actually, if the API fails with "Late Reason Required", we need to know for WHICH type.
+                // The API response might not say "office" or "field".
+                // So, we should handle the logic of "opening modal" inside the local handler 
+                // by checking the 422 rejection there OR letting the effect handle it if `pendingAction` is set.
+
+                // REVISION: The previous local logic was better for flow control:
+                // try { create } catch (422) { if late_reason open modal }
+                // With Redux, the error state updates.
+                // Let's simplify: 
+                // We'll keep the "intent" locally when calling dispatch.
+
+                if (validationError.require_late_reason) {
+                    setLateModalVisible(true);
+                } else {
+                    Alert.alert("Action Failed", validationError.message || "Validation Error");
+                }
+            } else {
+                Alert.alert("Action Failed", validationError.message || "Validation Error");
+            }
+            dispatch(clearMessages());
+        }
+    }, [successMessage, error, validationError, dispatch]);
+
+
+    //--- Actions ---
+
+    const loadStatus = () => {
+        dispatch(fetchAttendanceStatus());
+    };
 
     const handlePunchIn = async (type) => {
-        setActionLoading(true);
-        try {
-            await performPunchIn(type);
-        } catch (error) {
-            // Error handled in performPunchIn
-        } finally {
-            setActionLoading(false);
-        }
+        // We set pendingAction here just in case we need it for the Modal later.
+        // If the dispatch succeeds, we clear it in the success effect.
+        // If it fails with "require_late_reason", we have it ready.
+        setPendingAction({ type });
+        dispatch(punchIn({ type }));
     };
 
-    const performPunchIn = async (type, reason = null) => {
-        try {
-            const payload = { movement_type: type };
-            if (reason) payload.late_reason = reason;
-
-            const response = await api.post('/attendance/punch-in', payload);
-
-            if (response.data?.success) {
-                Alert.alert("Success", response.data.message || `Punched In (${type}) successfully!`);
-                setLateModalVisible(false);
-                setLateReason('');
-                setPendingAction(null);
-                fetchTodayStatus(); // Refresh UI
-            }
-        } catch (error) {
-            if (error.response?.status === 422) {
-                const data = error.response.data;
-                // Check if Late Reason is required
-                if (data.require_late_reason) {
-                    setPendingAction({ type });
-                    setLateModalVisible(true);
-                    return; // Stop here, wait for modal
-                }
-                // Check for other 422 errors (e.g. general validation)
-                Alert.alert("Action Failed", data.message || "Unable to punch in.");
-            } else {
-                Alert.alert("Error", error.response?.data?.message || "An unexpected error occurred.");
-            }
-        }
-    };
-
-    const submitLateReason = async () => {
+    const submitLateReason = () => {
         if (!lateReason.trim()) {
             Alert.alert('Validation', 'Please enter a reason.');
             return;
         }
-        setActionLoading(true);
-        try {
-            await performPunchIn(pendingAction.type, lateReason);
-        } finally {
-            setActionLoading(false);
+        if (pendingAction?.type) {
+            dispatch(punchIn({ type: pendingAction.type, reason: lateReason }));
         }
     };
 
-    const handlePunchOut = async (type) => {
-        setActionLoading(true);
-        try {
-            const response = await api.post('/attendance/punch-out', { movement_type: type });
-            if (response.data?.success) {
-                Alert.alert("Success", response.data.message || `Punched Out (${type}) successfully!`);
-                fetchTodayStatus();
-            }
-        } catch (error) {
-            if (error.response?.status === 422) {
-                // Task Blocker usually comes as 422 with a specific message
-                Alert.alert("Cannot Punch Out", error.response.data.message || "Please check your pending tasks.");
-            } else {
-                Alert.alert("Error", error.response?.data?.message || "An unexpected error occurred.");
-            }
-        } finally {
-            setActionLoading(false);
-        }
+    const handlePunchOut = (type) => {
+        dispatch(punchOut({ type }));
     };
 
-    const handleBreak = async (action) => {
-        setActionLoading(true);
-        const endpoint = action === 'start' ? '/attendance/break/start' : '/attendance/break/end';
-
-        try {
-            const response = await api.post(endpoint);
-            if (response.data?.success) {
-                Alert.alert("Success", response.data.message || (action === 'start' ? "Break Started" : "Break Ended"));
-                fetchTodayStatus();
-            }
-        } catch (error) {
-            Alert.alert("Error", error.response?.data?.message || "Failed to update break status.");
-        } finally {
-            setActionLoading(false);
-        }
+    const handleBreak = (action) => {
+        dispatch(toggleBreak({ action }));
     };
 
     //--- Render Helpers ---
 
     const StatusCard = ({ title, data, onStart, onEnd, startLabel, endLabel, isBreak = false }) => {
         const isOnBreak = status.break.can_end; // Currently on break
-        // Disable Office/Field buttons if user is ON break
         const isDisabled = !isBreak && isOnBreak;
 
         return (
             <View style={styles.card}>
                 <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>{title}</Text>
-                    <View style={[styles.badge, { backgroundColor: getBadgeColor(data.badge_class) }]}>
-                        <Text style={styles.badgeText}>{data.status}</Text>
-                    </View>
+                    <Text style={styles.badgeText}>{data.status}</Text>
                 </View>
-
-                {data.last_action_time && (
-                    <Text style={styles.timeText}>Last Action: <Text style={styles.timeValue}>{data.last_action_time}</Text></Text>
-                )}
 
                 <View style={styles.buttonContainer}>
                     {data.can_start && (
@@ -238,7 +185,7 @@ const AttandanceScreen = ({ navigation }) => {
         return (
             <ScrollView
                 contentContainerStyle={styles.centerContainer}
-                refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}
+                refreshControl={<RefreshControl refreshing={loading} onRefresh={loadStatus} />}
             >
                 <View style={[styles.card, { alignItems: 'center', width: '100%' }]}>
                     <Text style={[styles.errorText, { marginBottom: 10 }]}>Action Required</Text>
@@ -246,7 +193,7 @@ const AttandanceScreen = ({ navigation }) => {
 
                     <TouchableOpacity
                         style={[styles.actionButton, styles.startBtn, { marginTop: 20, width: '100%' }]}
-                        onPress={fetchTodayStatus}
+                        onPress={loadStatus}
                     >
                         <Text style={styles.btnText}>Refresh Status</Text>
                     </TouchableOpacity>
@@ -255,12 +202,11 @@ const AttandanceScreen = ({ navigation }) => {
         );
     }
 
-    // 3. Main Attendance Interface
     return (
         <ScrollView
             contentContainerStyle={styles.container}
             showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}
+            refreshControl={<RefreshControl refreshing={loading} onRefresh={loadStatus} />}
         >
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Attendance</Text>
@@ -354,221 +300,5 @@ const AttandanceScreen = ({ navigation }) => {
         </ScrollView>
     );
 };
-
-// Colors
-const COLORS = {
-    primary: '#4F46E5', // Indigo
-    background: '#F3F4F6', // Cool Gray
-    cardBg: '#FFFFFF',
-    textDark: '#1F2937',
-    textLight: '#6B7280',
-    success: '#10B981',
-    warning: '#F59E0B',
-    danger: '#EF4444',
-    secondary: '#9CA3AF',
-    border: '#E5E7EB'
-};
-
-const getBadgeColor = (badgeClass) => {
-    if (badgeClass?.includes('success')) return COLORS.success;
-    if (badgeClass?.includes('warning')) return COLORS.warning;
-    if (badgeClass?.includes('danger')) return COLORS.danger;
-    return COLORS.secondary;
-};
-
-const styles = StyleSheet.create({
-    container: {
-        padding: 20,
-        backgroundColor: COLORS.background,
-        flexGrow: 1,
-        paddingBottom: 40,
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: COLORS.background,
-        padding: 20,
-    },
-    header: {
-        marginBottom: 24,
-        marginTop: 10,
-    },
-    headerTitle: {
-        fontSize: 28,
-        fontWeight: '800',
-        color: COLORS.textDark,
-        letterSpacing: -0.5,
-    },
-    headerDate: {
-        fontSize: 16,
-        color: COLORS.textLight,
-        marginTop: 4,
-        fontWeight: '500',
-    },
-    card: {
-        backgroundColor: COLORS.cardBg,
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 20,
-        // Soft Shadow
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 3,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.02)',
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: COLORS.textDark,
-    },
-    badge: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-    },
-    badgeText: {
-        color: '#fff',
-        fontWeight: '700',
-        fontSize: 12,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    timeText: {
-        fontSize: 14,
-        color: COLORS.textLight,
-        marginBottom: 20,
-        backgroundColor: '#F9FAFB',
-        padding: 8,
-        borderRadius: 8,
-        overflow: 'hidden',
-    },
-    timeValue: {
-        color: COLORS.textDark,
-        fontWeight: '600',
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    actionButton: {
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    startBtn: {
-        backgroundColor: COLORS.primary,
-    },
-    endBtn: {
-        backgroundColor: COLORS.danger,
-    },
-    disabledButton: {
-        backgroundColor: '#E5E7EB',
-        opacity: 0.7,
-    },
-    btnText: {
-        color: '#fff',
-        fontWeight: '700',
-        fontSize: 15,
-    },
-    // Modal
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'center',
-        padding: 24,
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        padding: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.1,
-        shadowRadius: 20,
-        elevation: 10,
-    },
-    modalTitle: {
-        fontSize: 22,
-        fontWeight: '700',
-        color: COLORS.textDark,
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    modalSubtitle: {
-        fontSize: 15,
-        color: COLORS.textLight,
-        marginBottom: 24,
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-    input: {
-        backgroundColor: '#F9FAFB',
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        borderRadius: 12,
-        padding: 16,
-        fontSize: 16,
-        color: COLORS.textDark,
-        minHeight: 100,
-        textAlignVertical: 'top',
-        marginBottom: 24,
-    },
-    modalButtons: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    modalBtn: {
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    cancelBtn: {
-        backgroundColor: '#F3F4F6',
-    },
-    submitBtn: {
-        backgroundColor: COLORS.primary,
-    },
-    modalBtnText: {
-        fontWeight: '600',
-        fontSize: 16,
-    },
-    // Error / Blocked
-    errorText: {
-        fontSize: 22,
-        fontWeight: '800',
-        color: COLORS.danger,
-    },
-    messageText: {
-        fontSize: 16,
-        color: COLORS.textLight,
-        textAlign: 'center',
-        lineHeight: 24,
-    },
-    loadingOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000,
-        borderRadius: 16 // Matches card if needed, but here it's full screen or container
-    }
-});
 
 export default AttandanceScreen;
