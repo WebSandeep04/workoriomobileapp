@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -8,32 +8,36 @@ import {
     TextInput,
     ScrollView,
     Alert,
-    Dimensions
+    ActivityIndicator,
+    RefreshControl
 } from 'react-native';
-
-const { width } = Dimensions.get('window');
+import { useFocusEffect } from '@react-navigation/native';
+import api from '../api/client';
 
 const AttandanceScreen = ({ navigation }) => {
-    // Mock Data State
+    const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
+
+    // Data State
     const [status, setStatus] = useState({
         office: {
-            status: "Punched Out",
+            status: "Loading...",
             badge_class: "badge-secondary",
-            can_start: true,
+            can_start: false,
             can_end: false,
             last_action_time: null
         },
         field: {
-            status: "Field Out",
+            status: "Loading...",
             badge_class: "badge-secondary",
-            can_start: true,
+            can_start: false,
             can_end: false,
             last_action_time: null
         },
         break: {
-            status: "Not on Break",
-            badge_class: "badge-success",
-            can_start: true,
+            status: "Loading...",
+            badge_class: "badge-secondary",
+            can_start: false,
             can_end: false
         }
     });
@@ -43,118 +47,139 @@ const AttandanceScreen = ({ navigation }) => {
         message: ""
     });
 
+    // Late Reason Modal State
     const [lateModalVisible, setLateModalVisible] = useState(false);
     const [lateReason, setLateReason] = useState('');
-    const [pendingAction, setPendingAction] = useState(null);
+    const [pendingAction, setPendingAction] = useState(null); // { type: 'office' | 'field' }
 
-    //--- Actions (Mock Logic) ---
+    //--- API Actions ---
 
-    const handlePunchIn = (type) => {
-        const isLate = Math.random() > 0.7;
-        if (isLate) {
-            setPendingAction({ type, action: 'in' });
-            setLateModalVisible(true);
-            return;
+    const fetchTodayStatus = async () => {
+        try {
+            const response = await api.get('/attendance/today-status');
+            const data = response.data;
+            if (data.status) {
+                setStatus(data.status);
+            }
+            if (data.worklog_validation) {
+                setWorklogValidation(data.worklog_validation);
+            }
+        } catch (error) {
+            console.error("Fetch Status Error:", error);
+            Alert.alert("Error", "Failed to load attendance status.");
+        } finally {
+            setLoading(false);
         }
-        performPunchIn(type);
     };
 
-    const performPunchIn = (type, reason = null) => {
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const newStatus = { ...status };
+    useFocusEffect(
+        useCallback(() => {
+            fetchTodayStatus();
+        }, [])
+    );
 
-        if (type === 'office') {
-            newStatus.office = {
-                status: "Punched In",
-                badge_class: "badge-success",
-                can_start: false,
-                can_end: true,
-                last_action_time: time
-            };
-            if (newStatus.field.can_end) {
-                newStatus.field = { ...newStatus.field, status: "Field Out", can_start: true, can_end: false };
-            }
-        } else {
-            newStatus.field = {
-                status: "Field In",
-                badge_class: "badge-warning",
-                can_start: false,
-                can_end: true,
-                last_action_time: time
-            };
-            if (newStatus.office.can_end) {
-                newStatus.office = { ...newStatus.office, status: "Punched Out", can_start: true, can_end: false };
-            }
+    const onRefresh = useCallback(() => {
+        setLoading(true);
+        fetchTodayStatus();
+    }, []);
+
+    const handlePunchIn = async (type) => {
+        setActionLoading(true);
+        try {
+            await performPunchIn(type);
+        } catch (error) {
+            // Error handled in performPunchIn
+        } finally {
+            setActionLoading(false);
         }
-
-        setStatus(newStatus);
-        setLateModalVisible(false);
-        setLateReason('');
-        setPendingAction(null);
     };
 
-    const submitLateReason = () => {
+    const performPunchIn = async (type, reason = null) => {
+        try {
+            const payload = { movement_type: type };
+            if (reason) payload.late_reason = reason;
+
+            const response = await api.post('/attendance/punch-in', payload);
+
+            if (response.data?.success) {
+                Alert.alert("Success", response.data.message || `Punched In (${type}) successfully!`);
+                setLateModalVisible(false);
+                setLateReason('');
+                setPendingAction(null);
+                fetchTodayStatus(); // Refresh UI
+            }
+        } catch (error) {
+            if (error.response?.status === 422) {
+                const data = error.response.data;
+                // Check if Late Reason is required
+                if (data.require_late_reason) {
+                    setPendingAction({ type });
+                    setLateModalVisible(true);
+                    return; // Stop here, wait for modal
+                }
+                // Check for other 422 errors (e.g. general validation)
+                Alert.alert("Action Failed", data.message || "Unable to punch in.");
+            } else {
+                Alert.alert("Error", error.response?.data?.message || "An unexpected error occurred.");
+            }
+        }
+    };
+
+    const submitLateReason = async () => {
         if (!lateReason.trim()) {
             Alert.alert('Validation', 'Please enter a reason.');
             return;
         }
-        performPunchIn(pendingAction.type, lateReason);
+        setActionLoading(true);
+        try {
+            await performPunchIn(pendingAction.type, lateReason);
+        } finally {
+            setActionLoading(false);
+        }
     };
 
-    const handlePunchOut = (type) => {
-        const hasPendingTasks = Math.random() > 0.8;
-        if (hasPendingTasks) {
-            Alert.alert('Pending Tasks', 'Please update your pending tasks before leaving.');
-            return;
+    const handlePunchOut = async (type) => {
+        setActionLoading(true);
+        try {
+            const response = await api.post('/attendance/punch-out', { movement_type: type });
+            if (response.data?.success) {
+                Alert.alert("Success", response.data.message || `Punched Out (${type}) successfully!`);
+                fetchTodayStatus();
+            }
+        } catch (error) {
+            if (error.response?.status === 422) {
+                // Task Blocker usually comes as 422 with a specific message
+                Alert.alert("Cannot Punch Out", error.response.data.message || "Please check your pending tasks.");
+            } else {
+                Alert.alert("Error", error.response?.data?.message || "An unexpected error occurred.");
+            }
+        } finally {
+            setActionLoading(false);
         }
-
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const newStatus = { ...status };
-
-        if (type === 'office') {
-            newStatus.office = {
-                status: "Punched Out",
-                badge_class: "badge-danger",
-                can_start: true,
-                can_end: false,
-                last_action_time: time
-            };
-        } else {
-            newStatus.field = {
-                status: "Field Out",
-                badge_class: "badge-danger",
-                can_start: true,
-                can_end: false,
-                last_action_time: time
-            };
-        }
-        setStatus(newStatus);
     };
 
-    const handleBreak = (action) => {
-        const newStatus = { ...status };
-        if (action === 'start') {
-            newStatus.break = {
-                status: "On Break",
-                badge_class: "badge-warning",
-                can_start: false,
-                can_end: true
-            };
-        } else {
-            newStatus.break = {
-                status: "Not on Break",
-                badge_class: "badge-success",
-                can_start: true,
-                can_end: false
-            };
+    const handleBreak = async (action) => {
+        setActionLoading(true);
+        const endpoint = action === 'start' ? '/attendance/break/start' : '/attendance/break/end';
+
+        try {
+            const response = await api.post(endpoint);
+            if (response.data?.success) {
+                Alert.alert("Success", response.data.message || (action === 'start' ? "Break Started" : "Break Ended"));
+                fetchTodayStatus();
+            }
+        } catch (error) {
+            Alert.alert("Error", error.response?.data?.message || "Failed to update break status.");
+        } finally {
+            setActionLoading(false);
         }
-        setStatus(newStatus);
     };
 
     //--- Render Helpers ---
 
     const StatusCard = ({ title, data, onStart, onEnd, startLabel, endLabel, isBreak = false }) => {
-        const isOnBreak = status.break.can_end;
+        const isOnBreak = status.break.can_end; // Currently on break
+        // Disable Office/Field buttons if user is ON break
         const isDisabled = !isBreak && isOnBreak;
 
         return (
@@ -175,7 +200,7 @@ const AttandanceScreen = ({ navigation }) => {
                         <TouchableOpacity
                             style={[styles.actionButton, styles.startBtn, isDisabled && styles.disabledButton]}
                             onPress={onStart}
-                            disabled={isDisabled}
+                            disabled={isDisabled || actionLoading}
                             activeOpacity={0.8}
                         >
                             <Text style={styles.btnText}>{startLabel}</Text>
@@ -185,7 +210,7 @@ const AttandanceScreen = ({ navigation }) => {
                         <TouchableOpacity
                             style={[styles.actionButton, styles.endBtn, isDisabled && styles.disabledButton]}
                             onPress={onEnd}
-                            disabled={isDisabled}
+                            disabled={isDisabled || actionLoading}
                             activeOpacity={0.8}
                         >
                             <Text style={styles.btnText}>{endLabel}</Text>
@@ -198,29 +223,56 @@ const AttandanceScreen = ({ navigation }) => {
 
     //--- Main Render ---
 
-    if (!worklogValidation.can_perform_attendance) {
+    // 1. Loading State
+    if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <View style={[styles.card, { alignItems: 'center' }]}>
-                    <Text style={[styles.errorText, { marginBottom: 10 }]}>Action Required</Text>
-                    <Text style={styles.messageText}>{worklogValidation.message}</Text>
-                    <TouchableOpacity
-                        style={[styles.actionButton, styles.startBtn, { marginTop: 20, width: '100%' }]}
-                        onPress={() => setWorklogValidation({ ...worklogValidation, can_perform_attendance: true })}
-                    >
-                        <Text style={styles.btnText}>Simulate Fix</Text>
-                    </TouchableOpacity>
-                </View>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Text style={{ marginTop: 10, color: COLORS.textLight }}>Loading Status...</Text>
             </View>
         );
     }
 
+    // 2. Worklog Block State
+    if (!worklogValidation.can_perform_attendance) {
+        return (
+            <ScrollView
+                contentContainerStyle={styles.centerContainer}
+                refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}
+            >
+                <View style={[styles.card, { alignItems: 'center', width: '100%' }]}>
+                    <Text style={[styles.errorText, { marginBottom: 10 }]}>Action Required</Text>
+                    <Text style={styles.messageText}>{worklogValidation.message}</Text>
+
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.startBtn, { marginTop: 20, width: '100%' }]}
+                        onPress={fetchTodayStatus}
+                    >
+                        <Text style={styles.btnText}>Refresh Status</Text>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        );
+    }
+
+    // 3. Main Attendance Interface
     return (
-        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView
+            contentContainerStyle={styles.container}
+            showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}
+        >
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Attendance</Text>
                 <Text style={styles.headerDate}>{new Date().toDateString()}</Text>
             </View>
+
+            {actionLoading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#fff" />
+                    <Text style={{ color: '#fff', marginTop: 10, fontWeight: 'bold' }}>Processing...</Text>
+                </View>
+            )}
 
             <StatusCard
                 title="Office"
@@ -256,6 +308,10 @@ const AttandanceScreen = ({ navigation }) => {
                 transparent
                 animationType="fade"
                 statusBarTranslucent
+                onRequestClose={() => {
+                    setLateModalVisible(false);
+                    setPendingAction(null);
+                }}
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
@@ -286,21 +342,14 @@ const AttandanceScreen = ({ navigation }) => {
                             <TouchableOpacity
                                 style={[styles.modalBtn, styles.submitBtn]}
                                 onPress={submitLateReason}
+                                disabled={actionLoading}
                             >
-                                <Text style={[styles.modalBtnText, { color: '#fff' }]}>Submit</Text>
+                                <Text style={[styles.modalBtnText, { color: '#fff' }]}>{actionLoading ? "Submitting..." : "Submit"}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
             </Modal>
-
-            {/* Subtle Mock Control */}
-            <TouchableOpacity
-                style={styles.demoTrigger}
-                onPress={() => setWorklogValidation({ can_perform_attendance: false, message: "Use Case: Pending Worklogs from yesterday preventing check-in." })}
-            >
-                <Text style={styles.demoText}>Simulate Block</Text>
-            </TouchableOpacity>
 
         </ScrollView>
     );
@@ -508,16 +557,17 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 24,
     },
-    // Demo
-    demoTrigger: {
-        marginTop: 40,
-        alignSelf: 'center',
-        padding: 10,
-    },
-    demoText: {
-        color: COLORS.textLight,
-        fontSize: 12,
-        opacity: 0.5,
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+        borderRadius: 16 // Matches card if needed, but here it's full screen or container
     }
 });
 

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api, { setApiToken } from '../../api/client';
+import api, { setApiToken, setTenantId } from '../../api/client';
 
 const initialState = {
   user: null,
@@ -24,6 +24,7 @@ export const loginUser = createAsyncThunk(
       await AsyncStorage.setItem('auth_token', data.token);
       await AsyncStorage.setItem('user_data', JSON.stringify(data));
       setApiToken(data.token);
+      setTenantId(data.tenant_id);
 
       return { user: data, token: data.token };
     } catch (error) {
@@ -40,6 +41,7 @@ export const logoutUser = createAsyncThunk(
       await AsyncStorage.removeItem('auth_token');
       await AsyncStorage.removeItem('user_data');
       setApiToken(null);
+      setTenantId(null);
       return true;
     } catch (error) {
       return rejectWithValue('Logout failed');
@@ -53,8 +55,12 @@ export const initAuth = createAsyncThunk('auth/initAuth', async () => {
     const userData = await AsyncStorage.getItem('user_data');
 
     if (token && userData) {
+      const parsedUser = JSON.parse(userData);
       setApiToken(token);
-      return { token, user: JSON.parse(userData) };
+      if (parsedUser.tenant_id) {
+        setTenantId(parsedUser.tenant_id);
+      }
+      return { token, user: parsedUser };
     }
   } catch (e) {
     console.error(e);
@@ -94,13 +100,20 @@ const authSlice = createSlice({
         state.token = null;
       })
       // Init
+      .addCase(initAuth.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(initAuth.fulfilled, (state, action) => {
+        state.isLoading = false;
         const { token, user } = action.payload;
         if (token) {
           state.token = token;
           state.user = user;
           state.isAuthenticated = true;
         }
+      })
+      .addCase(initAuth.rejected, (state) => {
+        state.isLoading = false;
       });
   },
 });
