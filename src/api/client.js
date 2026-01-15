@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance
 const api = axios.create({
-    baseURL: 'https://app.workorio.com/api',
+    baseURL: 'http://192.168.1.6:8000/api',
     headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
