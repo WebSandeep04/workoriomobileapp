@@ -89,12 +89,27 @@ const AttendanceCard = () => {
     const isActionable = officeStatus.can_start || officeStatus.can_end;
     const workingHours = officeStatus.last_action_time ? ` | ${officeStatus.working_hours || '0hr 0min'}` : '';
 
+    const formatTime = (timeString) => {
+        if (!timeString) return '';
+        const [hours, minutes] = timeString.split(':');
+        const date = new Date();
+        date.setHours(parseInt(hours, 10));
+        date.setMinutes(parseInt(minutes, 10));
+        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+    };
+
+    const shift = user?.employee_details?.shift;
+    const shiftName = shift?.name ? shift.name.toUpperCase() : "GENERAL";
+    const shiftTiming = shift?.start_time && shift?.end_time
+        ? `( ${formatTime(shift.start_time)} - ${formatTime(shift.end_time)} )`
+        : "( 10:00 AM - 6:35 PM )";
+
     return (
         <View style={styles.card}>
             {/* Header: Shift Info */}
             <View style={styles.headerRow}>
                 <Text style={styles.headerLabel}>
-                    Shift Today : <Text style={styles.headerValue}>GENERAL ( 10:00 AM - 6:30 PM )</Text>
+                    Shift Today : <Text style={styles.headerValue}>{shiftName} {shiftTiming}</Text>
                 </Text>
             </View>
 

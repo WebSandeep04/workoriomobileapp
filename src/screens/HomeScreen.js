@@ -2,17 +2,22 @@ import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import { fetchAttendanceStatus } from '../store/slices/attendanceSlice';
+import { fetchAttendanceStatus, fetchBirthdays } from '../store/slices/attendanceSlice';
 import AttendanceCard from '../components/AttendanceCard';
 import QuickActions from '../components/QuickActions';
 import WishThem from '../components/WishThem';
+import { styles } from '../css/HomeScreenStyles';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { loading } = useSelector(state => state.attendance);
+  const { loading, birthdays } = useSelector(state => state.attendance);
+
+  // Debug Birthdays
+  console.log('HomeScreen Birthdays from Store:', JSON.stringify(birthdays, null, 2));
 
   const loadData = useCallback(() => {
     dispatch(fetchAttendanceStatus());
+    dispatch(fetchBirthdays()); // Load birthdays
   }, [dispatch]);
 
   useFocusEffect(
@@ -21,14 +26,20 @@ const HomeScreen = ({ navigation }) => {
     }, [loadData])
   );
 
+  // Map birthdays to wishes format
+  const wishes = (birthdays || []).map((b, index) => ({
+    id: b.employee_code || index,
+    name: b.name,
+    type: "B'DAY",
+    dob: b.dob, // Pass DOB
+    image: 'https://i.pravatar.cc/100?img=' + (index + 10), // Dummy image for now as requested
+  }));
+
   return (
     <ScrollView
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} />}
     >
-
-
-
       <QuickActions actions={[
         {
           id: 1,
@@ -59,40 +70,14 @@ const HomeScreen = ({ navigation }) => {
       <AttendanceCard />
 
       <WishThem
-        wishes={[
-          { id: 1, name: "Sasha's Bir...", type: "B'DAY" },
-          { id: 2, name: "Sasha's Bir...", type: "B'DAY" },
-          { id: 3, name: "Sasha's Bir...", type: "B'DAY" },
-          { id: 4, name: "Sasha's Bir...", type: "B'DAY" },
-        ]}
+        wishes={wishes}
         onSeeMore={() => console.log('See More Wishes')}
       />
 
       {/* Other Dashboard Widgets could go here */}
 
-    </ScrollView>
+    </ScrollView >
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: '#f8fafc',
-    paddingVertical: 20,
-  },
-  header: {
-    paddingHorizontal: 24,
-    marginBottom: 20,
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: '#64748b',
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0f172a',
-  },
-});
 
 export default HomeScreen;

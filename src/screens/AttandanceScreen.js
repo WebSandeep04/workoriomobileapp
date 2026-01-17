@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchAttendanceStatus, punchIn, punchOut, toggleBreak, clearMessages } from '../store/slices/attendanceSlice';
 import { styles, COLORS } from '../css/AttandanceStyles';
+import Header from '../components/Header';
 
 
 const AttandanceScreen = ({ navigation }) => {
@@ -164,101 +165,104 @@ const AttandanceScreen = ({ navigation }) => {
     }
 
     return (
-        <ScrollView
-            contentContainerStyle={styles.container}
-            showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={loading} onRefresh={loadStatus} />}
-        >
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Attendance</Text>
-                <Text style={styles.headerDate}>{new Date().toDateString()}</Text>
-            </View>
-
-            {actionLoading && (
-                <View style={styles.loadingOverlay}>
-                    <ActivityIndicator size="large" color="#fff" />
-                    <Text style={{ color: '#fff', marginTop: 10, fontWeight: 'bold' }}>Processing...</Text>
-                </View>
-            )}
-
-            <StatusCard
-                title="Office"
-                data={status.office}
-                startLabel="Punch In"
-                endLabel="Punch Out"
-                onStart={() => handlePunchIn('office')}
-                onEnd={() => handlePunchOut('office')}
-            />
-
-            <StatusCard
-                title="Field Work"
-                data={status.field}
-                startLabel="Field In"
-                endLabel="Field Out"
-                onStart={() => handlePunchIn('field')}
-                onEnd={() => handlePunchOut('field')}
-            />
-
-            <StatusCard
-                title="Break"
-                data={status.break}
-                startLabel="Start Break"
-                endLabel="End Break"
-                onStart={() => handleBreak('start')}
-                onEnd={() => handleBreak('end')}
-                isBreak={true}
-            />
-
-            {/* Late Reason Modal */}
-            <Modal
-                visible={lateModalVisible}
-                transparent
-                animationType="fade"
-                statusBarTranslucent
-                onRequestClose={() => {
-                    setLateModalVisible(false);
-                    setPendingAction(null);
-                }}
+        <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+            <Header title="Attendance" />
+            <ScrollView
+                contentContainerStyle={styles.container}
+                showsVerticalScrollIndicator={false}
+                refreshControl={<RefreshControl refreshing={loading} onRefresh={loadStatus} />}
             >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Running Late?</Text>
-                        <Text style={styles.modalSubtitle}>Please provide a reason for the late punch-in.</Text>
+                {/* <View style={styles.header}>
+                    <Text style={styles.headerTitle}>Attendance</Text>
+                    <Text style={styles.headerDate}>{new Date().toDateString()}</Text>
+                </View> */}
 
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g. Traffic, Doctor's appointment..."
-                            placeholderTextColor="#999"
-                            value={lateReason}
-                            onChangeText={setLateReason}
-                            multiline
-                            numberOfLines={3}
-                        />
+                {actionLoading && (
+                    <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size="large" color="#fff" />
+                        <Text style={{ color: '#fff', marginTop: 10, fontWeight: 'bold' }}>Processing...</Text>
+                    </View>
+                )}
 
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity
-                                style={[styles.modalBtn, styles.cancelBtn]}
-                                onPress={() => {
-                                    setLateModalVisible(false);
-                                    setLateReason('');
-                                    setPendingAction(null);
-                                }}
-                            >
-                                <Text style={[styles.modalBtnText, { color: '#666' }]}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalBtn, styles.submitBtn]}
-                                onPress={submitLateReason}
-                                disabled={actionLoading}
-                            >
-                                <Text style={[styles.modalBtnText, { color: '#fff' }]}>{actionLoading ? "Submitting..." : "Submit"}</Text>
-                            </TouchableOpacity>
+                <StatusCard
+                    title="Office"
+                    data={status.office}
+                    startLabel="Punch In"
+                    endLabel="Punch Out"
+                    onStart={() => handlePunchIn('office')}
+                    onEnd={() => handlePunchOut('office')}
+                />
+
+                <StatusCard
+                    title="Field Work"
+                    data={status.field}
+                    startLabel="Field In"
+                    endLabel="Field Out"
+                    onStart={() => handlePunchIn('field')}
+                    onEnd={() => handlePunchOut('field')}
+                />
+
+                <StatusCard
+                    title="Break"
+                    data={status.break}
+                    startLabel="Start Break"
+                    endLabel="End Break"
+                    onStart={() => handleBreak('start')}
+                    onEnd={() => handleBreak('end')}
+                    isBreak={true}
+                />
+
+                {/* Late Reason Modal */}
+                <Modal
+                    visible={lateModalVisible}
+                    transparent
+                    animationType="fade"
+                    statusBarTranslucent
+                    onRequestClose={() => {
+                        setLateModalVisible(false);
+                        setPendingAction(null);
+                    }}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Running Late?</Text>
+                            <Text style={styles.modalSubtitle}>Please provide a reason for the late punch-in.</Text>
+
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g. Traffic, Doctor's appointment..."
+                                placeholderTextColor="#999"
+                                value={lateReason}
+                                onChangeText={setLateReason}
+                                multiline
+                                numberOfLines={3}
+                            />
+
+                            <View style={styles.modalButtons}>
+                                <TouchableOpacity
+                                    style={[styles.modalBtn, styles.cancelBtn]}
+                                    onPress={() => {
+                                        setLateModalVisible(false);
+                                        setLateReason('');
+                                        setPendingAction(null);
+                                    }}
+                                >
+                                    <Text style={[styles.modalBtnText, { color: '#666' }]}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalBtn, styles.submitBtn]}
+                                    onPress={submitLateReason}
+                                    disabled={actionLoading}
+                                >
+                                    <Text style={[styles.modalBtnText, { color: '#fff' }]}>{actionLoading ? "Submitting..." : "Submit"}</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
 
-        </ScrollView>
+            </ScrollView>
+        </View>
     );
 };
 

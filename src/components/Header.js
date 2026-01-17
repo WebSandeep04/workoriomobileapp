@@ -58,9 +58,9 @@ const Header = ({ title = "Dashboard", subtitle }) => {
                     <TouchableOpacity style={styles.iconButton}>
                         <Ionicons name="notifications-outline" size={24} color="#D02090" />
                     </TouchableOpacity>
-                    {/* <TouchableOpacity onPress={handleLogout} style={[styles.iconButton, styles.logoutButton]}>
+                    <TouchableOpacity onPress={handleLogout} style={[styles.iconButton, styles.logoutButton]}>
                         <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-                    </TouchableOpacity> */}
+                    </TouchableOpacity>
                 </View>
             </View>
         </SafeAreaView>

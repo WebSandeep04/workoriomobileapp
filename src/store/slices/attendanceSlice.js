@@ -29,10 +29,15 @@ const initialState = {
         message: ""
     },
     loading: true,
+    loadingSummary: false,
     actionLoading: false,
     error: null,
     validationError: null, // For 422 / Late reason triggers
     successMessage: null,
+    summary: [],
+    currentPage: 1,
+    lastPage: 1,
+    birthdays: [],
 };
 
 export const fetchAttendanceStatus = createAsyncThunk(
@@ -43,6 +48,43 @@ export const fetchAttendanceStatus = createAsyncThunk(
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch status');
+        }
+    }
+);
+
+export const fetchBirthdays = createAsyncThunk(
+    'attendance/fetchBirthdays',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/employees/birthdays');
+            console.log('Fetch Birthdays Response:', JSON.stringify(response.data, null, 2));
+            return response.data; // Expecting { success: true, data: [...] }
+        } catch (error) {
+            // Silently fail or log, as this is non-critical
+            console.log('Fetch birthdays failed', error);
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch birthdays');
+        }
+    }
+);
+
+export const fetchAttendanceSummary = createAsyncThunk(
+    'attendance/fetchSummary',
+    async (page = 1, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/attendance/history?page=${page}`);
+            if (response.data) {
+                // If response.data directly contains 'data' array and pagination info
+                if (response.data.data && Array.isArray(response.data.data)) {
+                    return response.data; // Return full object { data: [], current_page: 1, ... }
+                }
+                // If pagination is nested in a 'data' property
+                if (response.data.data?.data && Array.isArray(response.data.data.data)) {
+                    return response.data.data;
+                }
+            }
+            return rejectWithValue('Failed to fetch summary');
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch summary');
         }
     }
 );
@@ -146,6 +188,28 @@ const attendanceSlice = createSlice({
                 state.error = action.payload;
             })
 
+            // Fetch Summary
+            .addCase(fetchAttendanceSummary.pending, (state) => {
+                state.loadingSummary = true;
+                state.error = null;
+            })
+            .addCase(fetchAttendanceSummary.fulfilled, (state, action) => {
+                state.loadingSummary = false;
+                const { data, current_page, last_page } = action.payload;
+                state.currentPage = current_page || 1;
+                state.lastPage = last_page || 1;
+
+                if (current_page === 1) {
+                    state.summary = data || [];
+                } else {
+                    state.summary = [...state.summary, ...(data || [])];
+                }
+            })
+            .addCase(fetchAttendanceSummary.rejected, (state, action) => {
+                state.loadingSummary = false;
+                state.error = action.payload;
+            })
+
             // Punch In
             .addCase(punchIn.pending, (state) => {
                 state.actionLoading = true;
@@ -177,6 +241,16 @@ const attendanceSlice = createSlice({
             .addCase(punchOut.rejected, (state, action) => {
                 state.actionLoading = false;
                 state.error = action.payload?.message || "Punch Out Failed";
+            })
+
+            // Birthdays
+            .addCase(fetchBirthdays.fulfilled, (state, action) => {
+                if (action.payload?.data) {
+                    console.log('Reducer: Updating birthdays count:', action.payload.data.length);
+                    state.birthdays = action.payload.data;
+                } else {
+                    console.log('Reducer: No birthday data found in payload');
+                }
             })
 
             // Break

@@ -1,21 +1,37 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 
-const WishItem = ({ name, type, image, onPress }) => (
-    <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
-        <View style={styles.avatarContainer}>
-            {image ? (
-                <Image source={{ uri: image }} style={styles.avatar} />
-            ) : (
-                <View style={[styles.avatar, styles.placeholderAvatar]} />
-            )}
-        </View>
-        <View style={styles.badge}>
-            <Text style={styles.badgeText}>{type}</Text>
-        </View>
-        <Text style={styles.name} numberOfLines={1}>{name}</Text>
-    </TouchableOpacity>
-);
+const WishItem = ({ name, type, image, dob, onPress }) => {
+    // Robust date parsing
+    let formattedDob = '';
+    if (dob) {
+        try {
+            const date = new Date(dob);
+            if (!isNaN(date.getTime())) {
+                formattedDob = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            }
+        } catch (e) {
+            console.log('Date parse error:', e);
+        }
+    }
+
+    return (
+        <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
+            <View style={styles.avatarContainer}>
+                {image ? (
+                    <Image source={{ uri: image }} style={styles.avatar} />
+                ) : (
+                    <View style={[styles.avatar, styles.placeholderAvatar]} />
+                )}
+            </View>
+            <View style={styles.badge}>
+                <Text style={styles.badgeText}>{type}</Text>
+            </View>
+            <Text style={styles.name}>{name}</Text>
+            {!!formattedDob && <Text style={styles.dobText}>{formattedDob}</Text>}
+        </TouchableOpacity>
+    );
+};
 
 const SeeMoreItem = ({ count, onPress }) => (
     <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
@@ -23,7 +39,6 @@ const SeeMoreItem = ({ count, onPress }) => (
             <Text style={styles.seeMoreCount}>{count}+</Text>
             <Text style={styles.seeMoreLabel}>More</Text>
         </View>
-        {/* Invisible badge to maintain layout alignment */}
         <View style={[styles.badge, { opacity: 0 }]}>
             <Text style={styles.badgeText}>HIDDEN</Text>
         </View>
@@ -32,6 +47,15 @@ const SeeMoreItem = ({ count, onPress }) => (
 );
 
 const WishThem = ({ title = "Wish Them :", wishes = [], onSeeMore }) => {
+    console.log('WishThem Rendering. Count:', wishes?.length);
+    if (!wishes || wishes.length === 0) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.title}>{title}</Text>
+                <Text style={{ color: '#aaa', fontStyle: 'italic' }}>No active birthdays found.</Text>
+            </View>
+        );
+    }
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{title}</Text>
@@ -46,11 +70,12 @@ const WishThem = ({ title = "Wish Them :", wishes = [], onSeeMore }) => {
                         name={item.name}
                         type={item.type || "B'DAY"}
                         image={item.image}
+                        dob={item.dob}
                         onPress={item.onPress}
                     />
                 ))}
 
-                {onSeeMore && (
+                {onSeeMore && wishes.length > 5 && (
                     <SeeMoreItem count={2} onPress={onSeeMore} />
                 )}
             </ScrollView>
@@ -130,6 +155,12 @@ const styles = StyleSheet.create({
         color: '#1F2937',
         textAlign: 'center',
         fontWeight: '500',
+    },
+    dobText: {
+        fontSize: 10,
+        color: '#6B7280',
+        textAlign: 'center',
+        marginTop: 2,
     },
 });
 
