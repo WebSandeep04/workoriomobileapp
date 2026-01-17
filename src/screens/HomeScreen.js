@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchAttendanceStatus } from '../store/slices/attendanceSlice';
 import AttendanceCard from '../components/AttendanceCard';
+import QuickActions from '../components/QuickActions';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -24,10 +25,35 @@ const HomeScreen = ({ navigation }) => {
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} />}
     >
-      <View style={styles.header}>
-        <Text style={styles.welcomeText}>Welcome back,</Text>
-        <Text style={styles.userName}>Employee</Text>
-      </View>
+
+
+
+      <QuickActions actions={[
+        {
+          id: 1,
+          title: 'Apply\nLeave',
+          icon: 'calendar-outline',
+          onPress: () => console.log('Apply Leave'),
+        },
+        {
+          id: 2,
+          title: 'Leave\nBalance',
+          icon: 'list-outline',
+          onPress: () => console.log('Leave Balance'),
+        },
+        {
+          id: 3,
+          title: 'Attendance\nSummary',
+          icon: 'clipboard-outline',
+          onPress: () => console.log('Attendance Summary'),
+        },
+        {
+          id: 4,
+          title: 'Raise\nTicket',
+          icon: 'ticket-outline',
+          onPress: () => console.log('Raise Ticket'),
+        }
+      ]} />
 
       <AttendanceCard />
 
