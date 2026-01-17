@@ -11,7 +11,7 @@ const WishItem = ({ name, type, image, dob, onPress }) => {
                 formattedDob = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
             }
         } catch (e) {
-            console.log('Date parse error:', e);
+            // Error parsing date
         }
     }
 
@@ -47,7 +47,6 @@ const SeeMoreItem = ({ count, onPress }) => (
 );
 
 const WishThem = ({ title = "Wish Them :", wishes = [], onSeeMore }) => {
-    console.log('WishThem Rendering. Count:', wishes?.length);
     if (!wishes || wishes.length === 0) {
         return (
             <View style={styles.container}>

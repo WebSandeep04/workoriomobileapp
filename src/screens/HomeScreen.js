@@ -14,7 +14,7 @@ const HomeScreen = ({ navigation }) => {
   const { loading, birthdays, holidays } = useSelector(state => state.attendance);
 
   // Debug Birthdays & Holidays
-  // console.log('HomeScreen Birthdays from Store:', JSON.stringify(birthdays, null, 2));
+  // Debug Birthdays & Holidays
 
   const loadData = useCallback(() => {
     dispatch(fetchAttendanceStatus());

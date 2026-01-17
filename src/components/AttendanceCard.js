@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { punchIn, punchOut, clearMessages } from '../store/slices/attendanceSlice';
+import Toast from 'react-native-toast-message';
 
 const COLORS = {
     cardBg: '#434AFA', // Vibrant Blue/Purple from design
@@ -39,11 +40,21 @@ const AttendanceCard = () => {
             setLateModalVisible(false);
             setLateReason('');
             setPendingAction(null);
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: successMessage,
+            });
         }
 
         if (error) {
             Alert.alert("Error", error);
             dispatch(clearMessages());
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: error,
+            });
         }
 
         if (validationError) {
@@ -51,6 +62,11 @@ const AttendanceCard = () => {
                 setLateModalVisible(true);
             } else {
                 Alert.alert("Action Failed", validationError.message || "Validation Error");
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: validationError.message || "Validation Error",
+                });
             }
             dispatch(clearMessages());
         }

@@ -44,8 +44,6 @@ const AttandanceSummary = () => {
 
     const renderItem = ({ item, index }) => {
         const isEven = index % 2 === 0;
-        // Debugging: Log the item to see available fields
-        console.log('Attendance Item:', JSON.stringify(item, null, 2));
 
         const officeTime = item.formatted_hours?.office || item.formattedHours?.office || item.total_office_time || '-';
         const fieldTime = item.formatted_hours?.field || item.formattedHours?.field || item.total_field_time || '-';
