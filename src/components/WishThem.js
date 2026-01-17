@@ -75,9 +75,9 @@ const WishThem = ({ title = "Wish Them :", wishes = [], onSeeMore }) => {
                     />
                 ))}
 
-                {onSeeMore && wishes.length > 5 && (
+                {/* {onSeeMore && wishes.length > 5 && (
                     <SeeMoreItem count={2} onPress={onSeeMore} />
-                )}
+                )} */}
             </ScrollView>
         </View>
     );

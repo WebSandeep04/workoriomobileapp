@@ -24,6 +24,7 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [showSplash, setShowSplash] = useState(false);
 
   // Redux hooks
   const dispatch = useAppDispatch();
@@ -56,10 +57,15 @@ const LoginScreen = ({ navigation }) => {
     ]).start();
   }, []);
 
-  // Navigate to Home when authenticated
+  // Handle Authentication Success & Splash
   useEffect(() => {
     if (isAuthenticated) {
-      navigation.navigate('BottomTabs');
+      setShowSplash(true);
+      const timer = setTimeout(() => {
+        setIsPasswordVisible(false); // Reset
+        navigation.replace('BottomTabs');
+      }, 3000); // 3 seconds splash
+      return () => clearTimeout(timer);
     }
   }, [isAuthenticated, navigation]);
 
@@ -82,6 +88,31 @@ const LoginScreen = ({ navigation }) => {
   const handleForgotPassword = () => {
     Alert.alert('Forgot Password', 'Password reset functionality will be implemented here');
   };
+
+  if (showSplash) {
+    return (
+      <View style={styles.splashContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#4f46e5" />
+        {/* Reuse Gradient for Splash */}
+        <View style={styles.backgroundGradient}>
+          <View style={styles.gradientCircle1} />
+          <View style={styles.gradientCircle2} />
+          <View style={styles.gradientCircle3} />
+        </View>
+
+        <Animated.View style={{ transform: [{ scale: logoScale }] }}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoBackground}>
+              <Text style={styles.logoIcon}>💼</Text>
+            </View>
+            <Text style={styles.logo}>Workorio</Text>
+            <Text style={styles.tagline}>Success!</Text>
+          </View>
+        </Animated.View>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#4f46e5" />

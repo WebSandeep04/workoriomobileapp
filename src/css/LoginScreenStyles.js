@@ -1,6 +1,13 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+    splashContainer: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: '#ffffff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
     container: {
         flex: 1,
         backgroundColor: '#ffffff',

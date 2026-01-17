@@ -35,8 +35,8 @@ export default function BottomTabs() {
             })}
         >
             <Tab.Screen name="Home" component={HomeScreen} />
-            <Tab.Screen name="Lead" component={LeadScreen} />
-            <Tab.Screen name="Subscription" component={Subscription} />
+            {/* <Tab.Screen name="Lead" component={LeadScreen} />
+            <Tab.Screen name="Subscription" component={Subscription} /> */}
         </Tab.Navigator>
     );
 }
