@@ -48,7 +48,7 @@ const Header = ({ title = "Dashboard", subtitle }) => {
                 </View>
 
                 {/* Center: Title and Date */}
-                <View style={styles.titleContainer}>
+                <View style={styles.titleContainer} pointerEvents="none">
                     <Text style={styles.title}>{title}</Text>
                     <Text style={styles.subtitle}>{subtitle || getDateString()}</Text>
                 </View>
@@ -84,11 +84,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         backgroundColor: '#fff',
+        position: 'relative', // Ensure absolute positioning works relative to this
     },
     leftContainer: {
-        width: 40,
         justifyContent: 'center',
         alignItems: 'flex-start',
+        zIndex: 10, // Ensure clickable
     },
     avatarContainer: {
         width: 40,
@@ -100,9 +101,14 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     titleContainer: {
-        flex: 1,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
+        zIndex: 1, // Behind buttons
     },
     title: {
         fontSize: 16,
@@ -118,7 +124,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        minWidth: 80, // Accommodate two buttons
+        zIndex: 10, // Ensure clickable
     },
     iconButton: {
         width: 40,

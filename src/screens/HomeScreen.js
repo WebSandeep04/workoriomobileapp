@@ -34,25 +34,25 @@ const HomeScreen = ({ navigation }) => {
           id: 1,
           title: 'Apply\nLeave',
           icon: 'calendar-outline',
-          onPress: () => console.log('Apply Leave'),
+          onPress: () => navigation.navigate('ApplyLeave'),
         },
         {
           id: 2,
           title: 'Leave\nBalance',
           icon: 'list-outline',
-          onPress: () => console.log('Leave Balance'),
+          onPress: () => navigation.navigate('LeaveBalance'),
         },
         {
           id: 3,
           title: 'Attendance\nSummary',
           icon: 'clipboard-outline',
-          onPress: () => console.log('Attendance Summary'),
+          onPress: () => navigation.navigate('AttandanceSummary'),
         },
         {
           id: 4,
           title: 'Raise\nTicket',
           icon: 'ticket-outline',
-          onPress: () => console.log('Raise Ticket'),
+          onPress: () => navigation.navigate('RaiseTicket'),
         }
       ]} />
 
