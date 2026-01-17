@@ -21,7 +21,7 @@ export default function BottomTabs() {
                     let iconName;
 
                     if (route.name === 'Home') {
-                        iconName = focused ? 'home' : 'home-outline';
+                        // iconName = focused ? 'home' : 'home-outline';
                     } else if (route.name === 'Lead') {
                         iconName = focused ? 'people' : 'people-outline';
                     } else if (route.name === 'Subscription') {
@@ -30,7 +30,7 @@ export default function BottomTabs() {
 
                     return <Ionicons name={iconName} size={size} color={color} />;
                 },
-                tabBarActiveTintColor: '#434AFA',
+                tabBarActiveTintColor: '#ffffffff', // later make it #434afa
                 tabBarInactiveTintColor: 'gray',
             })}
         >

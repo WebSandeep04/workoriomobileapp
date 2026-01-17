@@ -64,7 +64,7 @@ const AttandanceSummary = () => {
 
                 <Text style={[styles.cell, { width: 100 }]}>{officeTime}</Text>
                 <Text style={[styles.cell, { width: 100 }]}>{fieldTime}</Text>
-                <Text style={[styles.cell, { width: 100, fontWeight: 'bold', color: COLORS.primary }]}>{totalTime}</Text>
+                <Text style={[styles.cell, { width: 100 }]}>{totalTime}</Text>
             </View>
         );
     };

@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
         backgroundColor: COLORS.headerBg,
         paddingVertical: 12,
         paddingHorizontal: 8,
-        borderRadius: 8,
+        borderRadius: 1,
         marginBottom: 8,
         minWidth: 960,
     },
