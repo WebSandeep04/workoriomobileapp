@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, Tex
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Toast from 'react-native-toast-message';
 import { punchIn, punchOut, toggleBreak, clearMessages } from '../store/slices/attendanceSlice';
 
 const COLORS = {
@@ -39,7 +40,11 @@ const AttendanceActionCard = () => {
         if (!isFocused) return;
 
         if (successMessage) {
-            Alert.alert("Success", successMessage);
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: successMessage
+            });
             dispatch(clearMessages());
             setLateModalVisible(false);
             setLateReason('');
@@ -48,7 +53,11 @@ const AttendanceActionCard = () => {
         }
 
         if (error) {
-            Alert.alert("Error", error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: error
+            });
             dispatch(clearMessages());
             setLoadingAction(null);
         }
@@ -60,7 +69,11 @@ const AttendanceActionCard = () => {
                 // Actually, the initial action failed, so spinner should stop.
                 setLoadingAction(null);
             } else {
-                Alert.alert("Action Failed", validationError.message || "Validation Error");
+                Toast.show({
+                    type: 'error',
+                    text1: 'Action Failed',
+                    text2: validationError.message || "Validation Error"
+                });
                 setLoadingAction(null);
             }
             dispatch(clearMessages());
@@ -112,7 +125,11 @@ const AttendanceActionCard = () => {
 
     const submitLateReason = () => {
         if (!lateReason.trim()) {
-            Alert.alert('Validation', 'Please enter a reason.');
+            Toast.show({
+                type: 'info',
+                text1: 'Validation',
+                text2: 'Please enter a reason.'
+            });
             return;
         }
         if (pendingAction?.type) {
