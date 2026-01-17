@@ -1,40 +1,16 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useAppDispatch } from '../store/hooks';
-import { logoutUser } from '../store/slices/authSlice';
 
 const Header = ({ title = "Dashboard", subtitle }) => {
     const navigation = useNavigation();
-    const dispatch = useAppDispatch();
-
-    const handleLogout = () => {
-        Alert.alert(
-            "Logout",
-            "Are you sure you want to logout?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Logout",
-                    style: 'destructive',
-                    onPress: async () => {
-                        await dispatch(logoutUser());
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: 'Login' }],
-                        });
-                    }
-                }
-            ]
-        );
-    };
 
     // Helper to get formatted date string if no subtitle is provided
     const getDateString = () => {
         const date = new Date();
         const options = { month: 'long', day: 'numeric', year: 'numeric' };
-        return `${date.toLocaleDateString('en-US', options)} (5 Task)`; // Mocking task count as per design
+        return `${date.toLocaleDateString('en-US', options)}`; // Mocking task count as per design
     };
 
     return (
@@ -42,9 +18,9 @@ const Header = ({ title = "Dashboard", subtitle }) => {
             <View style={styles.container}>
                 {/* Left: Avatar */}
                 <View style={styles.leftContainer}>
-                    <View style={styles.avatarContainer}>
+                    <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('Profile')}>
                         <Ionicons name="person" size={20} color="#fff" />
-                    </View>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Center: Title and Date */}
@@ -53,13 +29,10 @@ const Header = ({ title = "Dashboard", subtitle }) => {
                     <Text style={styles.subtitle}>{subtitle || getDateString()}</Text>
                 </View>
 
-                {/* Right: Notification & Logout */}
+                {/* Right: Notification */}
                 <View style={styles.rightContainer}>
                     <TouchableOpacity style={styles.iconButton}>
                         <Ionicons name="notifications-outline" size={24} color="#D02090" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleLogout} style={[styles.iconButton, styles.logoutButton]}>
-                        <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -136,10 +109,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginLeft: 8,
-    },
-    logoutButton: {
-        borderColor: '#ffeaea',
-        backgroundColor: '#fff5f5',
     }
 });
 

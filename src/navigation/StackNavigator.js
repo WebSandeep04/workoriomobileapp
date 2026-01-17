@@ -7,6 +7,7 @@ import ApplyLeave from '../screens/ApplyLeave';
 import LeaveBalance from '../screens/LeaveBalance';
 import RaiseTicket from '../screens/RaiseTicket';
 import BottomNavigator from './BottomNavigator';
+import ProfileScreen from '../screens/ProfileScreen';
 const Stack = createStackNavigator();
 
 const StackNavigator = () => {
@@ -19,6 +20,7 @@ const StackNavigator = () => {
       <Stack.Screen name="ApplyLeave" component={ApplyLeave} />
       <Stack.Screen name="LeaveBalance" component={LeaveBalance} />
       <Stack.Screen name="RaiseTicket" component={RaiseTicket} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
     </Stack.Navigator>
   );
 };
