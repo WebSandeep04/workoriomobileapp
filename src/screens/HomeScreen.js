@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { fetchAttendanceStatus } from '../store/slices/attendanceSlice';
 import AttendanceCard from '../components/AttendanceCard';
 import QuickActions from '../components/QuickActions';
+import WishThem from '../components/WishThem';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -56,6 +57,16 @@ const HomeScreen = ({ navigation }) => {
       ]} />
 
       <AttendanceCard />
+
+      <WishThem
+        wishes={[
+          { id: 1, name: "Sasha's Bir...", type: "B'DAY" },
+          { id: 2, name: "Sasha's Bir...", type: "B'DAY" },
+          { id: 3, name: "Sasha's Bir...", type: "B'DAY" },
+          { id: 4, name: "Sasha's Bir...", type: "B'DAY" },
+        ]}
+        onSeeMore={() => console.log('See More Wishes')}
+      />
 
       {/* Other Dashboard Widgets could go here */}
 
