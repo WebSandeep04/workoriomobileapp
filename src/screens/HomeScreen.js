@@ -2,22 +2,24 @@ import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import { fetchAttendanceStatus, fetchBirthdays } from '../store/slices/attendanceSlice';
+import { fetchAttendanceStatus, fetchBirthdays, fetchHolidays } from '../store/slices/attendanceSlice';
 import AttendanceCard from '../components/AttendanceCard';
 import QuickActions from '../components/QuickActions';
 import WishThem from '../components/WishThem';
+import UpcomingHolidays from '../components/UpcomingHolidays';
 import { styles } from '../css/HomeScreenStyles';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { loading, birthdays } = useSelector(state => state.attendance);
+  const { loading, birthdays, holidays } = useSelector(state => state.attendance);
 
-  // Debug Birthdays
-  console.log('HomeScreen Birthdays from Store:', JSON.stringify(birthdays, null, 2));
+  // Debug Birthdays & Holidays
+  // console.log('HomeScreen Birthdays from Store:', JSON.stringify(birthdays, null, 2));
 
   const loadData = useCallback(() => {
     dispatch(fetchAttendanceStatus());
     dispatch(fetchBirthdays()); // Load birthdays
+    dispatch(fetchHolidays()); // Load upcoming holidays
   }, [dispatch]);
 
   useFocusEffect(
@@ -73,6 +75,8 @@ const HomeScreen = ({ navigation }) => {
         wishes={wishes}
         onSeeMore={() => console.log('See More Wishes')}
       />
+
+      <UpcomingHolidays holidays={holidays} />
 
       {/* Other Dashboard Widgets could go here */}
 

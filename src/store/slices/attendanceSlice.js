@@ -67,6 +67,20 @@ export const fetchBirthdays = createAsyncThunk(
     }
 );
 
+export const fetchHolidays = createAsyncThunk(
+    'attendance/fetchHolidays',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/holidays/upcoming');
+            console.log('Fetch Holidays Response:', JSON.stringify(response.data, null, 2));
+            return response.data; // Expecting { success: true, data: [...] }
+        } catch (error) {
+            console.log('Fetch Holidays failed', error);
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch holidays');
+        }
+    }
+);
+
 export const fetchAttendanceSummary = createAsyncThunk(
     'attendance/fetchSummary',
     async (page = 1, { rejectWithValue }) => {
@@ -250,6 +264,14 @@ const attendanceSlice = createSlice({
                     state.birthdays = action.payload.data;
                 } else {
                     console.log('Reducer: No birthday data found in payload');
+                }
+            })
+
+            // Holidays
+            .addCase(fetchHolidays.fulfilled, (state, action) => {
+                if (action.payload?.data) {
+                    console.log('Reducer: Updating holidays count:', action.payload.data.length);
+                    state.holidays = action.payload.data;
                 }
             })
 
