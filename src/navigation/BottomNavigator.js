@@ -7,6 +7,7 @@ import LeadScreen from '../screens/LeadScreen';
 import Header from '../components/Header';
 import Subscription from '../screens/Subscription';
 import TimeSheet from '../screens/TimeSheet';
+import Task from '../screens/Task';
 
 const Tab = createBottomTabNavigator();
 
@@ -25,6 +26,8 @@ export default function BottomTabs() {
                         iconName = focused ? 'home' : 'home-outline';
                     } else if (route.name === 'TimeSheet') {
                         iconName = focused ? 'time' : 'time-outline';
+                    } else if (route.name === 'Task') {
+                        iconName = focused ? 'list' : 'list-outline';
                     } else if (route.name === 'Lead') {
                         iconName = focused ? 'people' : 'people-outline';
                     } else if (route.name === 'Subscription') {
@@ -39,6 +42,7 @@ export default function BottomTabs() {
         >
             <Tab.Screen name="Home" component={HomeScreen} />
             <Tab.Screen name="TimeSheet" component={TimeSheet} options={{ headerShown: false }} />
+            <Tab.Screen name="Task" component={Task} options={{ headerShown: false }} />
             {/* <Tab.Screen name="Lead" component={LeadScreen} />
             <Tab.Screen name="Subscription" component={Subscription} /> */}
         </Tab.Navigator>
