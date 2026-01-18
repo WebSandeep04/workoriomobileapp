@@ -187,7 +187,18 @@ const Task = ({ navigation }) => {
     };
 
     const handleToggleDone = (id) => {
-        dispatch(toggleTaskDone(id));
+        const isMarkingDone = !currentTask.is_done;
+        dispatch(toggleTaskDone(id)).then((result) => {
+            if (!result.error && isMarkingDone) {
+                // Find 'Completed' or 'Done' status
+                const completedStatus = formData.statuses.find(s =>
+                    s.name.toLowerCase() === 'completed' || s.name.toLowerCase() === 'done'
+                );
+                if (completedStatus) {
+                    dispatch(updateTaskStatus({ id, statusId: completedStatus.id }));
+                }
+            }
+        });
     };
 
     const handleAddRemark = () => {
