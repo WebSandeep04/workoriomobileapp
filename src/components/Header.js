@@ -19,7 +19,7 @@ const Header = ({ title = "Dashboard", subtitle }) => {
                 {/* Left: Avatar */}
                 <View style={styles.leftContainer}>
                     <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('Profile')}>
-                        <Ionicons name="person" size={20} color="#fff" />
+                        <Ionicons name="person-outline" size={24} color="#434AFA" />
                     </TouchableOpacity>
                 </View>
 
@@ -32,7 +32,7 @@ const Header = ({ title = "Dashboard", subtitle }) => {
                 {/* Right: Notification */}
                 <View style={styles.rightContainer}>
                     <TouchableOpacity style={styles.iconButton}>
-                        <Ionicons name="notifications-outline" size={24} color="#D02090" />
+                        <Ionicons name="notifications-outline" size={24} color="#434AFA" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -68,10 +68,11 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#434AFA', // Blue color from previous theme
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
         justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden',
     },
     titleContainer: {
         position: 'absolute',

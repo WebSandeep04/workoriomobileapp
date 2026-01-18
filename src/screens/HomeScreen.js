@@ -63,9 +63,9 @@ const HomeScreen = ({ navigation }) => {
         },
         {
           id: 4,
-          title: 'Raise\nTicket',
-          icon: 'ticket-outline',
-          onPress: () => navigation.navigate('RaiseTicket'),
+          title: 'Card\nScanner',
+          icon: 'barcode-outline',
+          onPress: () => navigation.navigate('Scanner'),
         }
       ]} />
 

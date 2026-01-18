@@ -5,9 +5,9 @@ import AttandanceScreen from '../screens/AttandanceScreen';
 import AttandanceSummary from '../screens/AttandanceSummary';
 import ApplyLeave from '../screens/ApplyLeave';
 import LeaveBalance from '../screens/LeaveBalance';
-import RaiseTicket from '../screens/RaiseTicket';
 import BottomNavigator from './BottomNavigator';
 import ProfileScreen from '../screens/ProfileScreen';
+import Scanner from '../screens/Scanner';
 const Stack = createStackNavigator();
 
 const StackNavigator = () => {
@@ -19,7 +19,7 @@ const StackNavigator = () => {
       <Stack.Screen name="AttandanceSummary" component={AttandanceSummary} />
       <Stack.Screen name="ApplyLeave" component={ApplyLeave} />
       <Stack.Screen name="LeaveBalance" component={LeaveBalance} />
-      <Stack.Screen name="RaiseTicket" component={RaiseTicket} />
+      <Stack.Screen name="Scanner" component={Scanner} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
     </Stack.Navigator>
   );
