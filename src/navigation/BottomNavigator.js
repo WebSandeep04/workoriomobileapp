@@ -6,6 +6,7 @@ import LeadScreen from '../screens/LeadScreen';
 
 import Header from '../components/Header';
 import Subscription from '../screens/Subscription';
+import TimeSheet from '../screens/TimeSheet';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,7 +22,9 @@ export default function BottomTabs() {
                     let iconName;
 
                     if (route.name === 'Home') {
-                        // iconName = focused ? 'home' : 'home-outline';
+                        iconName = focused ? 'home' : 'home-outline';
+                    } else if (route.name === 'TimeSheet') {
+                        iconName = focused ? 'time' : 'time-outline';
                     } else if (route.name === 'Lead') {
                         iconName = focused ? 'people' : 'people-outline';
                     } else if (route.name === 'Subscription') {
@@ -30,11 +33,12 @@ export default function BottomTabs() {
 
                     return <Ionicons name={iconName} size={size} color={color} />;
                 },
-                tabBarActiveTintColor: '#ffffffff', // later make it #434afa
+                tabBarActiveTintColor: '#434afa', // later make it #434afa
                 tabBarInactiveTintColor: 'gray',
             })}
         >
             <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="TimeSheet" component={TimeSheet} options={{ headerShown: false }} />
             {/* <Tab.Screen name="Lead" component={LeadScreen} />
             <Tab.Screen name="Subscription" component={Subscription} /> */}
         </Tab.Navigator>
