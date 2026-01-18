@@ -9,10 +9,8 @@ const Scanner = () => {
     const [scannedText, setScannedText] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Auto-open camera on mount
-    useEffect(() => {
-        scanVisitingCard();
-    }, []);
+    // Auto-open camera removed to prevent crash
+    // Camera will open when user clicks the button
 
     const requestCameraPermission = async () => {
         if (Platform.OS === 'android') {
