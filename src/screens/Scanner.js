@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, ActivityIndicator, Alert, StyleSheet, PermissionsAndroid, TextInput, KeyboardAvoidingView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, ActivityIndicator, Alert, StyleSheet, PermissionsAndroid, TextInput, KeyboardAvoidingView, FlatList } from 'react-native';
+import Toast from 'react-native-toast-message';
+import { useDispatch, useSelector } from 'react-redux';
+import { saveBusinessCard, fetchBusinessCards, updateBusinessCard, deleteBusinessCard } from '../store/slices/businessCardSlice';
 import { launchCamera } from 'react-native-image-picker';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import Header from '../components/Header';
@@ -7,9 +10,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../api/client';
 
 const Scanner = () => {
+    const dispatch = useDispatch();
+    const { cards, loading: cardsLoading } = useSelector(state => state.businessCard);
+
     const [scannedText, setScannedText] = useState('');
     const [loading, setLoading] = useState(false);
-    const [viewMode, setViewMode] = useState('scan'); // 'scan' or 'edit'
+    const [viewMode, setViewMode] = useState('list'); // 'list' (default) or 'edit'
 
     const initialFormState = {
         name: null,
@@ -38,8 +44,18 @@ const Scanner = () => {
 
     const [formData, setFormData] = useState(initialFormState);
 
-    // Auto-open camera removed to prevent crash
-    // Camera will open when user clicks the button
+    useEffect(() => {
+        if (viewMode === 'list') {
+            dispatch(fetchBusinessCards());
+        }
+    }, [viewMode, dispatch]);
+
+    // Function to handle new scan initiation
+    const startNewScan = () => {
+        setScannedText('');
+        setFormData(initialFormState);
+        scanVisitingCard();
+    };
 
     const requestCameraPermission = async () => {
         if (Platform.OS === 'android') {
@@ -71,7 +87,11 @@ const Scanner = () => {
             if (Platform.OS === 'android') {
                 const hasPermission = await requestCameraPermission();
                 if (!hasPermission) {
-                    Alert.alert("Permission Denied", "Camera permission is required to scan cards.");
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Permission Denied',
+                        text2: 'Camera permission is required to scan cards.'
+                    });
                     setLoading(false);
                     return;
                 }
@@ -90,7 +110,11 @@ const Scanner = () => {
             }
 
             if (result.errorCode) {
-                Alert.alert('Camera Error', result.errorMessage || 'Unknown error');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Camera Error',
+                    text2: result.errorMessage || 'Unknown error'
+                });
                 setLoading(false);
                 return;
             }
@@ -119,7 +143,11 @@ const Scanner = () => {
 
         } catch (error) {
             console.error('OCR Error:', error);
-            Alert.alert('Error', 'Failed to scan card: ' + error.message);
+            Toast.show({
+                type: 'error',
+                text1: 'Scan Failed',
+                text2: error.message
+            });
         } finally {
             setLoading(false);
         }
@@ -153,7 +181,11 @@ const Scanner = () => {
             setFormData(mockData);
             setViewMode('edit');
 
-            Alert.alert('Processing Note', 'API call failed (likely 404), switched to manual edit mode with extracted text.');
+            Toast.show({
+                type: 'info',
+                text1: 'Processing Note',
+                text2: 'API call failed (likely 404), switched to manual edit mode.'
+            });
         }
     };
 
@@ -171,11 +203,107 @@ const Scanner = () => {
         }));
     };
 
-    const handleSave = () => {
-        console.log('Final Submission Data:', JSON.stringify(formData, null, 2));
-        Alert.alert('Success', 'Contact details saved successfully!');
-        // Here you would send formData to your backend to save the contact
+    const handleSave = async () => {
+        // Basic validation
+        if (!formData.name) {
+            Toast.show({
+                type: 'error',
+                text1: 'Validation Error',
+                text2: 'Name is required'
+            });
+            return;
+        }
+
+        try {
+            if (formData.id) {
+                // Update existing
+                await dispatch(updateBusinessCard({ id: formData.id, data: formData })).unwrap();
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Business card updated successfully!'
+                });
+            } else {
+                // Create new
+                await dispatch(saveBusinessCard(formData)).unwrap();
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Business card saved successfully!'
+                });
+            }
+            setViewMode('list');
+            setFormData(initialFormState);
+        } catch (error) {
+            console.error('Save Error:', error);
+            // Alert is already handled in slice, but strictly validaiton errors might come here
+        }
     };
+
+    const handleEditCard = (card) => {
+        setFormData(card);
+        setViewMode('edit');
+    };
+
+    const handleDeleteCard = (id) => {
+        Alert.alert(
+            'Confirm Delete',
+            'Are you sure you want to delete this card?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await dispatch(deleteBusinessCard(id));
+                    }
+                }
+            ]
+        );
+    };
+
+
+    const renderListing = () => (
+        <View style={styles.listContainer}>
+            {cardsLoading && <ActivityIndicator size="large" color="#434AFA" style={{ marginVertical: 20 }} />}
+            <FlatList
+                data={cards}
+                keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+                renderItem={({ item }) => (
+                    <View style={styles.cardItem}>
+                        <View style={styles.cardItemContent}>
+                            <Text style={styles.cardItemName}>{item.name}</Text>
+                            <Text style={styles.cardItemSub}>{item.designation} {item.company_name ? `at ${item.company_name}` : ''}</Text>
+
+                            <View style={styles.cardItemRow}>
+                                {item.phone_primary && (
+                                    <View style={styles.iconRow}>
+                                        <Ionicons name="call-outline" size={14} color="#6B7280" />
+                                        <Text style={styles.cardItemDetail}>{item.phone_primary}</Text>
+                                    </View>
+                                )}
+                                {item.email && (
+                                    <View style={styles.iconRow}>
+                                        <Ionicons name="mail-outline" size={14} color="#6B7280" />
+                                        <Text style={styles.cardItemDetail}>{item.email}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                        <View style={styles.cardActions}>
+                            <TouchableOpacity onPress={() => handleEditCard(item)} style={styles.actionButton}>
+                                <Ionicons name="create-outline" size={20} color="#434AFA" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleDeleteCard(item.id)} style={styles.actionButton}>
+                                <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
+                ListEmptyComponent={<Text style={styles.emptyText}>No saved business cards found. Tap the scan button to add one.</Text>}
+            />
+        </View>
+    );
 
     if (viewMode === 'edit') {
         return (
@@ -254,10 +382,10 @@ const Scanner = () => {
                         </View>
 
                         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                            <Text style={styles.saveButtonText}>Save Details</Text>
+                            <Text style={styles.saveButtonText}>{formData.id ? 'Update' : 'Save'} Details</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.cancelButton} onPress={() => setViewMode('scan')}>
-                            <Text style={styles.cancelButtonText}>Cancel / Rescan</Text>
+                        <TouchableOpacity style={styles.cancelButton} onPress={() => setViewMode('list')}>
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
                         </TouchableOpacity>
                     </ScrollView>
                 </KeyboardAvoidingView>
@@ -265,29 +393,15 @@ const Scanner = () => {
         );
     }
 
+    // Default View: List of Saved Cards + Scan Button
     return (
         <View style={styles.container}>
-            <Header title="Scanner" />
-
-            <View style={styles.content}>
-                {scannedText ? (
-                    <View style={styles.resultContainer}>
-                        <Text style={styles.resultTitle}>Extracted Text:</Text>
-                        <ScrollView style={styles.resultScroll}>
-                            <Text style={styles.resultText}>{scannedText}</Text>
-                        </ScrollView>
-                    </View>
-                ) : (
-                    <View style={styles.placeholderContainer}>
-                        <Ionicons name="scan-outline" size={60} color="#E5E7EB" />
-                        <Text style={styles.placeholderText}>Tap the button below to scan a visiting card</Text>
-                    </View>
-                )}
-            </View>
+            <Header title="Business Cards" />
+            {renderListing()}
 
             <TouchableOpacity
                 style={styles.scanButton}
-                onPress={scanVisitingCard}
+                onPress={startNewScan}
                 disabled={loading}
             >
                 {loading ? (
@@ -296,7 +410,7 @@ const Scanner = () => {
                     <Ionicons name="scan-outline" size={30} color="#fff" />
                 )}
             </TouchableOpacity>
-        </View >
+        </View>
     );
 };
 
@@ -480,6 +594,93 @@ const styles = StyleSheet.create({
         color: '#4B5563',
         fontSize: 16,
         fontWeight: '600',
+    },
+    // Tab Styles
+    tabContainer: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+        marginBottom: 10,
+    },
+    tabButton: {
+        flex: 1,
+        paddingVertical: 16,
+        alignItems: 'center',
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
+    },
+    activeTab: {
+        borderBottomColor: '#434AFA',
+        backgroundColor: 'transparent',
+        elevation: 0,
+        shadowOpacity: 0,
+    },
+    tabText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#6B7280',
+    },
+    activeTabText: {
+        color: '#434AFA',
+    },
+    // List Styles
+    listContainer: {
+        flex: 1,
+        paddingHorizontal: 20,
+        marginTop: 20
+    },
+    cardItem: {
+        backgroundColor: '#fff',
+        padding: 16,
+        marginBottom: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        flexDirection: 'row',
+        alignItems: 'center',
+        elevation: 1,
+    },
+    cardItemContent: {
+        flex: 1,
+    },
+    cardItemName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#111827',
+    },
+    cardItemSub: {
+        fontSize: 14,
+        color: '#6B7280',
+        marginBottom: 6,
+    },
+    cardItemRow: {
+        marginTop: 4,
+        gap: 6
+    },
+    iconRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    cardItemDetail: {
+        fontSize: 13,
+        color: '#4B5563',
+    },
+    cardActions: {
+        flexDirection: 'row',
+        gap: 10,
+        paddingLeft: 10,
+    },
+    actionButton: {
+        padding: 8,
+    },
+    emptyText: {
+        textAlign: 'center',
+        marginTop: 40,
+        fontSize: 16,
+        color: '#9CA3AF',
     }
 });
 
