@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, Alert, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, Alert, Image, ScrollView } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -28,6 +28,7 @@ const AttendanceCard = () => {
     // Local State
     const [lateModalVisible, setLateModalVisible] = useState(false);
     const [lateReason, setLateReason] = useState('');
+    const [lateReasonOptions, setLateReasonOptions] = useState([]); // Store reasons locally
     const [pendingAction, setPendingAction] = useState(null);
 
     // --- Effects ---
@@ -35,37 +36,39 @@ const AttendanceCard = () => {
         if (!isFocused) return;
 
         if (successMessage) {
-            Alert.alert("Success", successMessage);
-            dispatch(clearMessages());
-            setLateModalVisible(false);
-            setLateReason('');
-            setPendingAction(null);
             Toast.show({
                 type: 'success',
                 text1: 'Success',
                 text2: successMessage,
             });
+            dispatch(clearMessages());
+            setLateModalVisible(false);
+            setLateReason('');
+            setLateReasonOptions([]);
+            setPendingAction(null);
         }
 
         if (error) {
-            Alert.alert("Error", error);
-            dispatch(clearMessages());
             Toast.show({
                 type: 'error',
                 text1: 'Error',
                 text2: error,
             });
+            dispatch(clearMessages());
         }
 
         if (validationError) {
-            if (validationError.require_late_reason) {
+            const isLate = validationError.require_late_reason || validationError.data?.require_late_reason;
+            const reasons = validationError.late_reasons || validationError.data?.late_reasons || [];
+
+            if (isLate) {
+                setLateReasonOptions(reasons);
                 setLateModalVisible(true);
             } else {
-                Alert.alert("Action Failed", validationError.message || "Validation Error");
                 Toast.show({
                     type: 'error',
-                    text1: 'Error',
-                    text2: validationError.message || "Validation Error",
+                    text1: 'Action Failed',
+                    text2: validationError.message || validationError.data?.message || "Validation Error",
                 });
             }
             dispatch(clearMessages());
@@ -84,7 +87,11 @@ const AttendanceCard = () => {
 
     const submitLateReason = () => {
         if (!lateReason.trim()) {
-            Alert.alert('Validation', 'Please enter a reason.');
+            Toast.show({
+                type: 'info',
+                text1: 'Validation',
+                text2: 'Please enter a reason.'
+            });
             return;
         }
         dispatch(punchIn({ type: 'office', reason: lateReason }));
@@ -179,18 +186,62 @@ const AttendanceCard = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Running Late?</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Reason for late..."
-                            value={lateReason}
-                            onChangeText={setLateReason}
-                        />
+                        <Text style={{ marginBottom: 12, color: '#6B7280', fontSize: 14 }}>
+                            {lateReasonOptions.length > 0 ? "Please select a reason for late punch-in:" : "Please provide a reason for late punch-in:"}
+                        </Text>
+
+                        {lateReasonOptions.length > 0 ? (
+                            <View style={{ maxHeight: 300 }}>
+                                <ScrollView showsVerticalScrollIndicator={true}>
+                                    {lateReasonOptions.map((item) => (
+                                        <TouchableOpacity
+                                            key={item.id}
+                                            style={[
+                                                styles.reasonItem,
+                                                lateReason === item.reason && styles.selectedReasonItem
+                                            ]}
+                                            onPress={() => setLateReason(item.reason)}
+                                        >
+                                            <Text style={[
+                                                styles.reasonText,
+                                                lateReason === item.reason && styles.selectedReasonText
+                                            ]}>
+                                                {item.reason}
+                                            </Text>
+
+                                            {lateReason === item.reason && (
+                                                <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
+                                            )}
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            </View>
+                        ) : (
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Reason for late..."
+                                value={lateReason}
+                                onChangeText={setLateReason}
+                            />
+                        )}
+
                         <View style={styles.modalButtons}>
-                            <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setLateModalVisible(false)}>
+                            <TouchableOpacity
+                                style={[styles.modalBtn, styles.cancelBtn]}
+                                onPress={() => {
+                                    setLateModalVisible(false);
+                                    setLateReason('');
+                                    setLateReasonOptions([]);
+                                }}
+                            >
                                 <Text>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalBtn, styles.submitBtn]} onPress={submitLateReason}>
-                                <Text style={{ color: '#fff' }}>Submit</Text>
+                            <TouchableOpacity
+                                style={[styles.modalBtn, styles.submitBtn, !lateReason && { opacity: 0.5 }]}
+                                onPress={submitLateReason}
+                                disabled={!lateReason}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Submit</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -291,6 +342,32 @@ const styles = StyleSheet.create({
     modalBtn: { padding: 10, borderRadius: 6 },
     cancelBtn: { backgroundColor: '#eee' },
     submitBtn: { backgroundColor: COLORS.primary },
+    reasonItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        marginBottom: 8,
+        backgroundColor: '#F9FAFB'
+    },
+    selectedReasonItem: {
+        borderColor: COLORS.primary,
+        backgroundColor: '#EFF6FF'
+    },
+    reasonText: {
+        fontSize: 14,
+        color: '#374151',
+        flex: 1,
+        marginRight: 8
+    },
+    selectedReasonText: {
+        color: COLORS.primary,
+        fontWeight: 'bold'
+    }
 });
 
 export default AttendanceCard;
