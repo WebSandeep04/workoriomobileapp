@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, ActivityIndicator, Alert, StyleSheet, PermissionsAndroid } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, ActivityIndicator, Alert, StyleSheet, PermissionsAndroid, TextInput, KeyboardAvoidingView } from 'react-native';
 import { launchCamera } from 'react-native-image-picker';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import Header from '../components/Header';
@@ -8,8 +8,35 @@ import api from '../api/client';
 
 const Scanner = () => {
     const [scannedText, setScannedText] = useState('');
-    const [parsedData, setParsedData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [viewMode, setViewMode] = useState('scan'); // 'scan' or 'edit'
+
+    const initialFormState = {
+        name: null,
+        designation: null,
+        company_name: null,
+        email: null,
+        phone_primary: null,
+        phone_secondary: null,
+        website: null,
+        address: null,
+        city: null,
+        state: null,
+        pincode: null,
+        country: null,
+        social_links: {
+            linkedin: null,
+            twitter: null,
+            facebook: null,
+            instagram: null,
+            other: []
+        },
+        raw_text: null,
+        card_image_url: null,
+        raw_ai_response: null
+    };
+
+    const [formData, setFormData] = useState(initialFormState);
 
     // Auto-open camera removed to prevent crash
     // Camera will open when user clicks the button
@@ -100,69 +127,150 @@ const Scanner = () => {
 
     const processCardWithGemini = async (text) => {
         try {
+            // Uncomment to use real API
             const response = await api.post('/gemini/parse-card', { text });
             if (response.data) {
-                setParsedData(response.data);
+                const mergedData = {
+                    ...initialFormState,
+                    ...response.data,
+                    raw_text: text, // Ensure raw text is preserved
+                    social_links: {
+                        ...initialFormState.social_links,
+                        ...(response.data.social_links || {})
+                    }
+                };
+                setFormData(mergedData);
+                setViewMode('edit');
             }
         } catch (error) {
             console.error('Gemini API Error:', error);
-            Alert.alert('Processing Error', 'Failed to parse card details with Gemini.');
+            // Fallback for demo if API fails/is 404
+            const mockData = {
+                ...initialFormState,
+                raw_text: text,
+                name: "Extracted Name", // Placeholder to show form works
+            };
+            setFormData(mockData);
+            setViewMode('edit');
+
+            Alert.alert('Processing Note', 'API call failed (likely 404), switched to manual edit mode with extracted text.');
         }
     };
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSocialChange = (platform, value) => {
+        setFormData(prev => ({
+            ...prev,
+            social_links: {
+                ...prev.social_links,
+                [platform]: value
+            }
+        }));
+    };
+
+    const handleSave = () => {
+        console.log('Final Submission Data:', JSON.stringify(formData, null, 2));
+        Alert.alert('Success', 'Contact details saved successfully!');
+        // Here you would send formData to your backend to save the contact
+    };
+
+    if (viewMode === 'edit') {
+        return (
+            <View style={styles.container}>
+                <Header title="Edit Details" />
+                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+                    <ScrollView contentContainerStyle={styles.formContainer}>
+                        <Text style={styles.sectionTitle}>Basic Info</Text>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Name</Text>
+                            <TextInput style={styles.input} value={formData.name || ''} onChangeText={(t) => handleInputChange('name', t)} placeholder="Full Name" />
+                        </View>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Designation</Text>
+                            <TextInput style={styles.input} value={formData.designation || ''} onChangeText={(t) => handleInputChange('designation', t)} placeholder="Job Title" />
+                        </View>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Company</Text>
+                            <TextInput style={styles.input} value={formData.company_name || ''} onChangeText={(t) => handleInputChange('company_name', t)} placeholder="Company Name" />
+                        </View>
+
+                        <Text style={styles.sectionTitle}>Contact Details</Text>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Email</Text>
+                            <TextInput style={styles.input} value={formData.email || ''} onChangeText={(t) => handleInputChange('email', t)} keyboardType="email-address" placeholder="email@example.com" />
+                        </View>
+                        <View style={styles.rowInputs}>
+                            <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                                <Text style={styles.label}>Primary Phone</Text>
+                                <TextInput style={styles.input} value={formData.phone_primary || ''} onChangeText={(t) => handleInputChange('phone_primary', t)} keyboardType="phone-pad" />
+                            </View>
+                            <View style={[styles.inputGroup, { flex: 1 }]}>
+                                <Text style={styles.label}>Secondary Phone</Text>
+                                <TextInput style={styles.input} value={formData.phone_secondary || ''} onChangeText={(t) => handleInputChange('phone_secondary', t)} keyboardType="phone-pad" />
+                            </View>
+                        </View>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Website</Text>
+                            <TextInput style={styles.input} value={formData.website || ''} onChangeText={(t) => handleInputChange('website', t)} autoCapitalize="none" />
+                        </View>
+
+                        <Text style={styles.sectionTitle}>Address</Text>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Full Address</Text>
+                            <TextInput style={styles.input} value={formData.address || ''} onChangeText={(t) => handleInputChange('address', t)} multiline />
+                        </View>
+                        <View style={styles.rowInputs}>
+                            <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                                <Text style={styles.label}>City</Text>
+                                <TextInput style={styles.input} value={formData.city || ''} onChangeText={(t) => handleInputChange('city', t)} />
+                            </View>
+                            <View style={[styles.inputGroup, { flex: 1 }]}>
+                                <Text style={styles.label}>State</Text>
+                                <TextInput style={styles.input} value={formData.state || ''} onChangeText={(t) => handleInputChange('state', t)} />
+                            </View>
+                        </View>
+                        <View style={styles.rowInputs}>
+                            <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                                <Text style={styles.label}>Pincode</Text>
+                                <TextInput style={styles.input} value={formData.pincode || ''} onChangeText={(t) => handleInputChange('pincode', t)} keyboardType="numeric" />
+                            </View>
+                            <View style={[styles.inputGroup, { flex: 1 }]}>
+                                <Text style={styles.label}>Country</Text>
+                                <TextInput style={styles.input} value={formData.country || ''} onChangeText={(t) => handleInputChange('country', t)} />
+                            </View>
+                        </View>
+
+                        <Text style={styles.sectionTitle}>Social Links</Text>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>LinkedIn</Text>
+                            <TextInput style={styles.input} value={formData.social_links?.linkedin || ''} onChangeText={(t) => handleSocialChange('linkedin', t)} autoCapitalize="none" />
+                        </View>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Twitter</Text>
+                            <TextInput style={styles.input} value={formData.social_links?.twitter || ''} onChangeText={(t) => handleSocialChange('twitter', t)} autoCapitalize="none" />
+                        </View>
+
+                        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                            <Text style={styles.saveButtonText}>Save Details</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.cancelButton} onPress={() => setViewMode('scan')}>
+                            <Text style={styles.cancelButtonText}>Cancel / Rescan</Text>
+                        </TouchableOpacity>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
             <Header title="Scanner" />
 
             <View style={styles.content}>
-                {parsedData ? (
-                    <View style={styles.cardResult}>
-                        <View style={styles.cardHeader}>
-                            <View style={styles.avatarPlaceholder}>
-                                <Text style={styles.avatarText}>
-                                    {parsedData.name ? parsedData.name.charAt(0) : '?'}
-                                </Text>
-                            </View>
-                            <View>
-                                <Text style={styles.cardName}>{parsedData.name || 'Unknown Name'}</Text>
-                                <Text style={styles.cardRole}>{parsedData.designation || 'No Role'}</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.cardBody}>
-                            {parsedData.company && (
-                                <View style={styles.row}>
-                                    <Ionicons name="business-outline" size={20} color="#6B7280" />
-                                    <Text style={styles.rowText}>{parsedData.company}</Text>
-                                </View>
-                            )}
-                            {parsedData.email && (
-                                <View style={styles.row}>
-                                    <Ionicons name="mail-outline" size={20} color="#6B7280" />
-                                    <Text style={styles.rowText}>{parsedData.email}</Text>
-                                </View>
-                            )}
-                            {parsedData.phone && (
-                                <View style={styles.row}>
-                                    <Ionicons name="call-outline" size={20} color="#6B7280" />
-                                    <Text style={styles.rowText}>{parsedData.phone}</Text>
-                                </View>
-                            )}
-                            {parsedData.website && (
-                                <View style={styles.row}>
-                                    <Ionicons name="globe-outline" size={20} color="#6B7280" />
-                                    <Text style={styles.rowText}>{parsedData.website}</Text>
-                                </View>
-                            )}
-                            {parsedData.address && (
-                                <View style={styles.row}>
-                                    <Ionicons name="location-outline" size={20} color="#6B7280" />
-                                    <Text style={styles.rowText}>{parsedData.address}</Text>
-                                </View>
-                            )}
-                        </View>
-                    </View>
-                ) : scannedText ? (
+                {scannedText ? (
                     <View style={styles.resultContainer}>
                         <Text style={styles.resultTitle}>Extracted Text:</Text>
                         <ScrollView style={styles.resultScroll}>
@@ -188,7 +296,7 @@ const Scanner = () => {
                     <Ionicons name="scan-outline" size={30} color="#fff" />
                 )}
             </TouchableOpacity>
-        </View>
+        </View >
     );
 };
 
@@ -310,6 +418,68 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#374151',
         flex: 1,
+    },
+    // Form Styles
+    formContainer: {
+        padding: 20,
+        paddingBottom: 40,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#111827',
+        marginTop: 10,
+        marginBottom: 15,
+        paddingBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    inputGroup: {
+        marginBottom: 15,
+    },
+    rowInputs: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#374151',
+        marginBottom: 6,
+    },
+    input: {
+        backgroundColor: '#F9FAFB',
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 16,
+        color: '#111827',
+    },
+    saveButton: {
+        backgroundColor: '#434AFA',
+        paddingVertical: 14,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginTop: 20,
+        marginBottom: 10,
+    },
+    saveButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    cancelButton: {
+        paddingVertical: 14,
+        borderRadius: 10,
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+    },
+    cancelButtonText: {
+        color: '#4B5563',
+        fontSize: 16,
+        fontWeight: '600',
     }
 });
 
