@@ -4,9 +4,11 @@ import { launchCamera } from 'react-native-image-picker';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import Header from '../components/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import api from '../api/client';
 
 const Scanner = () => {
     const [scannedText, setScannedText] = useState('');
+    const [parsedData, setParsedData] = useState(null);
     const [loading, setLoading] = useState(false);
 
     // Auto-open camera removed to prevent crash
@@ -85,6 +87,9 @@ const Scanner = () => {
 
             setScannedText(ocrResult.text);
 
+            // Process with Gemini
+            await processCardWithGemini(ocrResult.text);
+
         } catch (error) {
             console.error('OCR Error:', error);
             Alert.alert('Error', 'Failed to scan card: ' + error.message);
@@ -93,21 +98,83 @@ const Scanner = () => {
         }
     };
 
+    const processCardWithGemini = async (text) => {
+        try {
+            const response = await api.post('/gemini/parse-card', { text });
+            if (response.data) {
+                setParsedData(response.data);
+            }
+        } catch (error) {
+            console.error('Gemini API Error:', error);
+            Alert.alert('Processing Error', 'Failed to parse card details with Gemini.');
+        }
+    };
+
     return (
         <View style={styles.container}>
             <Header title="Scanner" />
 
             <View style={styles.content}>
+                {parsedData ? (
+                    <View style={styles.cardResult}>
+                        <View style={styles.cardHeader}>
+                            <View style={styles.avatarPlaceholder}>
+                                <Text style={styles.avatarText}>
+                                    {parsedData.name ? parsedData.name.charAt(0) : '?'}
+                                </Text>
+                            </View>
+                            <View>
+                                <Text style={styles.cardName}>{parsedData.name || 'Unknown Name'}</Text>
+                                <Text style={styles.cardRole}>{parsedData.designation || 'No Role'}</Text>
+                            </View>
+                        </View>
 
-
-                {scannedText ? (
+                        <View style={styles.cardBody}>
+                            {parsedData.company && (
+                                <View style={styles.row}>
+                                    <Ionicons name="business-outline" size={20} color="#6B7280" />
+                                    <Text style={styles.rowText}>{parsedData.company}</Text>
+                                </View>
+                            )}
+                            {parsedData.email && (
+                                <View style={styles.row}>
+                                    <Ionicons name="mail-outline" size={20} color="#6B7280" />
+                                    <Text style={styles.rowText}>{parsedData.email}</Text>
+                                </View>
+                            )}
+                            {parsedData.phone && (
+                                <View style={styles.row}>
+                                    <Ionicons name="call-outline" size={20} color="#6B7280" />
+                                    <Text style={styles.rowText}>{parsedData.phone}</Text>
+                                </View>
+                            )}
+                            {parsedData.website && (
+                                <View style={styles.row}>
+                                    <Ionicons name="globe-outline" size={20} color="#6B7280" />
+                                    <Text style={styles.rowText}>{parsedData.website}</Text>
+                                </View>
+                            )}
+                            {parsedData.address && (
+                                <View style={styles.row}>
+                                    <Ionicons name="location-outline" size={20} color="#6B7280" />
+                                    <Text style={styles.rowText}>{parsedData.address}</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                ) : scannedText ? (
                     <View style={styles.resultContainer}>
                         <Text style={styles.resultTitle}>Extracted Text:</Text>
                         <ScrollView style={styles.resultScroll}>
                             <Text style={styles.resultText}>{scannedText}</Text>
                         </ScrollView>
                     </View>
-                ) : null}
+                ) : (
+                    <View style={styles.placeholderContainer}>
+                        <Ionicons name="scan-outline" size={60} color="#E5E7EB" />
+                        <Text style={styles.placeholderText}>Tap the button below to scan a visiting card</Text>
+                    </View>
+                )}
             </View>
 
             <TouchableOpacity
@@ -187,6 +254,63 @@ const styles = StyleSheet.create({
         color: '#374151',
         lineHeight: 22,
     },
+    cardResult: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 20,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingBottom: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    avatarPlaceholder: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#EEF2FF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+    },
+    avatarText: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#434AFA',
+    },
+    cardName: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    cardRole: {
+        fontSize: 14,
+        color: '#6B7280',
+        marginTop: 2,
+    },
+    cardBody: {
+        gap: 12,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    rowText: {
+        fontSize: 15,
+        color: '#374151',
+        flex: 1,
+    }
 });
 
 export default Scanner;
