@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const WishItem = ({ name, type, image, dob, onPress }) => {
     // Robust date parsing
@@ -21,7 +22,9 @@ const WishItem = ({ name, type, image, dob, onPress }) => {
                 {image ? (
                     <Image source={{ uri: image }} style={styles.avatar} />
                 ) : (
-                    <View style={[styles.avatar, styles.placeholderAvatar]} />
+                    <View style={styles.iconAvatar}>
+                        <Ionicons name="person" size={24} color="#434AFA" />
+                    </View>
                 )}
             </View>
             <View style={styles.badge}>
@@ -110,6 +113,16 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
+    },
+    iconAvatar: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
     },
     placeholderAvatar: {
         backgroundColor: '#E5E7EB', // Gray placeholder

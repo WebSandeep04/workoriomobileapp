@@ -199,10 +199,14 @@ const AttendanceActionCard = () => {
             {/* User Profile Row */}
             <View style={styles.profileRow}>
                 <View style={styles.avatarContainer}>
-                    <Image
-                        source={{ uri: 'https://i.pravatar.cc/100?img=5' }}
-                        style={styles.avatar}
-                    />
+                    {user?.image ? (
+                        <Image
+                            source={{ uri: user.image }}
+                            style={styles.avatar}
+                        />
+                    ) : (
+                        <Ionicons name="person" size={24} color={COLORS.primary} />
+                    )}
                 </View>
                 <View style={styles.userInfo}>
                     <Text style={styles.userName}>{user?.name || "Employee"}</Text>

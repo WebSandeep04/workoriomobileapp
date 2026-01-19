@@ -140,13 +140,14 @@ const AttendanceCard = () => {
             <View style={styles.profileRow}>
                 {/* Avatar */}
                 <View style={styles.avatarContainer}>
-                    <Image
-                        source={{ uri: 'https://i.pravatar.cc/100?img=5' }}
-                        style={styles.avatar}
-                    />
-                    {/* Fallback if image fails or just use icon:
-                    <Ionicons name="person" size={24} color={COLORS.primary} /> 
-                    */}
+                    {user?.image ? (
+                        <Image
+                            source={{ uri: user.image }}
+                            style={styles.avatar}
+                        />
+                    ) : (
+                        <Ionicons name="person" size={24} color={COLORS.primary} />
+                    )}
                 </View>
 
                 {/* Name & Time */}
