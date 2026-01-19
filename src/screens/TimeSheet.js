@@ -165,6 +165,116 @@ const TimeSheet = () => {
         }
     }, [dispatch, activeTab, date]);
 
+    // Calendar Helpers
+    const [calendarVisible, setCalendarVisible] = useState(false);
+    const [pickerDate, setPickerDate] = useState(new Date());
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const generateDays = () => {
+        const year = pickerDate.getFullYear();
+        const month = pickerDate.getMonth();
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        let days = [];
+
+        for (let i = 0; i < firstDay; i++) {
+            days.push(null);
+        }
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            days.push(new Date(year, month, i));
+        }
+
+        return days;
+    };
+
+    const handleDateSelect = (selectedDate) => {
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+
+        setDate(formattedDate);
+        setCalendarVisible(false);
+    };
+
+    const changeMonth = (increment) => {
+        const newDate = new Date(pickerDate);
+        newDate.setMonth(newDate.getMonth() + increment);
+        setPickerDate(newDate);
+    };
+
+    const renderCustomCalendar = () => (
+        <Modal
+            transparent={true}
+            visible={calendarVisible}
+            animationType="fade"
+            onRequestClose={() => setCalendarVisible(false)}
+        >
+            <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setCalendarVisible(false)}>
+                <View style={[styles.modalContent, { padding: 0 }]}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
+                        <TouchableOpacity onPress={() => changeMonth(-1)}>
+                            <Ionicons name="chevron-back" size={24} color="#374151" />
+                        </TouchableOpacity>
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#111827' }}>
+                            {months[pickerDate.getMonth()]} {pickerDate.getFullYear()}
+                        </Text>
+                        <TouchableOpacity onPress={() => changeMonth(1)}>
+                            <Ionicons name="chevron-forward" size={24} color="#374151" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}>
+                        {weekDays.map((day, index) => (
+                            <Text key={index} style={{ flex: 1, textAlign: 'center', fontWeight: '600', color: '#6B7280', fontSize: 13 }}>{day}</Text>
+                        ))}
+                    </View>
+
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', padding: 10 }}>
+                        {generateDays().map((dayDate, index) => {
+                            if (!dayDate) return <View key={index} style={{ width: '14.28%', aspectRatio: 1 }} />;
+
+                            const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
+                            const isSelected = date === dateStr;
+                            const isToday = new Date().toDateString() === dayDate.toDateString();
+
+                            return (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={{
+                                        width: '14.28%',
+                                        aspectRatio: 1,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        backgroundColor: isSelected ? '#3B82F6' : isToday ? '#EFF6FF' : 'transparent',
+                                        borderRadius: 20,
+                                        marginVertical: 2
+                                    }}
+                                    onPress={() => handleDateSelect(dayDate)}
+                                >
+                                    <Text style={{
+                                        color: isSelected ? '#fff' : isToday ? '#3B82F6' : '#374151',
+                                        fontWeight: isSelected || isToday ? 'bold' : 'normal'
+                                    }}>
+                                        {dayDate.getDate()}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+
+                    <TouchableOpacity style={{ padding: 15, alignItems: 'center', borderTopWidth: 1, borderTopColor: '#E5E7EB' }} onPress={() => setCalendarVisible(false)}>
+                        <Text style={{ color: '#EF4444', fontWeight: '600' }}>Cancel</Text>
+                    </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        </Modal>
+    );
+
     const handleCustomerSelect = (item) => {
         setCustomer(item);
         setProject(null);
@@ -201,11 +311,19 @@ const TimeSheet = () => {
     const handleAddEntry = () => {
         // Validation
         if (!dateValidation.isValid) {
-            Alert.alert("Invalid Date", dateValidation.message);
+            Toast.show({
+                type: 'error',
+                text1: 'Invalid Date',
+                text2: dateValidation.message
+            });
             return;
         }
         if (!entryType || !customer || !service || !module || !hours || !description) {
-            Alert.alert("Missing Fields", "Please fill in all required fields.");
+            Toast.show({
+                type: 'error',
+                text1: 'Missing Fields',
+                text2: 'Please fill in all required fields.'
+            });
             return;
         }
 
@@ -242,7 +360,11 @@ const TimeSheet = () => {
 
     const handleSubmitAll = () => {
         if (pendingEntries.length === 0) {
-            Alert.alert("No Entries", "Please add at least one worklog entry.");
+            Toast.show({
+                type: 'error',
+                text1: 'No Entries',
+                text2: 'Please add at least one worklog entry.'
+            });
             return;
         }
 
@@ -261,6 +383,11 @@ const TimeSheet = () => {
         };
 
         dispatch(submitWorklog(payload)).unwrap().then(() => {
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'Worklog submitted successfully!'
+            });
             setPendingEntries([]);
             setHours('');
             setMinutes('');
@@ -290,12 +417,17 @@ const TimeSheet = () => {
 
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-                    <TextInput
-                        style={[styles.input, !dateValidation.isValid && styles.inputError]}
-                        value={date}
-                        onChangeText={setDate}
-                        placeholder="2023-10-27"
-                    />
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <TextInput
+                            style={[styles.input, !dateValidation.isValid && styles.inputError, { flex: 1 }]}
+                            value={date}
+                            onChangeText={setDate}
+                            placeholder="2023-10-27"
+                        />
+                        <TouchableOpacity style={{ padding: 10, position: 'absolute', right: 0 }} onPress={() => setCalendarVisible(true)}>
+                            <Ionicons name="calendar-outline" size={24} color="#6B7280" />
+                        </TouchableOpacity>
+                    </View>
                     {!dateValidation.isValid && (
                         <Text style={styles.errorText}>{dateValidation.message}</Text>
                     )}
@@ -498,6 +630,7 @@ const TimeSheet = () => {
             </View>
 
             {activeTab === 'entry' ? renderEntryForm() : renderHistory()}
+            {renderCustomCalendar()}
         </View>
     );
 };

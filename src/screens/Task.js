@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Toast from 'react-native-toast-message';
 import {
     fetchCreatedTasks,
     fetchAssignedTasks,
@@ -72,13 +73,23 @@ const Task = ({ navigation }) => {
 
     const [remark, setRemark] = useState('');
 
+    // Calendar State
+    const [calendarVisible, setCalendarVisible] = useState(false);
+    const [pickerDate, setPickerDate] = useState(new Date());
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
     useEffect(() => {
         loadInitialData();
     }, []);
 
     useEffect(() => {
         if (successMessage) {
-            Alert.alert("Success", successMessage);
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: successMessage
+            });
             dispatch(clearTaskMessages());
             if (createModalVisible) {
                 setCreateModalVisible(false);
@@ -88,7 +99,11 @@ const Task = ({ navigation }) => {
             }
         }
         if (error) {
-            Alert.alert("Error", typeof error === 'string' ? error : JSON.stringify(error));
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: typeof error === 'string' ? error : JSON.stringify(error)
+            });
             dispatch(clearTaskMessages());
         }
     }, [successMessage, error, dispatch]);
@@ -242,6 +257,111 @@ const Task = ({ navigation }) => {
         });
     };
 
+    // Calendar Helpers
+    const generateDays = () => {
+        const year = pickerDate.getFullYear();
+        const month = pickerDate.getMonth();
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        let days = [];
+
+        for (let i = 0; i < firstDay; i++) {
+            days.push(null);
+        }
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            days.push(new Date(year, month, i));
+        }
+
+        return days;
+    };
+
+    const handleDateSelect = (selectedDate) => {
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+
+        setNewTask(prev => ({ ...prev, due_date: formattedDate }));
+        setCalendarVisible(false);
+    };
+
+    const changeMonth = (increment) => {
+        const newDate = new Date(pickerDate);
+        newDate.setMonth(newDate.getMonth() + increment);
+        setPickerDate(newDate);
+    };
+
+    const renderCustomCalendar = () => (
+        <Modal
+            transparent={true}
+            visible={calendarVisible}
+            animationType="fade"
+            onRequestClose={() => setCalendarVisible(false)}
+        >
+            <TouchableOpacity style={styles.modalContainer} activeOpacity={1} onPress={() => setCalendarVisible(false)}>
+                <View style={[styles.modalContent, { padding: 0 }]}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
+                        <TouchableOpacity onPress={() => changeMonth(-1)}>
+                            <Ionicons name="chevron-back" size={24} color="#374151" />
+                        </TouchableOpacity>
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#111827' }}>
+                            {months[pickerDate.getMonth()]} {pickerDate.getFullYear()}
+                        </Text>
+                        <TouchableOpacity onPress={() => changeMonth(1)}>
+                            <Ionicons name="chevron-forward" size={24} color="#374151" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}>
+                        {weekDays.map((day, index) => (
+                            <Text key={index} style={{ flex: 1, textAlign: 'center', fontWeight: '600', color: '#6B7280', fontSize: 13 }}>{day}</Text>
+                        ))}
+                    </View>
+
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', padding: 10 }}>
+                        {generateDays().map((dayDate, index) => {
+                            if (!dayDate) return <View key={index} style={{ width: '14.28%', aspectRatio: 1 }} />;
+
+                            const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
+                            const isSelected = newTask.due_date === dateStr;
+                            const isToday = new Date().toDateString() === dayDate.toDateString();
+
+                            return (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={{
+                                        width: '14.28%',
+                                        aspectRatio: 1,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        backgroundColor: isSelected ? '#3B82F6' : isToday ? '#EFF6FF' : 'transparent',
+                                        borderRadius: 20,
+                                        marginVertical: 2
+                                    }}
+                                    onPress={() => handleDateSelect(dayDate)}
+                                >
+                                    <Text style={{
+                                        color: isSelected ? '#fff' : isToday ? '#3B82F6' : '#374151',
+                                        fontWeight: isSelected || isToday ? 'bold' : 'normal'
+                                    }}>
+                                        {dayDate.getDate()}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+
+                    <TouchableOpacity style={{ padding: 15, alignItems: 'center', borderTopWidth: 1, borderTopColor: '#E5E7EB' }} onPress={() => setCalendarVisible(false)}>
+                        <Text style={{ color: '#EF4444', fontWeight: '600' }}>Cancel</Text>
+                    </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        </Modal>
+    );
+
     const usersList = formData.users || [];
     const displayedTasks = activeTab === 'assigned' ? assignedTasks : createdTasks;
 
@@ -313,24 +433,42 @@ const Task = ({ navigation }) => {
                                 />
                             </View>
 
-                            {/* Customer Select (Simple List for MVP) */}
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Customer *</Text>
-                                <ScrollView horizontal style={{ flexDirection: 'row' }} showsHorizontalScrollIndicator={false}>
-                                    {formData.customers.map(c => (
-                                        <TouchableOpacity
-                                            key={c.id}
-                                            style={[
-                                                styles.pickerButton,
-                                                newTask.customer_id === c.id && { borderColor: '#3B82F6', backgroundColor: '#EFF6FF' },
-                                                { marginRight: 8 }
-                                            ]}
-                                            onPress={() => setNewTask({ ...newTask, customer_id: c.id })}
-                                        >
-                                            <Text>{c.name}</Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </ScrollView>
+                                <View style={{ borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, overflow: 'hidden' }}>
+                                    <TouchableOpacity
+                                        onPress={() => setNewTask(prev => ({ ...prev, showCustomerPicker: !prev.showCustomerPicker }))}
+                                        style={{ padding: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F9FAFB' }}
+                                    >
+                                        <Text style={{ color: newTask.customer_id ? '#111827' : '#9CA3AF' }}>
+                                            {newTask.customer_id
+                                                ? formData.customers.find(c => c.id === newTask.customer_id)?.name
+                                                : "Select Customer"}
+                                        </Text>
+                                        <Ionicons name={newTask.showCustomerPicker ? "chevron-up" : "chevron-down"} size={20} color="#6B7280" />
+                                    </TouchableOpacity>
+
+                                    {newTask.showCustomerPicker && (
+                                        <View style={{ maxHeight: 200, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
+                                            <ScrollView nestedScrollEnabled={true}>
+                                                {formData.customers.map(c => (
+                                                    <TouchableOpacity
+                                                        key={c.id}
+                                                        style={{
+                                                            padding: 12,
+                                                            borderBottomWidth: 1,
+                                                            borderBottomColor: '#F3F4F6',
+                                                            backgroundColor: newTask.customer_id === c.id ? '#F3F4F6' : '#fff'
+                                                        }}
+                                                        onPress={() => setNewTask(prev => ({ ...prev, customer_id: c.id, showCustomerPicker: false }))}
+                                                    >
+                                                        <Text style={{ color: newTask.customer_id === c.id ? '#3B82F6' : '#374151' }}>{c.name}</Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </ScrollView>
+                                        </View>
+                                    )}
+                                </View>
                             </View>
 
                             {/* Assign Users (Multi Select) */}
@@ -368,12 +506,17 @@ const Task = ({ navigation }) => {
                             {/* Due Date */}
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Due Date (YYYY-MM-DD)</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={newTask.due_date}
-                                    onChangeText={text => setNewTask({ ...newTask, due_date: text })}
-                                    placeholder="2024-12-31"
-                                />
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <TextInput
+                                        style={[styles.input, { flex: 1 }]}
+                                        value={newTask.due_date}
+                                        onChangeText={text => setNewTask({ ...newTask, due_date: text })}
+                                        placeholder="2024-12-31"
+                                    />
+                                    <TouchableOpacity style={{ padding: 10, position: 'absolute', right: 0 }} onPress={() => setCalendarVisible(true)}>
+                                        <Ionicons name="calendar-outline" size={24} color="#6B7280" />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
 
                             <View style={styles.row}>
@@ -397,18 +540,7 @@ const Task = ({ navigation }) => {
                                     </View>
                                 </View>
 
-                                {/* Recurring Toggle */}
-                                <View style={[styles.inputGroup, styles.halfInput, { justifyContent: 'center', alignItems: 'center' }]}>
-                                    <Text style={styles.label}>Recurring?</Text>
-                                    <TouchableOpacity
-                                        style={[styles.pickerButton, newTask.is_recurring && { backgroundColor: '#3B82F6' }]}
-                                        onPress={() => setNewTask({ ...newTask, is_recurring: !newTask.is_recurring })}
-                                    >
-                                        <Text style={newTask.is_recurring ? { color: '#fff' } : {}}>
-                                            {newTask.is_recurring ? 'Yes' : 'No'}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </View>
+
                             </View>
 
                             <TouchableOpacity
@@ -569,6 +701,7 @@ const Task = ({ navigation }) => {
                     </View>
                 </View>
             </Modal>
+            {renderCustomCalendar()}
         </View>
     );
 };
