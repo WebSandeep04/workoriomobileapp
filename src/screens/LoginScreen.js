@@ -12,7 +12,9 @@ import {
   Dimensions,
   Animated,
   ScrollView,
+  Image,
 } from 'react-native';
+import Logo from '../assets/logo.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { loginUser, clearError } from '../store/slices/authSlice';
@@ -102,11 +104,9 @@ const LoginScreen = ({ navigation }) => {
 
         <Animated.View style={{ transform: [{ scale: logoScale }] }}>
           <View style={styles.logoContainer}>
-            <View style={styles.logoBackground}>
-              <Text style={styles.logoIcon}>💼</Text>
-            </View>
+            <Image source={Logo} style={{ width: 100, height: 100, resizeMode: 'contain', marginBottom: 16 }} />
             <Text style={styles.logo}>Workorio</Text>
-            <Text style={styles.tagline}>Success!</Text>
+            <Text style={styles.tagline}>The Everything App For Your Business</Text>
           </View>
         </Animated.View>
       </View>
@@ -143,11 +143,9 @@ const LoginScreen = ({ navigation }) => {
             ]}
           >
             <View style={styles.logoContainer}>
-              <View style={styles.logoBackground}>
-                <Text style={styles.logoIcon}>💼</Text>
-              </View>
+              <Image source={Logo} style={{ width: 100, height: 100, resizeMode: 'contain', marginBottom: 16 }} />
               <Text style={styles.logo}>Workorio</Text>
-              <Text style={styles.tagline}>Your Work, Your Way</Text>
+              <Text style={styles.tagline}>The Everything App For Your Business</Text>
             </View>
           </Animated.View>
 

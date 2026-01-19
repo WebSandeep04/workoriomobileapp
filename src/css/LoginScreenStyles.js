@@ -65,26 +65,7 @@ export const styles = StyleSheet.create({
     logoContainer: {
         alignItems: 'center',
     },
-    logoBackground: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: '#4f46e5',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 16,
-        shadowColor: '#4f46e5',
-        shadowOffset: {
-            width: 0,
-            height: 8,
-        },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-        elevation: 12,
-    },
-    logoIcon: {
-        fontSize: 32,
-    },
+
     logo: {
         fontSize: 36,
         fontWeight: 'bold',
