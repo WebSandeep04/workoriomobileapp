@@ -5,6 +5,8 @@ import leaveReducer from './slices/leaveSlice';
 import worklogReducer from './slices/worklogSlice';
 import taskReducer from './slices/taskSlice';
 import businessCardReducer from './slices/businessCardSlice';
+import leadReducer from './slices/leadSlice';
+import prospectReducer from './slices/prospectSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +16,8 @@ export const store = configureStore({
     worklog: worklogReducer,
     task: taskReducer,
     businessCard: businessCardReducer,
+    lead: leadReducer,
+    prospect: prospectReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

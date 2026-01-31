@@ -43,8 +43,8 @@ export default function BottomTabs() {
             <Tab.Screen name="Home" component={HomeScreen} />
             <Tab.Screen name="TimeSheet" component={TimeSheet} options={{ headerShown: false }} />
             <Tab.Screen name="Task" component={Task} options={{ headerShown: false }} />
-            {/* <Tab.Screen name="Lead" component={LeadScreen} />
-            <Tab.Screen name="Subscription" component={Subscription} /> */}
+            <Tab.Screen name="Lead" component={LeadScreen} options={{ headerShown: false }} />
+            {/* <Tab.Screen name="Subscription" component={Subscription} options={{ headerShown: false }} /> */}
         </Tab.Navigator>
     );
 }
