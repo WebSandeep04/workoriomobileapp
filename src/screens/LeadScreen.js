@@ -19,6 +19,7 @@ import AddLeadModal from '../components/AddLeadModal';
 import AssignLeadModal from '../components/AssignLeadModal';
 import AddProspectModal from '../components/AddProspectModal';
 import Header from '../components/Header';
+import LeadFilterModal from '../components/LeadFilterModal';
 
 const LeadScreen = () => {
     const dispatch = useDispatch();
@@ -30,6 +31,10 @@ const LeadScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [prospectModalVisible, setProspectModalVisible] = useState(false);
     const [assignModalVisible, setAssignModalVisible] = useState(false);
+    const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
+    const [filterModalVisible, setFilterModalVisible] = useState(false);
+    const [filters, setFilters] = useState({});
+
     const [selectedLead, setSelectedLead] = useState(null);
 
     // Initial Fetch
@@ -38,8 +43,13 @@ const LeadScreen = () => {
         dispatch(fetchFilterOptions());
     }, [dispatch]);
 
-    const loadLeads = (page, refresh = false) => {
-        dispatch(fetchMyLeads({ page, search: searchQuery }))
+    // Added filters to dependency if you want auto-reload, but manual apply is safer.
+    // For now, loadLeads reads the *current* state of search and filters.
+    // Since state updates are async, we might need to pass new filters directly to loadLeads.
+
+    const loadLeads = (page, refresh = false, newFilters = null) => {
+        const activeFilters = newFilters || filters;
+        dispatch(fetchMyLeads({ page, search: searchQuery, ...activeFilters }))
             .unwrap()
             .then(() => {
                 if (refresh) setRefreshing(false);
@@ -49,12 +59,24 @@ const LeadScreen = () => {
             });
     };
 
+    const handleApplyFilters = (newFilters) => {
+        setFilters(newFilters);
+        loadLeads(1, false, newFilters);
+    };
+
+    const handleResetFilters = () => {
+        setFilters({});
+        loadLeads(1, false, {});
+    };
+
     const handleRefresh = () => {
         setRefreshing(true);
         loadLeads(1, true);
     };
 
     const handleLoadMore = () => {
+        // Need to ensure filters are passed here too? 
+        // Yes, 'filters' state is accessible here.
         if (!loading && pagination.current_page < pagination.last_page) {
             loadLeads(pagination.current_page + 1);
         }
@@ -64,20 +86,18 @@ const LeadScreen = () => {
         loadLeads(1);
     };
 
-    // Helper to render Status Badge
-    const renderStatusBadge = (status) => {
-        // You can customize colors based on status content or ID
+    // Helper to render Status Badge (reused)
+    const renderStatusBadge = (status, mini = false) => {
         const color = '#434AFA';
         const backgroundColor = '#EEF2FF';
-
         return (
-            <View style={[styles.badge, { backgroundColor }]}>
-                <Text style={[styles.badgeText, { color }]}>{status?.status_name || 'Unknown'}</Text>
+            <View style={[styles.badge, { backgroundColor }, mini && { paddingHorizontal: 6, paddingVertical: 2 }]}>
+                <Text style={[styles.badgeText, { color }, mini && { fontSize: 10 }]}>{status?.status_name || 'Unknown'}</Text>
             </View>
         );
     };
 
-    const renderItem = ({ item }) => (
+    const renderCardItem = ({ item }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
                 <Text style={styles.leadName}>{item.leads_name || 'No Name'}</Text>
@@ -87,12 +107,21 @@ const LeadScreen = () => {
             <View style={styles.cardBody}>
                 <View style={styles.row}>
                     <Ionicons name="person-outline" size={16} color="#666" style={styles.icon} />
-                    <Text style={styles.infoText}>{item.contact_person}</Text>
+                    <Text style={styles.infoText}>{item.contact_person || 'N/A'}</Text>
                 </View>
                 <View style={styles.row}>
                     <Ionicons name="call-outline" size={16} color="#666" style={styles.icon} />
-                    <Text style={styles.infoText}>{item.contact_number}</Text>
+                    <Text style={styles.infoText}>{item.contact_number || 'N/A'}</Text>
                 </View>
+                <View style={styles.row}>
+                    <Ionicons name="mail-outline" size={16} color="#666" style={styles.icon} />
+                    <Text style={styles.infoText}>{item.email || 'N/A'}</Text>
+                </View>
+                <View style={styles.row}>
+                    <Ionicons name="calendar-outline" size={16} color="#666" style={styles.icon} />
+                    <Text style={styles.infoText}>Next Follow Up: {item.next_follow_up_date ? item.next_follow_up_date.split('T')[0].split(' ')[0] : 'N/A'}</Text>
+                </View>
+
                 {item.latest_remark && (
                     <View style={styles.remarkContainer}>
                         <Text style={styles.remarkLabel}>Latest Remark:</Text>
@@ -100,7 +129,6 @@ const LeadScreen = () => {
                     </View>
                 )}
             </View>
-
 
             <View style={styles.cardFooter}>
                 <TouchableOpacity
@@ -114,22 +142,143 @@ const LeadScreen = () => {
                     <Text style={styles.assignButtonText}>Assign</Text>
                 </TouchableOpacity>
             </View>
-        </View >
+        </View>
     );
+
+    const renderTableItem = ({ item }) => (
+        <View style={styles.tableRow}>
+            <Text style={[styles.tableCell, { width: 150 }]} numberOfLines={1}>{item.leads_name || '-'}</Text>
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>{item.contact_person || '-'}</Text>
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>{item.contact_number || '-'}</Text>
+            <Text style={[styles.tableCell, { width: 180 }]} numberOfLines={1}>{item.email || '-'}</Text>
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>{item.next_follow_up_date ? item.next_follow_up_date.split('T')[0].split(' ')[0] : '-'}</Text>
+            <View style={[styles.tableCell, { width: 120, alignItems: 'center' }]}>
+                {renderStatusBadge(item.status, true)}
+            </View>
+            <TouchableOpacity
+                style={[styles.tableCell, { width: 80, alignItems: 'center' }]}
+                onPress={() => {
+                    setSelectedLead(item);
+                    setAssignModalVisible(true);
+                }}
+            >
+                <Ionicons name="person-add-outline" size={18} color="#434AFA" />
+            </TouchableOpacity>
+        </View>
+    );
+
+    const renderTableHeader = () => (
+        <View style={styles.tableHeader}>
+            <View style={{ width: 150 }}><Text style={styles.tableHeaderText}>Lead Name</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Contact</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Phone</Text></View>
+            <View style={{ width: 180 }}><Text style={styles.tableHeaderText}>Email</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Follow Up</Text></View>
+            <View style={{ width: 120, alignItems: 'center' }}><Text style={styles.tableHeaderText}>Status</Text></View>
+            <View style={{ width: 80, alignItems: 'center' }}><Text style={styles.tableHeaderText}>Action</Text></View>
+        </View>
+    );
+
+    const PaginationControls = () => (
+        <View style={styles.paginationContainer}>
+            <TouchableOpacity
+                style={[styles.pageButton, pagination.current_page === 1 && styles.disabledButton]}
+                disabled={pagination.current_page === 1 || loading}
+                onPress={() => loadLeads(pagination.current_page - 1)}
+            >
+                <Ionicons name="chevron-back" size={20} color={pagination.current_page === 1 ? '#ccc' : '#333'} />
+            </TouchableOpacity>
+
+            <Text style={styles.pageInfoText}>
+                Page {pagination.current_page} of {pagination.last_page}
+            </Text>
+
+            <TouchableOpacity
+                style={[styles.pageButton, pagination.current_page === pagination.last_page && styles.disabledButton]}
+                disabled={pagination.current_page === pagination.last_page || loading}
+                onPress={() => loadLeads(pagination.current_page + 1)}
+            >
+                <Ionicons name="chevron-forward" size={20} color={pagination.current_page === pagination.last_page ? '#ccc' : '#333'} />
+            </TouchableOpacity>
+        </View>
+    );
+
+    const renderList = () => {
+        if (viewMode === 'card') {
+            return (
+                <FlatList
+                    data={leads}
+                    renderItem={renderCardItem}
+                    keyExtractor={(item) => item.id.toString()}
+                    contentContainerStyle={styles.listContent}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+                    onEndReached={handleLoadMore}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={loading && !refreshing ? <ActivityIndicator size="small" color="#434AFA" style={{ margin: 20 }} /> : null}
+                    ListEmptyComponent={!loading && <Text style={styles.emptyText}>No leads found.</Text>}
+                />
+            );
+        } else {
+            return (
+                <View style={{ flex: 1 }}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+                        <View>
+                            {renderTableHeader()}
+                            <FlatList
+                                data={leads}
+                                renderItem={renderTableItem}
+                                keyExtractor={(item) => item.id.toString()}
+                                contentContainerStyle={{ paddingBottom: 20 }}
+                                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+                                ListEmptyComponent={!loading && <Text style={styles.emptyText}>No leads found.</Text>}
+                            />
+                        </View>
+                    </ScrollView>
+                    {leads.length > 0 && <PaginationControls />}
+                </View>
+            );
+        }
+    };
 
     return (
         <View style={styles.container}>
             <Header title="Lead" />
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color="#999" />
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder="Search leads..."
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    onSubmitEditing={handleSearch}
-                />
+            {/* Search Bar & View Toggle */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', margin: 16 }}>
+                <View style={[styles.searchContainer, { margin: 0, flex: 1 }]}>
+                    <Ionicons name="search" size={20} color="#999" />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search leads..."
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        onSubmitEditing={handleSearch}
+                    />
+                </View>
+
+                {/* View Toggles */}
+                <View style={styles.toggleContainer}>
+                    <TouchableOpacity
+                        style={[styles.toggleButton, viewMode === 'card' && styles.activeToggle]}
+                        onPress={() => setViewMode('card')}
+                    >
+                        <Ionicons name="grid-outline" size={20} color={viewMode === 'card' ? '#fff' : '#666'} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.toggleButton, viewMode === 'table' && styles.activeToggle]}
+                        onPress={() => setViewMode('table')}
+                    >
+                        <Ionicons name="list-outline" size={20} color={viewMode === 'table' ? '#fff' : '#666'} />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Filter Button */}
+                <TouchableOpacity
+                    style={[styles.toggleContainer, { padding: 8, backgroundColor: Object.keys(filters).length > 0 ? '#EEF2FF' : '#fff' }]}
+                    onPress={() => setFilterModalVisible(true)}
+                >
+                    <Ionicons name="filter" size={20} color={Object.keys(filters).length > 0 ? '#434AFA' : '#666'} />
+                </TouchableOpacity>
             </View>
 
             {/* Action Buttons */}
@@ -144,23 +293,7 @@ const LeadScreen = () => {
                 </TouchableOpacity>
             </View>
 
-            <FlatList
-                data={leads}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContent}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-                }
-                onEndReached={handleLoadMore}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={
-                    loading && !refreshing ? <ActivityIndicator size="small" color="#434AFA" style={{ margin: 20 }} /> : null
-                }
-                ListEmptyComponent={
-                    !loading && <Text style={styles.emptyText}>No leads found.</Text>
-                }
-            />
+            {renderList()}
 
             <AddLeadModal visible={modalVisible} onClose={() => setModalVisible(false)} />
             <AddProspectModal visible={prospectModalVisible} onClose={() => setProspectModalVisible(false)} />
@@ -169,6 +302,15 @@ const LeadScreen = () => {
                 visible={assignModalVisible}
                 onClose={() => setAssignModalVisible(false)}
                 lead={selectedLead}
+            />
+
+            <LeadFilterModal
+                visible={filterModalVisible}
+                onClose={() => setFilterModalVisible(false)}
+                filterOptions={filterOptions}
+                currentFilters={filters}
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
             />
         </View>
     );
@@ -329,6 +471,75 @@ const styles = StyleSheet.create({
         color: '#434AFA',
         fontWeight: '600',
         fontSize: 14,
+    },
+    // Table Styles
+    tableHeader: {
+        flexDirection: 'row',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        backgroundColor: '#E5E7EB',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+    },
+    tableHeaderText: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#666',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+    tableCell: {
+        fontSize: 12,
+        color: '#333',
+        paddingRight: 4,
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 10,
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        padding: 4,
+    },
+    toggleButton: {
+        padding: 8,
+        borderRadius: 6,
+    },
+    activeToggle: {
+        backgroundColor: '#434AFA',
+    },
+    // Pagination Styles
+    paginationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 10,
+        backgroundColor: '#fff',
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+    },
+    pageButton: {
+        padding: 10,
+        backgroundColor: '#f9f9f9',
+        borderRadius: 8,
+        marginHorizontal: 10,
+        borderWidth: 1,
+        borderColor: '#eee',
+    },
+    disabledButton: {
+        opacity: 0.5,
+    },
+    pageInfoText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#333',
     },
 });
 
