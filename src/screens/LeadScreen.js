@@ -15,6 +15,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchMyLeads, fetchFilterOptions } from '../store/slices/leadSlice';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
 import AddLeadModal from '../components/AddLeadModal';
 import AssignLeadModal from '../components/AssignLeadModal';
 import AddProspectModal from '../components/AddProspectModal';
@@ -97,14 +98,23 @@ const LeadScreen = () => {
         );
     };
 
+    const navigation = useNavigation(); // Hook for navigation
+
+    // ... existing hooks
+
     const renderCardItem = ({ item }) => (
-        <View style={styles.card}>
+        <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.card}
+            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id })}
+        >
             <View style={styles.cardHeader}>
                 <Text style={styles.leadName}>{item.leads_name || 'No Name'}</Text>
                 {renderStatusBadge(item.status)}
             </View>
 
             <View style={styles.cardBody}>
+                {/* ... fields ... */}
                 <View style={styles.row}>
                     <Ionicons name="person-outline" size={16} color="#666" style={styles.icon} />
                     <Text style={styles.infoText}>{item.contact_person || 'N/A'}</Text>
@@ -133,21 +143,32 @@ const LeadScreen = () => {
             <View style={styles.cardFooter}>
                 <TouchableOpacity
                     style={styles.assignButton}
-                    onPress={() => {
+                    onPress={(e) => {
+                        // e.stopPropagation() helps if the parent is also touchable, prevent double action
                         setSelectedLead(item);
                         setAssignModalVisible(true);
+                        // Prevent navigation if desired? React Native doesn't bubble onPress the same way as web, but nesting Touchables can be tricky.
+                        // Here they are siblings in my new structure (Footer outside body), so safe.
+                        // Wait, I wrapped the whole card in TouchableOpacity?
+                        // Yes, so Footer is INSIDE.
+                        // Nested Touchables in RN work: The deepest one wins.
                     }}
                 >
                     <Ionicons name="person-add-outline" size={16} color="#434AFA" />
                     <Text style={styles.assignButtonText}>Assign</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     const renderTableItem = ({ item }) => (
-        <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, { width: 150 }]} numberOfLines={1}>{item.leads_name || '-'}</Text>
+        <TouchableOpacity
+            style={styles.tableRow}
+            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id })}
+        >
+            <Text style={[styles.tableCell, { width: 150, color: '#434AFA', fontWeight: '500' }]} numberOfLines={1}>
+                {item.leads_name || '-'}
+            </Text>
             <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>{item.contact_person || '-'}</Text>
             <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>{item.contact_number || '-'}</Text>
             <Text style={[styles.tableCell, { width: 180 }]} numberOfLines={1}>{item.email || '-'}</Text>
@@ -164,7 +185,7 @@ const LeadScreen = () => {
             >
                 <Ionicons name="person-add-outline" size={18} color="#434AFA" />
             </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
     );
 
     const renderTableHeader = () => (

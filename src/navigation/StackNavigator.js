@@ -8,6 +8,8 @@ import LeaveBalance from '../screens/LeaveBalance';
 import BottomNavigator from './BottomNavigator';
 import ProfileScreen from '../screens/ProfileScreen';
 import Scanner from '../screens/Scanner';
+import LeadRemarkScreen from '../screens/LeadRemark/LeadRemarkScreen';
+
 const Stack = createStackNavigator();
 
 const StackNavigator = () => {
@@ -21,6 +23,7 @@ const StackNavigator = () => {
       <Stack.Screen name="LeaveBalance" component={LeaveBalance} />
       <Stack.Screen name="Scanner" component={Scanner} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="LeadRemark" component={LeadRemarkScreen} />
     </Stack.Navigator>
   );
 };

@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const Header = ({ title = "Dashboard", subtitle }) => {
+const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
     const navigation = useNavigation();
 
     // Helper to get formatted date string if no subtitle is provided
@@ -16,11 +16,17 @@ const Header = ({ title = "Dashboard", subtitle }) => {
     return (
         <SafeAreaView edges={['top']} style={styles.safeArea}>
             <View style={styles.container}>
-                {/* Left: Avatar */}
+                {/* Left: Avatar or Back Button */}
                 <View style={styles.leftContainer}>
-                    <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('Profile')}>
-                        <Ionicons name="person-outline" size={24} color="#434AFA" />
-                    </TouchableOpacity>
+                    {showBack ? (
+                        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                            <Ionicons name="arrow-back" size={24} color="#333" />
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('Profile')}>
+                            <Ionicons name="person-outline" size={24} color="#434AFA" />
+                        </TouchableOpacity>
+                    )}
                 </View>
 
                 {/* Center: Title and Date */}
@@ -71,6 +77,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderWidth: 1,
         borderColor: '#f0f0f0',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    backButton: {
+        width: 40,
+        height: 40,
         justifyContent: 'center',
         alignItems: 'center',
     },
