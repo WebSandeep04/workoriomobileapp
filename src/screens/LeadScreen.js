@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchMyLeads, fetchFilterOptions } from '../store/slices/leadSlice';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import api from '../api/client';
 import AddLeadModal from '../components/AddLeadModal';
 import AssignLeadModal from '../components/AssignLeadModal';
 import AddProspectModal from '../components/AddProspectModal';
@@ -36,21 +37,47 @@ const LeadScreen = () => {
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [filters, setFilters] = useState({});
 
+    const [summaryStats, setSummaryStats] = useState(null);
+    const [statusCounts, setStatusCounts] = useState([]);
+    const [activeFilterType, setActiveFilterType] = useState(null);
+    const [activeStatusId, setActiveStatusId] = useState(null);
+
     const [selectedLead, setSelectedLead] = useState(null);
 
     // Initial Fetch
     useEffect(() => {
         loadLeads(1);
+        fetchDashboardStats();
         dispatch(fetchFilterOptions());
     }, [dispatch]);
 
-    // Added filters to dependency if you want auto-reload, but manual apply is safer.
-    // For now, loadLeads reads the *current* state of search and filters.
-    // Since state updates are async, we might need to pass new filters directly to loadLeads.
+    const fetchDashboardStats = async () => {
+        try {
+            const [statsRes, statusRes] = await Promise.all([
+                api.get('/leads/stats'),
+                api.get('/leads/status-counts')
+            ]);
+            setSummaryStats(statsRes.data.data);
+            setStatusCounts(statusRes.data.data);
+        } catch (error) {
+            console.log("Error fetching dashboard stats", error);
+        }
+    };
 
-    const loadLeads = (page, refresh = false, newFilters = null) => {
+    const loadLeads = (page, refresh = false, newFilters = null, filterType = null, statusId = null) => {
         const activeFilters = newFilters || filters;
-        dispatch(fetchMyLeads({ page, search: searchQuery, ...activeFilters }))
+        const currentFilterType = filterType !== null ? filterType : activeFilterType;
+        const currentStatusId = statusId !== null ? statusId : activeStatusId;
+
+        const queryParams = {
+            page,
+            search: searchQuery,
+            ...activeFilters,
+            ...(currentFilterType && { filter_type: currentFilterType }),
+            ...(currentStatusId && { status_id: currentStatusId })
+        };
+
+        dispatch(fetchMyLeads(queryParams))
             .unwrap()
             .then(() => {
                 if (refresh) setRefreshing(false);
@@ -62,17 +89,32 @@ const LeadScreen = () => {
 
     const handleApplyFilters = (newFilters) => {
         setFilters(newFilters);
-        loadLeads(1, false, newFilters);
+        loadLeads(1, false, newFilters, activeFilterType, activeStatusId);
     };
 
     const handleResetFilters = () => {
         setFilters({});
-        loadLeads(1, false, {});
+        loadLeads(1, false, {}, activeFilterType, activeStatusId);
+    };
+
+    const handleDashboardFilter = (type) => {
+        const newType = activeFilterType === type ? null : type;
+        setActiveFilterType(newType);
+        setActiveStatusId(null);
+        loadLeads(1, false, null, newType, null);
+    };
+
+    const handleStatusFilter = (id) => {
+        const newId = activeStatusId === id ? null : id;
+        setActiveStatusId(newId);
+        setActiveFilterType(null);
+        loadLeads(1, false, null, null, newId);
     };
 
     const handleRefresh = () => {
         setRefreshing(true);
-        loadLeads(1, true);
+        fetchDashboardStats();
+        loadLeads(1, true, null, activeFilterType, activeStatusId);
     };
 
     const handleLoadMore = () => {
@@ -188,6 +230,80 @@ const LeadScreen = () => {
         </TouchableOpacity>
     );
 
+    const renderSummaryCards = () => {
+        if (!summaryStats) return null;
+
+        const cards = [
+            { label: "Today's Follow Ups", key: 'today_followups', count: summaryStats.today_followups, color: '#434AFA', icon: 'calendar' },
+            { label: "Under Process", key: 'under_process', count: summaryStats.under_process, color: '#F59E0B', icon: 'time' },
+            { label: "Completed", key: 'today_completed', count: summaryStats.today_completed, color: '#10B981', icon: 'checkmark-circle' },
+            { label: "Pending", key: 'today_pending', count: summaryStats.today_pending, color: '#EF4444', icon: 'alert-circle' },
+            { label: "New Leads", key: 'today_new', count: summaryStats.today_new, color: '#3B82F6', icon: 'star' },
+        ];
+
+        return (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsScroll} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                {cards.map((card) => (
+                    <TouchableOpacity
+                        key={card.key}
+                        style={[
+                            styles.statsCard,
+                            activeFilterType === card.key && { borderColor: card.color, borderWidth: 2 }
+                        ]}
+                        onPress={() => handleDashboardFilter(card.key)}
+                    >
+                        <View style={[styles.statsIcon, { backgroundColor: card.color + '20' }]}>
+                            <Ionicons name={card.icon} size={20} color={card.color} />
+                        </View>
+                        <View>
+                            <Text style={styles.statsCount}>{card.count || 0}</Text>
+                            <Text style={styles.statsLabel}>{card.label}</Text>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+        );
+    };
+
+    const renderStatusFilters = () => {
+        return (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statusScroll} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                <TouchableOpacity
+                    style={[styles.statusPill, !activeStatusId && !activeFilterType && styles.activePill]}
+                    onPress={() => {
+                        setActiveStatusId(null);
+                        setActiveFilterType(null);
+                        loadLeads(1);
+                    }}
+                >
+                    <Text style={[styles.statusPillText, !activeStatusId && !activeFilterType && styles.activePillText]}>All</Text>
+                </TouchableOpacity>
+                {statusCounts.map((status) => (
+                    <TouchableOpacity
+                        key={status.id}
+                        style={[styles.statusPill, activeStatusId === status.id && styles.activePill]}
+                        onPress={() => handleStatusFilter(status.id)}
+                    >
+                        <Text style={[styles.statusPillText, activeStatusId === status.id && styles.activePillText]}>
+                            {status.status_name} ({status.count})
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+        );
+    };
+
+    const renderHeaderContent = () => (
+        <>
+            <View style={{ marginBottom: 10, marginTop: 10 }}>
+                {renderSummaryCards()}
+            </View>
+            <View style={{ marginBottom: 10 }}>
+                {renderStatusFilters()}
+            </View>
+        </>
+    );
+
     const renderTableHeader = () => (
         <View style={styles.tableHeader}>
             <View style={{ width: 150 }}><Text style={styles.tableHeaderText}>Lead Name</Text></View>
@@ -235,6 +351,7 @@ const LeadScreen = () => {
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
                     onEndReached={handleLoadMore}
                     onEndReachedThreshold={0.5}
+                    ListHeaderComponent={renderHeaderContent}
                     ListFooterComponent={loading && !refreshing ? <ActivityIndicator size="small" color="#434AFA" style={{ margin: 20 }} /> : null}
                     ListEmptyComponent={!loading && <Text style={styles.emptyText}>No leads found.</Text>}
                 />
@@ -242,6 +359,7 @@ const LeadScreen = () => {
         } else {
             return (
                 <View style={{ flex: 1 }}>
+                    {renderHeaderContent()}
                     <ScrollView horizontal showsHorizontalScrollIndicator={true}>
                         <View>
                             {renderTableHeader()}
@@ -474,6 +592,65 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 14,
+    },
+    statsScroll: {
+        marginBottom: 8,
+    },
+    statsCard: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 12,
+        marginRight: 10,
+        minWidth: 140,
+        elevation: 2,
+        borderWidth: 1,
+        borderColor: 'transparent',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        height: 70,
+    },
+    statsIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    statsCount: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    statsLabel: {
+        fontSize: 12,
+        color: '#666',
+        maxWidth: 90,
+    },
+    statusScroll: {
+        marginBottom: 8,
+    },
+    statusPill: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: '#fff',
+        marginRight: 8,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        elevation: 1,
+    },
+    activePill: {
+        backgroundColor: '#EEF2FF',
+        borderColor: '#434AFA',
+    },
+    statusPillText: {
+        color: '#666',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    activePillText: {
+        color: '#434AFA',
     },
     cardFooter: {
         marginTop: 12,
