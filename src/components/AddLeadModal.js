@@ -15,7 +15,7 @@ import { addLead, fetchCities, resetCityOptions, clearLeadMessages } from '../st
 import { fetchProspects } from '../store/slices/prospectSlice';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const AddLeadModal = ({ visible, onClose }) => {
+const AddLeadModal = ({ visible, onClose, onAddProspect }) => {
     const dispatch = useDispatch();
     const { filterOptions, cityOptions, actionLoading, successMessage } = useSelector((state) => state.lead);
     const { prospects, loading: prospectLoading } = useSelector((state) => state.prospect);
@@ -204,38 +204,49 @@ const AddLeadModal = ({ visible, onClose }) => {
 
                         {/* Prospect Search */}
                         <Text style={styles.label}>Select Prospect *</Text>
-                        <View style={{ zIndex: 1000 }}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Search Company Name..."
-                                value={prospectSearch}
-                                onChangeText={handleProspectSearch}
-                            />
+                        <View style={{ zIndex: 1000, flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ flex: 1 }}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Search Company Name..."
+                                    value={prospectSearch}
+                                    onChangeText={handleProspectSearch}
+                                />
 
-                            {showProspectDropdown && (
-                                <View style={styles.searchDropdown}>
-                                    {prospectLoading ? (
-                                        <ActivityIndicator size="small" color="#434AFA" style={{ padding: 10 }} />
-                                    ) : (
-                                        <ScrollView nestedScrollEnabled={true} keyboardShouldPersistTaps="handled" style={{ maxHeight: 200 }}>
-                                            {prospects.length > 0 ? (
-                                                prospects.map((item) => (
-                                                    <TouchableOpacity
-                                                        key={item.id}
-                                                        style={styles.searchItem}
-                                                        onPress={() => handleSelectProspect(item)}
-                                                    >
-                                                        <Text style={styles.searchItemText}>{item.prospectus_name}</Text>
-                                                        <Text style={styles.searchItemSubResponse}>{item.contact_person}</Text>
-                                                    </TouchableOpacity>
-                                                ))
-                                            ) : (
-                                                <Text style={{ padding: 10, color: '#999' }}>No prospects found</Text>
-                                            )}
-                                        </ScrollView>
-                                    )}
-                                </View>
-                            )}
+                                {showProspectDropdown && (
+                                    <View style={styles.searchDropdown}>
+                                        {prospectLoading ? (
+                                            <ActivityIndicator size="small" color="#434AFA" style={{ padding: 10 }} />
+                                        ) : (
+                                            <ScrollView nestedScrollEnabled={true} keyboardShouldPersistTaps="handled" style={{ maxHeight: 200 }}>
+                                                {prospects.length > 0 ? (
+                                                    prospects.map((item) => (
+                                                        <TouchableOpacity
+                                                            key={item.id}
+                                                            style={styles.searchItem}
+                                                            onPress={() => handleSelectProspect(item)}
+                                                        >
+                                                            <Text style={styles.searchItemText}>{item.prospectus_name}</Text>
+                                                            <Text style={styles.searchItemSubResponse}>{item.contact_person}</Text>
+                                                        </TouchableOpacity>
+                                                    ))
+                                                ) : (
+                                                    <Text style={{ padding: 10, color: '#999' }}>No prospects found</Text>
+                                                )}
+                                            </ScrollView>
+                                        )}
+                                    </View>
+                                )}
+                            </View>
+
+                            <TouchableOpacity
+                                style={{ marginLeft: 10, padding: 10, backgroundColor: '#434AFA', borderRadius: 8 }}
+                                onPress={() => {
+                                    if (onAddProspect) onAddProspect();
+                                }}
+                            >
+                                <Ionicons name="add" size={24} color="#fff" />
+                            </TouchableOpacity>
                         </View>
 
                         {renderDropdown('Status *', 'status_id', filterOptions.statuses || [], 'status_name')}

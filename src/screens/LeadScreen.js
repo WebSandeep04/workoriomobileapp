@@ -282,20 +282,13 @@ const LeadScreen = () => {
             </View>
 
             {/* Action Buttons */}
-            <View style={styles.actionButtonsContainer}>
-                <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#434AFA' }]} onPress={() => setProspectModalVisible(true)}>
-                    <Ionicons name="business" size={18} color="#fff" style={{ marginRight: 6 }} />
-                    <Text style={styles.actionButtonText}>Add Prospect</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#10B981' }]} onPress={() => setModalVisible(true)}>
-                    <Ionicons name="add-circle" size={18} color="#fff" style={{ marginRight: 6 }} />
-                    <Text style={styles.actionButtonText}>Add Lead</Text>
-                </TouchableOpacity>
-            </View>
-
             {renderList()}
 
-            <AddLeadModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+            <AddLeadModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onAddProspect={() => setProspectModalVisible(true)}
+            />
             <AddProspectModal visible={prospectModalVisible} onClose={() => setProspectModalVisible(false)} />
 
             <AssignLeadModal
@@ -312,6 +305,13 @@ const LeadScreen = () => {
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
             />
+
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={() => setModalVisible(true)}
+            >
+                <Ionicons name="add" size={30} color="#fff" />
+            </TouchableOpacity>
         </View>
     );
 };
@@ -540,6 +540,22 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
         color: '#333',
+    },
+    fab: {
+        position: 'absolute',
+        bottom: 24,
+        right: 24,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#434AFA',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#434AFA',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
     },
 });
 
