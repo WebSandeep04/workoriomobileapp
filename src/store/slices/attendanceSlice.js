@@ -43,6 +43,7 @@ const initialState = {
 export const fetchAttendanceStatus = createAsyncThunk(
     'attendance/fetchStatus',
     async (_, { rejectWithValue }) => {
+        console.log('[AttendanceSlice] fetching status...');
         try {
             const response = await api.get('/attendance/today-status');
             return response.data;
@@ -101,18 +102,27 @@ export const fetchAttendanceSummary = createAsyncThunk(
 
 export const punchIn = createAsyncThunk(
     'attendance/punchIn',
-    async ({ type, reason }, { rejectWithValue, dispatch }) => {
+    async ({ type, reason, latitude, longitude }, { rejectWithValue, dispatch }) => {
+        console.log(`[AttendanceSlice] punchIn started. Type: ${type}, Reason: ${reason}, Lat: ${latitude}, Long: ${longitude}`);
         try {
             const payload = { movement_type: type };
             if (reason) payload.late_reason = reason;
 
+            // Add Location Data if provided
+            if (latitude && longitude) {
+                payload.latitude = latitude;
+                payload.longitude = longitude;
+            }
+
             const response = await api.post('/attendance/punch-in', payload);
+            console.log('[AttendanceSlice] punchIn response:', response.data);
             if (response.data?.success) {
                 dispatch(fetchAttendanceStatus()); // Refresh status immediately
                 return response.data.message || `Punched In (${type}) successfully!`;
             }
             return rejectWithValue("Unknown error occurred");
         } catch (error) {
+            console.log('[AttendanceSlice] punchIn error:', error.response?.status, error.response?.data);
             if (error.response?.status === 422) {
                 // Pass the full data object for the UI to check 'require_late_reason'
                 return rejectWithValue({
@@ -131,6 +141,7 @@ export const punchIn = createAsyncThunk(
 export const punchOut = createAsyncThunk(
     'attendance/punchOut',
     async ({ type }, { rejectWithValue, dispatch }) => {
+        console.log(`[AttendanceSlice] punchOut started. Type: ${type}`);
         try {
             const response = await api.post('/attendance/punch-out', { movement_type: type });
             if (response.data?.success) {
@@ -139,6 +150,7 @@ export const punchOut = createAsyncThunk(
             }
             return rejectWithValue("Unknown error occurred");
         } catch (error) {
+            console.log('[AttendanceSlice] punchOut error:', error.response?.status, error.response?.data);
             return rejectWithValue({
                 status: error.response?.status,
                 message: error.response?.data?.message || 'Punch Out Failed'

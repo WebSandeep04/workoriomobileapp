@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, Alert, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, Alert, Image, ScrollView, PermissionsAndroid, Platform } from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -87,32 +88,133 @@ const AttendanceActionCard = () => {
 
     // --- Handlers ---
 
+    // --- Location Permission Helper ---
+    const requestLocationPermission = async () => {
+        console.log('[AttendanceActionCard] Requesting location permission...');
+        if (Platform.OS === 'ios') {
+            const auth = await Geolocation.requestAuthorization('whenInUse');
+            return auth === 'granted';
+        }
+
+        if (Platform.OS === 'android') {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                {
+                    title: "Location Permission",
+                    message: "Workorio needs access to your location to verify your punch-in.",
+                    buttonNeutral: "Ask Me Later",
+                    buttonNegative: "Cancel",
+                    buttonPositive: "OK"
+                }
+            );
+            return granted === PermissionsAndroid.RESULTS.GRANTED;
+        }
+        return true;
+    };
+
+    // --- Handlers ---
+
+    const getCurrentLocation = () => {
+        console.log('[AttendanceActionCard] Getting current location...');
+        return new Promise((resolve, reject) => {
+            Geolocation.getCurrentPosition(
+                (position) => {
+                    console.log('[AttendanceActionCard] Raw Position:', JSON.stringify(position));
+                    if (position && position.coords) {
+                        console.log('[AttendanceActionCard] Coords:', position.coords.latitude, position.coords.longitude);
+                        resolve(position.coords);
+                    } else {
+                        console.log('[AttendanceActionCard] Position object missing coords');
+                        reject(new Error("Invalid position object"));
+                    }
+                },
+                (error) => {
+                    console.log('[AttendanceActionCard] Location error code:', error.code, 'message:', error.message);
+                    reject(error);
+                },
+                { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+            );
+        });
+    };
+
     // 1. Office Punch
-    const handlePunchAction = () => {
+    const handlePunchAction = async () => {
+        console.log('[AttendanceActionCard] handlePunchAction triggered');
         if (officeStatus.can_start) {
+            console.log('[AttendanceActionCard] Starting Office Punch In sequence');
+            // Punch In Logic with Location
             setLoadingAction('office');
             setPendingAction({ type: 'office' });
-            dispatch(punchIn({ type: 'office' }));
+
+            // 1. Check Permission
+            const hasPermission = await requestLocationPermission();
+            if (!hasPermission) {
+                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required to punch in.' });
+                setLoadingAction(null);
+                return;
+            }
+
+            // 2. Get Location
+            try {
+                const coords = await getCurrentLocation();
+                if (!coords || !coords.latitude || !coords.longitude) {
+                    console.error('[AttendanceActionCard] Invalid coordinates received:', coords);
+                    Toast.show({ type: 'error', text1: 'Location Error', text2: 'Could not fetch valid coordinates.' });
+                    setLoadingAction(null);
+                    return;
+                }
+
+                console.log(`[AttendanceActionCard] Dispatching punchIn. Lat: ${coords.latitude}, Long: ${coords.longitude}`);
+                // 3. Dispatch
+                dispatch(punchIn({
+                    type: 'office',
+                    latitude: coords.latitude,
+                    longitude: coords.longitude
+                }));
+            } catch (error) {
+                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get current location. Please ensure GPS is on.' });
+                setLoadingAction(null);
+            }
+
         } else if (officeStatus.can_end) {
             setLoadingAction('office');
             dispatch(punchOut({ type: 'office' }));
-        } else {
-            // If already done or not allowed, maybe just do nothing or show info
-            // Logic in slice might restrict valid transitions
         }
     };
 
     // 2. Field Action
-    const handleFieldAction = () => {
+    const handleFieldAction = async () => {
+        console.log('[AttendanceActionCard] handleFieldAction triggered');
         if (fieldStatus.can_start) {
+            console.log('[AttendanceActionCard] Starting Field Punch In sequence');
+            // Field In Logic with Location
             setLoadingAction('field');
             setPendingAction({ type: 'field' });
-            dispatch(punchIn({ type: 'field' }));
+
+            // 1. Check Permission
+            const hasPermission = await requestLocationPermission();
+            if (!hasPermission) {
+                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required for field visit.' });
+                setLoadingAction(null);
+                return;
+            }
+
+            // 2. Get Location
+            try {
+                const coords = await getCurrentLocation();
+                // 3. Dispatch
+                dispatch(punchIn({
+                    type: 'field',
+                    latitude: coords.latitude,
+                    longitude: coords.longitude
+                }));
+            } catch (error) {
+                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get location for field visit.' });
+                setLoadingAction(null);
+            }
         } else if (fieldStatus.can_end) {
             setLoadingAction('field');
             dispatch(punchOut({ type: 'field' }));
-        } else {
-            // Already completed or not allowed
         }
     };
 
@@ -128,7 +230,8 @@ const AttendanceActionCard = () => {
     };
 
 
-    const submitLateReason = () => {
+    const submitLateReason = async () => {
+        console.log(`[AttendanceActionCard] submitLateReason. Reason: ${lateReason}`);
         if (!lateReason.trim()) {
             Toast.show({
                 type: 'info',
@@ -138,8 +241,32 @@ const AttendanceActionCard = () => {
             return;
         }
         if (pendingAction?.type) {
-            setLoadingAction(pendingAction.type); // Re-trigger loading for the modal submit
-            dispatch(punchIn({ type: pendingAction.type, reason: lateReason }));
+            setLoadingAction(pendingAction.type);
+
+            try {
+                // We retry with location just in case it's needed again
+                let coords = null;
+                const hasPermission = await requestLocationPermission();
+                if (hasPermission) {
+                    try {
+                        const locationData = await getCurrentLocation();
+                        coords = locationData;
+                    } catch (locErr) {
+                        console.log("Location error on retry:", locErr);
+                        // deciding to proceed even if location fails on retry, or maybe not? 
+                        // The user is already adding a reason, let's try to send it.
+                    }
+                }
+
+                dispatch(punchIn({
+                    type: pendingAction.type,
+                    reason: lateReason,
+                    latitude: coords?.latitude,
+                    longitude: coords?.longitude
+                }));
+            } catch (e) {
+                dispatch(punchIn({ type: pendingAction.type, reason: lateReason }));
+            }
         }
     };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, Alert, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, Alert, Image, ScrollView, PermissionsAndroid, Platform } from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -75,17 +76,84 @@ const AttendanceCard = () => {
         }
     }, [successMessage, error, validationError, dispatch, isFocused]);
 
+    // --- Location Permission Helper ---
+    const requestLocationPermission = async () => {
+        if (Platform.OS === 'ios') {
+            const auth = await Geolocation.requestAuthorization('whenInUse');
+            return auth === 'granted';
+        }
+
+        if (Platform.OS === 'android') {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                {
+                    title: "Location Permission",
+                    message: "Workorio needs access to your location to verify your punch-in.",
+                    buttonNeutral: "Ask Me Later",
+                    buttonNegative: "Cancel",
+                    buttonPositive: "OK"
+                }
+            );
+            return granted === PermissionsAndroid.RESULTS.GRANTED;
+        }
+        return true;
+    };
+
+    const getCurrentLocation = () => {
+        return new Promise((resolve, reject) => {
+            Geolocation.getCurrentPosition(
+                (position) => {
+                    resolve(position.coords);
+                },
+                (error) => {
+                    reject(error);
+                },
+                { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+            );
+        });
+    };
+
     // --- Handlers ---
-    const handlePress = () => {
+    const handlePress = async () => {
         if (officeStatus.can_start) {
             setPendingAction({ type: 'office' }); // Optimistic
-            dispatch(punchIn({ type: 'office' }));
+            console.log('[AttendanceCard] Starting punch sequence. Checking permissions...');
+
+            // 1. Check Permission
+            const hasPermission = await requestLocationPermission();
+            if (!hasPermission) {
+                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required to punch in.' });
+                setPendingAction(null);
+                return;
+            }
+
+            // 2. Get Location
+            try {
+                const coords = await getCurrentLocation();
+                if (!coords || !coords.latitude || !coords.longitude) {
+                    Toast.show({ type: 'error', text1: 'Location Error', text2: 'Could not fetch valid coordinates.' });
+                    setPendingAction(null);
+                    return;
+                }
+
+                // 3. Dispatch
+                console.log(`[AttendanceCard] Punching In. Lat: ${coords.latitude}, Long: ${coords.longitude}`);
+                dispatch(punchIn({
+                    type: 'office',
+                    latitude: coords.latitude,
+                    longitude: coords.longitude
+                }));
+            } catch (error) {
+                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get current location. Please ensure GPS is on.' });
+                setPendingAction(null);
+            }
+
         } else if (officeStatus.can_end) {
             dispatch(punchOut({ type: 'office' }));
         }
     };
 
-    const submitLateReason = () => {
+    const submitLateReason = async () => {
         if (!lateReason.trim()) {
             Toast.show({
                 type: 'info',
@@ -94,7 +162,24 @@ const AttendanceCard = () => {
             });
             return;
         }
-        dispatch(punchIn({ type: 'office', reason: lateReason }));
+
+        // Retry with location if needed
+        let coords = null;
+        try {
+            const hasPermission = await requestLocationPermission();
+            if (hasPermission) {
+                coords = await getCurrentLocation();
+            }
+        } catch (e) {
+            console.log("Location retry error", e);
+        }
+
+        dispatch(punchIn({
+            type: 'office',
+            reason: lateReason,
+            latitude: coords?.latitude,
+            longitude: coords?.longitude
+        }));
     };
 
     const formatDate = (date) => {
