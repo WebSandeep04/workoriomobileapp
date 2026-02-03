@@ -7,6 +7,7 @@ import taskReducer from './slices/taskSlice';
 import businessCardReducer from './slices/businessCardSlice';
 import leadReducer from './slices/leadSlice';
 import prospectReducer from './slices/prospectSlice';
+import locationReducer from './slices/locationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     businessCard: businessCardReducer,
     lead: leadReducer,
     prospect: prospectReducer,
+    location: locationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
