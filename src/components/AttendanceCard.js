@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, Alert, Image, ScrollView, PermissionsAndroid, Platform } from 'react-native';
-import Geolocation from 'react-native-geolocation-service';
 import { useSelector, useDispatch } from 'react-redux';
+import { NativeModules } from 'react-native';
+
+const { WorkorioLocation } = NativeModules;
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { punchIn, punchOut, clearMessages } from '../store/slices/attendanceSlice';
@@ -99,18 +101,13 @@ const AttendanceCard = () => {
         return true;
     };
 
-    const getCurrentLocation = () => {
-        return new Promise((resolve, reject) => {
-            Geolocation.getCurrentPosition(
-                (position) => {
-                    resolve(position.coords);
-                },
-                (error) => {
-                    reject(error);
-                },
-                { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-            );
-        });
+    const getCurrentLocation = async () => {
+        try {
+            return await WorkorioLocation.getCurrentLocation();
+        } catch (error) {
+            console.error('[AttendanceCard] Native Location Error:', error);
+            throw error;
+        }
     };
 
     // --- Handlers ---

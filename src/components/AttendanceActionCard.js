@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, Alert, Image, ScrollView, PermissionsAndroid, Platform } from 'react-native';
-import Geolocation from 'react-native-geolocation-service';
 import { useSelector, useDispatch } from 'react-redux';
+import { NativeModules } from 'react-native';
+
+const { WorkorioLocation } = NativeModules;
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
@@ -114,27 +116,16 @@ const AttendanceActionCard = () => {
 
     // --- Handlers ---
 
-    const getCurrentLocation = () => {
-        console.log('[AttendanceActionCard] Getting current location...');
-        return new Promise((resolve, reject) => {
-            Geolocation.getCurrentPosition(
-                (position) => {
-                    console.log('[AttendanceActionCard] Raw Position:', JSON.stringify(position));
-                    if (position && position.coords) {
-                        console.log('[AttendanceActionCard] Coords:', position.coords.latitude, position.coords.longitude);
-                        resolve(position.coords);
-                    } else {
-                        console.log('[AttendanceActionCard] Position object missing coords');
-                        reject(new Error("Invalid position object"));
-                    }
-                },
-                (error) => {
-                    console.log('[AttendanceActionCard] Location error code:', error.code, 'message:', error.message);
-                    reject(error);
-                },
-                { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-            );
-        });
+    const getCurrentLocation = async () => {
+        console.log('[AttendanceActionCard] Getting current location from Native...');
+        try {
+            const coords = await WorkorioLocation.getCurrentLocation();
+            console.log('[AttendanceActionCard] Coords from Native:', coords.latitude, coords.longitude);
+            return coords;
+        } catch (error) {
+            console.error('[AttendanceActionCard] Native Location Error:', error);
+            throw error;
+        }
     };
 
     // 1. Office Punch
