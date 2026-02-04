@@ -10,14 +10,15 @@ const LocationTracker = () => {
     const timerRef = useRef(null);
     const dispatch = useDispatch();
     const { isAuthenticated, user } = useSelector(state => state.auth);
-    const { status } = useSelector(state => state.attendance);
+    const { status, isTrackingEnabled } = useSelector(state => state.attendance);
 
     // Track if:
     // 1. User is authenticated
     // 2. Office session is active (can_end means we are currently IN) OR Field session is active
+    // 3. Tracking is enabled for this user (isTrackingEnabled)
     const isOfficeActive = status?.office?.can_end;
     const isFieldActive = status?.field?.can_end;
-    const shouldTrack = isAuthenticated && user && user.employee_id && (isOfficeActive || isFieldActive);
+    const shouldTrack = isAuthenticated && user && user.employee_id && (isOfficeActive || isFieldActive) && isTrackingEnabled;
 
     // Debug State Changes (Consolidated)
     useEffect(() => {

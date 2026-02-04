@@ -38,6 +38,7 @@ const initialState = {
     currentPage: 1,
     lastPage: 1,
     birthdays: [],
+    isTrackingEnabled: false, // Default to false; waiting for explicit '1' from backend
 };
 
 export const fetchAttendanceStatus = createAsyncThunk(
@@ -118,7 +119,10 @@ export const punchIn = createAsyncThunk(
             console.log('[AttendanceSlice] punchIn response:', response.data);
             if (response.data?.success) {
                 dispatch(fetchAttendanceStatus()); // Refresh status immediately
-                return response.data.message || `Punched In (${type}) successfully!`;
+                return {
+                    message: response.data.message || `Punched In (${type}) successfully!`,
+                    is_tracking: response.data.is_tracking
+                };
             }
             return rejectWithValue("Unknown error occurred");
         } catch (error) {
@@ -204,6 +208,10 @@ const attendanceSlice = createSlice({
                 const { status, worklog_validation } = action.payload;
                 if (status) state.status = status;
                 if (worklog_validation) state.worklogValidation = worklog_validation;
+                // If the backend provides is_tracking in today-status, update it
+                if (action.payload.is_tracking !== undefined) {
+                    state.isTrackingEnabled = action.payload.is_tracking === 1;
+                }
             })
             .addCase(fetchAttendanceStatus.rejected, (state, action) => {
                 state.loading = false;
@@ -240,7 +248,15 @@ const attendanceSlice = createSlice({
             })
             .addCase(punchIn.fulfilled, (state, action) => {
                 state.actionLoading = false;
-                state.successMessage = action.payload;
+                if (typeof action.payload === 'object' && action.payload.message) {
+                    state.successMessage = action.payload.message;
+                    // Update tracking state based on punch response
+                    if (action.payload.is_tracking !== undefined) {
+                        state.isTrackingEnabled = action.payload.is_tracking === 1;
+                    }
+                } else {
+                    state.successMessage = action.payload;
+                }
             })
             .addCase(punchIn.rejected, (state, action) => {
                 state.actionLoading = false;
@@ -259,6 +275,7 @@ const attendanceSlice = createSlice({
             .addCase(punchOut.fulfilled, (state, action) => {
                 state.actionLoading = false;
                 state.successMessage = action.payload;
+                state.isTrackingEnabled = false; // Stop tracking on punch out
             })
             .addCase(punchOut.rejected, (state, action) => {
                 state.actionLoading = false;
