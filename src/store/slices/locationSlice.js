@@ -10,13 +10,14 @@ const initialState = {
 
 export const syncLocation = createAsyncThunk(
     'location/sync',
-    async ({ latitude, longitude, employee_id }, { rejectWithValue }) => {
+    async ({ latitude, longitude, employee_id, captured_at }, { rejectWithValue }) => {
         try {
             console.log(`[LocationSlice] Syncing: ${latitude}, ${longitude}`);
             const response = await api.post('/employee/location', {
                 employee_id,
                 latitude,
-                longitude
+                longitude,
+                captured_at: captured_at || new Date().toISOString()
             });
             return {
                 data: response.data,
