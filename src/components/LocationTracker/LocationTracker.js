@@ -16,9 +16,12 @@ const LocationTracker = () => {
     // 1. User is authenticated
     // 2. Office session is active (can_end means we are currently IN) OR Field session is active
     // 3. Tracking is enabled for this user (isTrackingEnabled)
+    // 4. User is NOT on break
     const isOfficeActive = status?.office?.can_end;
     const isFieldActive = status?.field?.can_end;
-    const shouldTrack = isAuthenticated && user && user.employee_id && (isOfficeActive || isFieldActive) && isTrackingEnabled;
+    const isOnBreak = status?.break?.can_end;
+
+    const shouldTrack = isAuthenticated && user && user.employee_id && (isOfficeActive || isFieldActive) && isTrackingEnabled && !isOnBreak;
 
     // Debug State Changes (Consolidated)
     useEffect(() => {
