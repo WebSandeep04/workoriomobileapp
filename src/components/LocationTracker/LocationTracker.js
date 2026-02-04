@@ -27,6 +27,8 @@ const LocationTracker = () => {
     useEffect(() => {
         if (shouldTrack) {
             console.log(`[LocationTracker] Active. Mode: ${isOfficeActive ? 'Office' : 'Field'}`);
+        } else {
+            console.log('[LocationTracker] Inactive. Flags:', { isAuthenticated, hasEmployeeId: !!user?.employee_id, isOfficeActive, isFieldActive, isTrackingEnabled, userIsTracking: user?.is_tracking });
         }
     }, [shouldTrack, isOfficeActive]);
 

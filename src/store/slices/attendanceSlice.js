@@ -47,6 +47,7 @@ export const fetchAttendanceStatus = createAsyncThunk(
         console.log('[AttendanceSlice] fetching status...');
         try {
             const response = await api.get('/attendance/today-status');
+            console.log('[AttendanceSlice] fetchStatus response:', response.data);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch status');
