@@ -2,13 +2,13 @@ import React, { useEffect, useRef } from 'react';
 import { Platform, PermissionsAndroid, NativeModules } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { setTrackingState } from '../../store/slices/locationSlice';
+import api from '../../api/client';
 
 const { WorkorioLocation } = NativeModules;
 
 // Config - High accuracy for native tracking
 const TRACKING_INTERVAL_MS = 5000;
 const DISTANCE_FILTER_METERS = 0;
-const API_URL = 'http://192.168.1.3:8000/api';
 
 const LocationTracker = () => {
     const dispatch = useDispatch();
@@ -38,7 +38,7 @@ const LocationTracker = () => {
             const hasPermission = await checkAndRequestPermissions();
             if (hasPermission) {
                 const config = {
-                    apiUrl: API_URL,
+                    apiUrl: api.defaults.baseURL,
                     authToken: token,
                     employeeId: String(user.employee_id),
                     tenantId: String(user.tenant_id),
