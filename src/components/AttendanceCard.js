@@ -146,7 +146,23 @@ const AttendanceCard = () => {
             }
 
         } else if (officeStatus.can_end) {
-            dispatch(punchOut({ type: 'office' }));
+            // Punch Out with Location
+            const hasPermission = await requestLocationPermission();
+            if (!hasPermission) {
+                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required to punch out.' });
+                return;
+            }
+
+            try {
+                const coords = await getCurrentLocation();
+                dispatch(punchOut({
+                    type: 'office',
+                    latitude: coords.latitude,
+                    longitude: coords.longitude
+                }));
+            } catch (error) {
+                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get location for punch out.' });
+            }
         }
     };
 

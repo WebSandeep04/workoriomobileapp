@@ -145,10 +145,16 @@ export const punchIn = createAsyncThunk(
 
 export const punchOut = createAsyncThunk(
     'attendance/punchOut',
-    async ({ type }, { rejectWithValue, dispatch }) => {
-        console.log(`[AttendanceSlice] punchOut started. Type: ${type}`);
+    async ({ type, latitude, longitude }, { rejectWithValue, dispatch }) => {
+        console.log(`[AttendanceSlice] punchOut started. Type: ${type}, Lat: ${latitude}, Long: ${longitude}`);
         try {
-            const response = await api.post('/attendance/punch-out', { movement_type: type });
+            const payload = { movement_type: type };
+            if (latitude && longitude) {
+                payload.latitude = latitude;
+                payload.longitude = longitude;
+            }
+
+            const response = await api.post('/attendance/punch-out', payload);
             if (response.data?.success) {
                 dispatch(fetchAttendanceStatus());
                 return response.data.message || `Punched Out (${type}) successfully!`;
@@ -166,10 +172,16 @@ export const punchOut = createAsyncThunk(
 
 export const toggleBreak = createAsyncThunk(
     'attendance/toggleBreak',
-    async ({ action }, { rejectWithValue, dispatch }) => {
+    async ({ action, latitude, longitude }, { rejectWithValue, dispatch }) => {
         const endpoint = action === 'start' ? '/attendance/break/start' : '/attendance/break/end';
         try {
-            const response = await api.post(endpoint);
+            const payload = {};
+            if (latitude && longitude) {
+                payload.latitude = latitude;
+                payload.longitude = longitude;
+            }
+
+            const response = await api.post(endpoint, payload);
             if (response.data?.success) {
                 dispatch(fetchAttendanceStatus());
                 return response.data.message || (action === 'start' ? "Break Started" : "Break Ended");

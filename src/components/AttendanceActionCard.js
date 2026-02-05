@@ -169,7 +169,35 @@ const AttendanceActionCard = () => {
 
         } else if (officeStatus.can_end) {
             setLoadingAction('office');
-            dispatch(punchOut({ type: 'office' }));
+            // Punch Out with Location
+            const hasPermission = await requestLocationPermission();
+            if (!hasPermission) {
+                // Even if permission denied, maybe we should allow punch out? 
+                // User request says "Accept latitude and longitude", usually implies it is required or desired.
+                // For consistency, if we require it for Punch In, we likely want it for Punch Out. 
+                // However, blocking Punch Out might be bad UX if GPS fails.
+                // let's try to get it, but proceed if it fails?
+                // The user prompt "implement this also" suggests strict parity with API updates.
+                // The API "Accepts" it. It doesn't say "Requires" it. but for Punch In usually it is required.
+                // I'll follow the pattern: Try to get location, if permission/fetch fails, warn or fail?
+                // In punchIn logic (lines 165-168), it catches error and shows Toast, implying it STOPS.
+                // So I will STOP if location fails, to ensure data quality.
+                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required to punch out.' });
+                setLoadingAction(null);
+                return;
+            }
+
+            try {
+                const coords = await getCurrentLocation();
+                dispatch(punchOut({
+                    type: 'office',
+                    latitude: coords.latitude,
+                    longitude: coords.longitude
+                }));
+            } catch (error) {
+                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get location for punch out.' });
+                setLoadingAction(null);
+            }
         }
     };
 
@@ -205,18 +233,53 @@ const AttendanceActionCard = () => {
             }
         } else if (fieldStatus.can_end) {
             setLoadingAction('field');
-            dispatch(punchOut({ type: 'field' }));
+            // Field Out with Location
+            const hasPermission = await requestLocationPermission();
+            if (!hasPermission) {
+                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required to punch out.' });
+                setLoadingAction(null);
+                return;
+            }
+
+            try {
+                const coords = await getCurrentLocation();
+                dispatch(punchOut({
+                    type: 'field',
+                    latitude: coords.latitude,
+                    longitude: coords.longitude
+                }));
+            } catch (error) {
+                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get location for field out.' });
+                setLoadingAction(null);
+            }
         }
     };
 
     // 3. Break Action
-    const handleBreakAction = () => {
-        if (breakStatus.can_start) {
+    const handleBreakAction = async () => {
+        if (breakStatus.can_start || breakStatus.can_end) {
+            const actionType = breakStatus.can_start ? 'start' : 'end';
             setLoadingAction('break');
-            dispatch(toggleBreak({ action: 'start' }));
-        } else if (breakStatus.can_end) {
-            setLoadingAction('break');
-            dispatch(toggleBreak({ action: 'end' }));
+
+            // Get Location
+            const hasPermission = await requestLocationPermission();
+            if (!hasPermission) {
+                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required for break.' });
+                setLoadingAction(null);
+                return;
+            }
+
+            try {
+                const coords = await getCurrentLocation();
+                dispatch(toggleBreak({
+                    action: actionType,
+                    latitude: coords.latitude,
+                    longitude: coords.longitude
+                }));
+            } catch (error) {
+                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get location for break.' });
+                setLoadingAction(null);
+            }
         }
     };
 
