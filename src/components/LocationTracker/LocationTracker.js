@@ -7,7 +7,7 @@ import api from '../../api/client';
 const { WorkorioLocation } = NativeModules;
 
 // Config - High accuracy for native tracking
-const TRACKING_INTERVAL_MS = 5000;
+const TRACKING_INTERVAL_MS = 50000;
 const DISTANCE_FILTER_METERS = 0;
 
 const LocationTracker = () => {
