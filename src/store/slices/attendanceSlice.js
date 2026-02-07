@@ -218,8 +218,50 @@ const attendanceSlice = createSlice({
             })
             .addCase(fetchAttendanceStatus.fulfilled, (state, action) => {
                 state.loading = false;
-                const { status, worklog_validation } = action.payload;
-                if (status) state.status = status;
+                const { status, worklog_validation, working_hours, movements } = action.payload;
+
+                if (status) {
+                    state.status = status;
+
+                    // Inject Working Hours into Office Status
+                    if (working_hours) {
+                        if (!state.status.office) state.status.office = {};
+                        state.status.office.working_hours = working_hours;
+                    }
+
+                    // Process Office Movements
+                    if (movements && movements.office && Array.isArray(movements.office)) {
+                        const officeMoves = movements.office;
+                        // First IN
+                        const firstIn = officeMoves.find(m => m.movement_action === 'in');
+                        if (firstIn) state.status.office.punch_in_time = firstIn.time;
+
+                        // Last OUT (only if we have outs)
+                        const lastOut = [...officeMoves].reverse().find(m => m.movement_action === 'out');
+                        if (lastOut) state.status.office.punch_out_time = lastOut.time;
+                    }
+
+                    // Process Field Movements
+                    if (movements && movements.field && Array.isArray(movements.field)) {
+                        const fieldMoves = movements.field;
+                        const firstIn = fieldMoves.find(m => m.movement_action === 'in');
+                        if (firstIn) state.status.field.punch_in_time = firstIn.time;
+
+                        const lastOut = [...fieldMoves].reverse().find(m => m.movement_action === 'out');
+                        if (lastOut) state.status.field.punch_out_time = lastOut.time;
+                    }
+
+                    // Process Break Movements - (Assuming 'start'/'end' or 'in'/'out')
+                    if (movements && movements.break && Array.isArray(movements.break)) {
+                        const breakMoves = movements.break;
+                        const lastIn = [...breakMoves].reverse().find(m => m.movement_action === 'start' || m.movement_action === 'in');
+                        if (lastIn) state.status.break.start_time = lastIn.time;
+
+                        const lastOut = [...breakMoves].reverse().find(m => m.movement_action === 'end' || m.movement_action === 'out');
+                        if (lastOut) state.status.break.end_time = lastOut.time;
+                    }
+                }
+
                 if (worklog_validation) state.worklogValidation = worklog_validation;
                 // If the backend provides is_tracking in today-status, update it
                 if (action.payload.is_tracking !== undefined) {
