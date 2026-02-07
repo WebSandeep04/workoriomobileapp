@@ -2,12 +2,15 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api, { setApiToken, setTenantId } from '../../api/client';
 
+const REQUIRED_VERSION = '1.0';
+
 const initialState = {
   user: null,
   token: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  versionMismatch: false,
 };
 
 export const loginUser = createAsyncThunk(
@@ -23,6 +26,10 @@ export const loginUser = createAsyncThunk(
 
       await AsyncStorage.setItem('auth_token', data.token);
       await AsyncStorage.setItem('user_data', JSON.stringify(data));
+      if (data.version) {
+        await AsyncStorage.setItem('app_version', data.version);
+      }
+
       setApiToken(data.token);
       setTenantId(data.tenant_id);
 
@@ -40,6 +47,7 @@ export const logoutUser = createAsyncThunk(
     try {
       await AsyncStorage.removeItem('auth_token');
       await AsyncStorage.removeItem('user_data');
+      await AsyncStorage.removeItem('app_version');
       setApiToken(null);
       setTenantId(null);
       return true;
@@ -53,6 +61,18 @@ export const initAuth = createAsyncThunk('auth/initAuth', async () => {
   try {
     const token = await AsyncStorage.getItem('auth_token');
     const userData = await AsyncStorage.getItem('user_data');
+    const storedVersion = await AsyncStorage.getItem('app_version');
+
+    if (storedVersion && storedVersion !== REQUIRED_VERSION) {
+      console.log(`Version mismatch: Stored ${storedVersion} vs Required ${REQUIRED_VERSION}`);
+      // Do not log out, just flag the mismatch
+      // await AsyncStorage.removeItem('auth_token');
+      // await AsyncStorage.removeItem('user_data');
+      // await AsyncStorage.removeItem('app_version');
+      // setApiToken(null);
+      // setTenantId(null);
+      // return { token: null, user: null, versionMismatch: true };
+    }
 
     if (token && userData) {
       const parsedUser = JSON.parse(userData);
@@ -60,12 +80,16 @@ export const initAuth = createAsyncThunk('auth/initAuth', async () => {
       if (parsedUser.tenant_id) {
         setTenantId(parsedUser.tenant_id);
       }
-      return { token, user: parsedUser };
+      return {
+        token,
+        user: parsedUser,
+        versionMismatch: storedVersion !== REQUIRED_VERSION
+      };
     }
   } catch (e) {
     console.error(e);
   }
-  return { token: null, user: null };
+  return { token: null, user: null, versionMismatch: false };
 });
 
 const authSlice = createSlice({
@@ -75,6 +99,9 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    resetVersionMismatch: (state) => {
+      state.versionMismatch = false;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -105,8 +132,14 @@ const authSlice = createSlice({
       })
       .addCase(initAuth.fulfilled, (state, action) => {
         state.isLoading = false;
-        const { token, user } = action.payload;
-        if (token) {
+        const { token, user, versionMismatch } = action.payload;
+
+        if (versionMismatch) {
+          state.versionMismatch = true;
+          state.isAuthenticated = false;
+          state.token = null;
+          state.user = null;
+        } else if (token) {
           state.token = token;
           state.user = user;
           state.isAuthenticated = true;
@@ -118,5 +151,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, resetVersionMismatch } = authSlice.actions;
 export default authSlice.reducer;

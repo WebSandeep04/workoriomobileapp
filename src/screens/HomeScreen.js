@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, Modal, Linking, TouchableOpacity } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchAttendanceStatus, fetchBirthdays, fetchHolidays } from '../store/slices/attendanceSlice';
@@ -12,6 +12,11 @@ import { styles } from '../css/HomeScreenStyles';
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { loading, birthdays, holidays } = useSelector(state => state.attendance);
+  const { versionMismatch } = useSelector(state => state.auth);
+
+  const handleUpdate = () => {
+    Linking.openURL('https://triserv360.com');
+  };
 
   // Debug Birthdays & Holidays
   // Debug Birthdays & Holidays
@@ -79,6 +84,27 @@ const HomeScreen = ({ navigation }) => {
       <UpcomingHolidays holidays={holidays} />
 
       {/* Other Dashboard Widgets could go here */}
+
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={!!versionMismatch}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ width: '85%', backgroundColor: '#fff', borderRadius: 20, padding: 24, alignItems: 'center', elevation: 5 }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: '#1f2937' }}>Update Required</Text>
+            <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
+              New version available. Please update the app to continue.
+            </Text>
+            <TouchableOpacity
+              style={{ backgroundColor: '#4f46e5', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 12, width: '100%', alignItems: 'center' }}
+              onPress={handleUpdate}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Update Now</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
     </ScrollView >
   );
