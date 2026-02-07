@@ -94,17 +94,18 @@ public class LocationModule extends ReactContextBaseJavaModule {
             com.google.android.gms.location.FusedLocationProviderClient client = 
                 com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(getReactApplicationContext());
             
-            client.getLastLocation()
+            // Use getCurrentLocation (100 = PRIORITY_HIGH_ACCURACY) to force a fresh GPS fix
+            client.getCurrentLocation(100, new com.google.android.gms.tasks.CancellationTokenSource().getToken())
                 .addOnSuccessListener(location -> {
                     if (location != null) {
                         com.facebook.react.bridge.WritableMap map = com.facebook.react.bridge.Arguments.createMap();
                         map.putDouble("latitude", location.getLatitude());
                         map.putDouble("longitude", location.getLongitude());
                         map.putDouble("accuracy", location.getAccuracy());
-                        map.putDouble("timestamp", location.getTime());
+                        map.putDouble("timestamp", (double) location.getTime());
                         promise.resolve(map);
                     } else {
-                        promise.reject("LOCATION_NULL", "Location not available. Please ensure GPS is on.");
+                        promise.reject("LOCATION_NULL", "Unable to get fresh location. Please ensure GPS is active.");
                     }
                 })
                 .addOnFailureListener(e -> promise.reject("LOCATION_ERROR", e.getMessage()));
