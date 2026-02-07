@@ -20,7 +20,11 @@ const WishItem = ({ name, type, image, dob, onPress }) => {
         <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
             <View style={styles.avatarContainer}>
                 {image ? (
-                    <Image source={{ uri: image }} style={styles.avatar} />
+                    <Image
+                        source={{ uri: image }}
+                        style={styles.avatar}
+                        resizeMode="cover"
+                    />
                 ) : (
                     <View style={styles.iconAvatar}>
                         <Ionicons name="person" size={24} color="#434AFA" />

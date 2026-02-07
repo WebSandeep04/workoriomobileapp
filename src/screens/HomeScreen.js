@@ -30,11 +30,11 @@ const HomeScreen = ({ navigation }) => {
 
   // Map birthdays to wishes format
   const wishes = (birthdays || []).map((b, index) => ({
-    id: b.employee_code || index,
+    id: b.id || index, // Ensure unique ID
     name: b.name,
     type: "B'DAY",
     dob: b.dob, // Pass DOB
-    image: 'https://i.pravatar.cc/100?img=' + (index + 10), // Dummy image for now as requested
+    image: b.image, // Use real image from API
   }));
 
   return (

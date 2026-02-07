@@ -60,6 +60,7 @@ export const fetchBirthdays = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await api.get('/employees/birthdays');
+            console.log('[AttendanceSlice] fetchBirthdays response:', JSON.stringify(response.data, null, 2));
             return response.data; // Expecting { success: true, data: [...] }
         } catch (error) {
             // Silently fail or log, as this is non-critical
