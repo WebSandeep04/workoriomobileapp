@@ -15,7 +15,7 @@ const HomeScreen = ({ navigation }) => {
   const { versionMismatch } = useSelector(state => state.auth);
 
   const handleUpdate = () => {
-    Linking.openURL('https://triserv360.com');
+    Linking.openURL('https://app.workorio.com/download');
   };
 
   // Debug Birthdays & Holidays
