@@ -316,11 +316,51 @@ const AttendanceActionCard = () => {
                     type: pendingAction.type,
                     reason: lateReason,
                     latitude: coords?.latitude,
-                    longitude: coords?.longitude
+                    longitude: coords?.longitude,
+                    emergency_attendance: pendingAction.isEmergency
                 }));
             } catch (e) {
-                dispatch(punchIn({ type: pendingAction.type, reason: lateReason }));
+                dispatch(punchIn({
+                    type: pendingAction.type,
+                    reason: lateReason,
+                    emergency_attendance: pendingAction.isEmergency
+                }));
             }
+        }
+    };
+
+    const handleEmergencyPunch = async () => {
+        console.log('[AttendanceActionCard] Emergency Attendance Button Clicked');
+        if (officeStatus.can_start) {
+            setLoadingAction('emergency');
+            console.log('[AttendanceActionCard] Requesting Location for Emergency Punch');
+
+            // Try permission
+            const hasPermission = await requestLocationPermission();
+            let coords = {};
+            if (hasPermission) {
+                try {
+                    coords = await getCurrentLocation();
+                    console.log('[AttendanceActionCard] Emergency Location:', coords);
+                } catch (e) {
+                    console.log('[AttendanceActionCard] Failed to get location for emergency', e);
+                }
+            } else {
+                console.log('[AttendanceActionCard] Permission denied for emergency');
+            }
+
+            setPendingAction({ type: 'office', isEmergency: true });
+
+            console.log('[AttendanceActionCard] Dispatching Emergency Punch In');
+            dispatch(punchIn({
+                type: 'office',
+                latitude: coords?.latitude,
+                longitude: coords?.longitude,
+                emergency_attendance: true
+            }));
+        } else {
+            console.log('[AttendanceActionCard] Emergency Punch blocked: can_start is false');
+            Alert.alert('Info', 'You are seemingly already punched in.');
         }
     };
 
@@ -369,150 +409,167 @@ const AttendanceActionCard = () => {
     const workingHours = officeStatus.last_action_time ? ` | ${officeStatus.working_hours || '0hr 0min'}` : '';
 
     return (
-        <View style={styles.card}>
-            {/* Header: Shift Info */}
-            <View style={styles.headerRow}>
-                <Text style={styles.headerLabel}>
-                    Shift Today : <Text style={styles.headerValue}>{shiftName} {shiftTiming}</Text>
-                </Text>
+        <View>
+            <View style={styles.card}>
+                {/* Header: Shift Info */}
+                <View style={styles.headerRow}>
+                    <Text style={styles.headerLabel}>
+                        Shift Today : <Text style={styles.headerValue}>{shiftName} {shiftTiming}</Text>
+                    </Text>
+                </View>
+
+                {/* User Profile Row */}
+                <View style={styles.profileRow}>
+                    <View style={styles.avatarContainer}>
+                        {user?.image ? (
+                            <Image
+                                source={{ uri: user.image }}
+                                style={styles.avatar}
+                            />
+                        ) : (
+                            <Ionicons name="person" size={24} color={COLORS.primary} />
+                        )}
+                    </View>
+                    <View style={styles.userInfo}>
+                        <Text style={styles.userName}>{user?.name || "Employee"}</Text>
+                        <Text style={styles.userDate}>{formatDate(new Date())}{workingHours}</Text>
+                    </View>
+                </View>
+
+                {/* Action Buttons Row */}
+                <View style={styles.actionsRow}>
+                    {/* 1. Punch In/Out (White) */}
+                    <TouchableOpacity
+                        style={[styles.actionBtn, styles.btnWhite, (actionLoading || isOnBreak) && styles.disabledBtn]}
+                        onPress={handlePunchAction}
+                        activeOpacity={0.8}
+                        disabled={actionLoading || isOnBreak}
+                    >
+                        {actionLoading && loadingAction === 'office' ? (
+                            <ActivityIndicator color={COLORS.primary} size="small" />
+                        ) : (
+                            !(actionLoading || isOnBreak) && <Text style={[styles.btnText, { color: COLORS.primary }]}>{getPunchLabel()}</Text>
+                        )}
+                    </TouchableOpacity>
+
+                    {/* 2. Field Cycle (Red) */}
+                    <TouchableOpacity
+                        style={[styles.actionBtn, styles.btnRed, (actionLoading || isOnBreak) && styles.disabledBtn]}
+                        onPress={handleFieldAction}
+                        activeOpacity={0.8}
+                        disabled={actionLoading || isOnBreak}
+                    >
+                        {actionLoading && loadingAction === 'field' ? (
+                            <ActivityIndicator color="#FFF" size="small" />
+                        ) : (
+                            !(actionLoading || isOnBreak) && <Text style={[styles.btnText, { color: '#FFF' }]}>{getFieldLabel()}</Text>
+                        )}
+                    </TouchableOpacity>
+
+                    {/* 3. Break (Orange) */}
+                    <TouchableOpacity
+                        style={[styles.actionBtn, styles.btnOrange, actionLoading && styles.disabledBtn]}
+                        onPress={handleBreakAction}
+                        activeOpacity={0.8}
+                        disabled={actionLoading}
+                    >
+                        {actionLoading && loadingAction === 'break' ? (
+                            <ActivityIndicator color="#FFF" size="small" />
+                        ) : (
+                            !actionLoading && <Text style={[styles.btnText, { color: '#FFF' }]}>{getBreakLabel()}</Text>
+                        )}
+                    </TouchableOpacity>
+                </View>
+
+                {/* Late Reason Modal */}
+                <Modal
+                    visible={lateModalVisible}
+                    transparent
+                    animationType="fade"
+                    statusBarTranslucent
+                    onRequestClose={() => setLateModalVisible(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Running Late?</Text>
+                            <Text style={{ marginBottom: 12, color: '#6B7280', fontSize: 14 }}>
+                                {validationError?.message || "Please select a reason for late punch-in:"}
+                            </Text>
+
+                            {lateReasonOptions.length > 0 ? (
+                                <View style={{ maxHeight: 300 }}>
+                                    <ScrollView showsVerticalScrollIndicator={true}>
+                                        {lateReasonOptions.map((item) => (
+                                            <TouchableOpacity
+                                                key={item.id}
+                                                style={[
+                                                    styles.reasonItem,
+                                                    lateReason === item.reason && styles.selectedReasonItem
+                                                ]}
+                                                onPress={() => setLateReason(item.reason)}
+                                            >
+                                                <Text style={[
+                                                    styles.reasonText,
+                                                    lateReason === item.reason && styles.selectedReasonText
+                                                ]}>
+                                                    {item.reason}
+                                                </Text>
+
+                                                {lateReason === item.reason && (
+                                                    <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
+                                                )}
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+                            ) : (
+                                // Fallback if no reasons provided
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Reason for late..."
+                                    value={lateReason}
+                                    onChangeText={setLateReason}
+                                />
+                            )}
+
+                            <View style={styles.modalButtons}>
+                                <TouchableOpacity
+                                    style={[styles.modalBtn, styles.cancelBtn]}
+                                    onPress={() => {
+                                        setLateModalVisible(false);
+                                        setLateReason('');
+                                        setLateReasonOptions([]);
+                                    }}
+                                >
+                                    <Text>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalBtn, styles.submitBtn, !lateReason && { opacity: 0.5 }]}
+                                    onPress={submitLateReason}
+                                    disabled={!lateReason}
+                                >
+                                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Submit</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </View>
 
-            {/* User Profile Row */}
-            <View style={styles.profileRow}>
-                <View style={styles.avatarContainer}>
-                    {user?.image ? (
-                        <Image
-                            source={{ uri: user.image }}
-                            style={styles.avatar}
-                        />
-                    ) : (
-                        <Ionicons name="person" size={24} color={COLORS.primary} />
-                    )}
-                </View>
-                <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{user?.name || "Employee"}</Text>
-                    <Text style={styles.userDate}>{formatDate(new Date())}{workingHours}</Text>
-                </View>
-            </View>
-
-            {/* Action Buttons Row */}
-            <View style={styles.actionsRow}>
-                {/* 1. Punch In/Out (White) */}
+            {(!officeStatus.can_start || !fieldStatus.can_start || isOnBreak) ? null :
                 <TouchableOpacity
-                    style={[styles.actionBtn, styles.btnWhite, (actionLoading || isOnBreak) && styles.disabledBtn]}
-                    onPress={handlePunchAction}
-                    activeOpacity={0.8}
-                    disabled={actionLoading || isOnBreak}
-                >
-                    {actionLoading && loadingAction === 'office' ? (
-                        <ActivityIndicator color={COLORS.primary} size="small" />
-                    ) : (
-                        !(actionLoading || isOnBreak) && <Text style={[styles.btnText, { color: COLORS.primary }]}>{getPunchLabel()}</Text>
-                    )}
-                </TouchableOpacity>
-
-                {/* 2. Field Cycle (Red) */}
-                <TouchableOpacity
-                    style={[styles.actionBtn, styles.btnRed, (actionLoading || isOnBreak) && styles.disabledBtn]}
-                    onPress={handleFieldAction}
-                    activeOpacity={0.8}
-                    disabled={actionLoading || isOnBreak}
-                >
-                    {actionLoading && loadingAction === 'field' ? (
-                        <ActivityIndicator color="#FFF" size="small" />
-                    ) : (
-                        !(actionLoading || isOnBreak) && <Text style={[styles.btnText, { color: '#FFF' }]}>{getFieldLabel()}</Text>
-                    )}
-                </TouchableOpacity>
-
-                {/* 3. Break (Orange) */}
-                <TouchableOpacity
-                    style={[styles.actionBtn, styles.btnOrange, actionLoading && styles.disabledBtn]}
-                    onPress={handleBreakAction}
+                    style={[styles.emergencyBtn, actionLoading && { opacity: 0.7 }]}
+                    onPress={handleEmergencyPunch}
                     activeOpacity={0.8}
                     disabled={actionLoading}
                 >
-                    {actionLoading && loadingAction === 'break' ? (
+                    {actionLoading && loadingAction === 'emergency' ? (
                         <ActivityIndicator color="#FFF" size="small" />
                     ) : (
-                        !actionLoading && <Text style={[styles.btnText, { color: '#FFF' }]}>{getBreakLabel()}</Text>
+                        <Text style={styles.emergencyText}>Emergency Attendance</Text>
                     )}
                 </TouchableOpacity>
-            </View>
-
-            {/* Late Reason Modal */}
-            <Modal
-                visible={lateModalVisible}
-                transparent
-                animationType="fade"
-                statusBarTranslucent
-                onRequestClose={() => setLateModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Running Late?</Text>
-                        <Text style={{ marginBottom: 12, color: '#6B7280', fontSize: 14 }}>
-                            {validationError?.message || "Please select a reason for late punch-in:"}
-                        </Text>
-
-                        {lateReasonOptions.length > 0 ? (
-                            <View style={{ maxHeight: 300 }}>
-                                <ScrollView showsVerticalScrollIndicator={true}>
-                                    {lateReasonOptions.map((item) => (
-                                        <TouchableOpacity
-                                            key={item.id}
-                                            style={[
-                                                styles.reasonItem,
-                                                lateReason === item.reason && styles.selectedReasonItem
-                                            ]}
-                                            onPress={() => setLateReason(item.reason)}
-                                        >
-                                            <Text style={[
-                                                styles.reasonText,
-                                                lateReason === item.reason && styles.selectedReasonText
-                                            ]}>
-                                                {item.reason}
-                                            </Text>
-
-                                            {lateReason === item.reason && (
-                                                <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
-                                            )}
-                                        </TouchableOpacity>
-                                    ))}
-                                </ScrollView>
-                            </View>
-                        ) : (
-                            // Fallback if no reasons provided
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Reason for late..."
-                                value={lateReason}
-                                onChangeText={setLateReason}
-                            />
-                        )}
-
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity
-                                style={[styles.modalBtn, styles.cancelBtn]}
-                                onPress={() => {
-                                    setLateModalVisible(false);
-                                    setLateReason('');
-                                    setLateReasonOptions([]);
-                                }}
-                            >
-                                <Text>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalBtn, styles.submitBtn, !lateReason && { opacity: 0.5 }]}
-                                onPress={submitLateReason}
-                                disabled={!lateReason}
-                            >
-                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Submit</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
+            }
         </View>
     );
 };
@@ -646,6 +703,24 @@ const styles = StyleSheet.create({
     selectedReasonText: {
         color: COLORS.primary,
         fontWeight: 'bold'
+    },
+    emergencyBtn: {
+        backgroundColor: '#EF4444',
+        marginHorizontal: 16,
+        marginBottom: 24,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        shadowColor: '#EF4444',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        elevation: 6,
+    },
+    emergencyText: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
+        fontSize: 16
     }
 });
 
