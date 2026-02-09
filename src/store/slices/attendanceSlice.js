@@ -105,12 +105,13 @@ export const fetchAttendanceSummary = createAsyncThunk(
 
 export const punchIn = createAsyncThunk(
     'attendance/punchIn',
-    async ({ type, reason, latitude, longitude, emergency_attendance }, { rejectWithValue, dispatch }) => {
-        console.log(`[AttendanceSlice] punchIn started. Type: ${type}, Reason: ${reason}, Lat: ${latitude}, Long: ${longitude}, Emergency: ${emergency_attendance}`);
+    async ({ type, reason, latitude, longitude, emergency_attendance, work_from_home }, { rejectWithValue, dispatch }) => {
+        console.log(`[AttendanceSlice] punchIn started. Type: ${type}, Reason: ${reason}, Lat: ${latitude}, Long: ${longitude}, Emergency: ${emergency_attendance}, WFH: ${work_from_home}`);
         try {
             const payload = { movement_type: type };
             if (reason) payload.late_reason = reason;
             if (emergency_attendance) payload.emergency_attendance = true;
+            if (work_from_home) payload.work_from_home = true;
 
             // Add Location Data if provided
             if (latitude && longitude) {

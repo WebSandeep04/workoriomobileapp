@@ -317,13 +317,15 @@ const AttendanceActionCard = () => {
                     reason: lateReason,
                     latitude: coords?.latitude,
                     longitude: coords?.longitude,
-                    emergency_attendance: pendingAction.isEmergency
+                    emergency_attendance: pendingAction.isEmergency,
+                    work_from_home: pendingAction.isWFH
                 }));
             } catch (e) {
                 dispatch(punchIn({
                     type: pendingAction.type,
                     reason: lateReason,
-                    emergency_attendance: pendingAction.isEmergency
+                    emergency_attendance: pendingAction.isEmergency,
+                    work_from_home: pendingAction.isWFH
                 }));
             }
         }
@@ -360,6 +362,41 @@ const AttendanceActionCard = () => {
             }));
         } else {
             console.log('[AttendanceActionCard] Emergency Punch blocked: can_start is false');
+            Alert.alert('Info', 'You are seemingly already punched in.');
+        }
+    };
+
+    const handleWFHPunch = async () => {
+        console.log('[AttendanceActionCard] WFH Attendance Button Clicked');
+        if (officeStatus.can_start) {
+            setLoadingAction('wfh');
+            console.log('[AttendanceActionCard] Requesting Location for WFH Punch');
+
+            // Try permission
+            const hasPermission = await requestLocationPermission();
+            let coords = {};
+            if (hasPermission) {
+                try {
+                    coords = await getCurrentLocation();
+                    console.log('[AttendanceActionCard] WFH Location:', coords);
+                } catch (e) {
+                    console.log('[AttendanceActionCard] Failed to get location for WFH', e);
+                }
+            } else {
+                console.log('[AttendanceActionCard] Permission denied for WFH');
+            }
+
+            setPendingAction({ type: 'office', isWFH: true });
+
+            console.log('[AttendanceActionCard] Dispatching WFH Punch In');
+            dispatch(punchIn({
+                type: 'office',
+                latitude: coords?.latitude,
+                longitude: coords?.longitude,
+                work_from_home: true
+            }));
+        } else {
+            console.log('[AttendanceActionCard] WFH Punch blocked: can_start is false');
             Alert.alert('Info', 'You are seemingly already punched in.');
         }
     };
@@ -570,6 +607,21 @@ const AttendanceActionCard = () => {
                     )}
                 </TouchableOpacity>
             }
+
+            {(!officeStatus.can_start || !fieldStatus.can_start || isOnBreak) ? null :
+                <TouchableOpacity
+                    style={[styles.wfhBtn, actionLoading && { opacity: 0.7 }]}
+                    onPress={handleWFHPunch}
+                    activeOpacity={0.8}
+                    disabled={actionLoading}
+                >
+                    {actionLoading && loadingAction === 'wfh' ? (
+                        <ActivityIndicator color="#FFF" size="small" />
+                    ) : (
+                        <Text style={styles.wfhText}>Work From Home</Text>
+                    )}
+                </TouchableOpacity>
+            }
         </View>
     );
 };
@@ -707,7 +759,7 @@ const styles = StyleSheet.create({
     emergencyBtn: {
         backgroundColor: '#434AFA',
         marginHorizontal: 16,
-        marginBottom: 24,
+        marginBottom: 12,
         paddingVertical: 14,
         borderRadius: 12,
         alignItems: 'center',
@@ -718,6 +770,24 @@ const styles = StyleSheet.create({
         elevation: 6,
     },
     emergencyText: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
+        fontSize: 16
+    },
+    wfhBtn: {
+        backgroundColor: '#434AFA',
+        marginHorizontal: 16,
+        marginBottom: 24,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        shadowColor: '#434AFA',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        elevation: 6,
+    },
+    wfhText: {
         color: '#FFFFFF',
         fontWeight: 'bold',
         fontSize: 16
