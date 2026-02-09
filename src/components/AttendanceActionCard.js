@@ -566,7 +566,7 @@ const AttendanceActionCard = () => {
                     {actionLoading && loadingAction === 'emergency' ? (
                         <ActivityIndicator color="#FFF" size="small" />
                     ) : (
-                        <Text style={styles.emergencyText}>Emergency Attendance</Text>
+                        <Text style={styles.emergencyText}>Provisional Attendance</Text>
                     )}
                 </TouchableOpacity>
             }
@@ -705,13 +705,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold'
     },
     emergencyBtn: {
-        backgroundColor: '#EF4444',
+        backgroundColor: '#434AFA',
         marginHorizontal: 16,
         marginBottom: 24,
         paddingVertical: 14,
         borderRadius: 12,
         alignItems: 'center',
-        shadowColor: '#EF4444',
+        shadowColor: '#434AFA',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 10,
