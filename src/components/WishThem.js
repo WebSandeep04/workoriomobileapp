@@ -1,6 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Dimensions, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
+const { width } = Dimensions.get('window');
 
 const WishItem = ({ name, type, image, dob, onPress }) => {
     // Robust date parsing
@@ -54,6 +56,8 @@ const SeeMoreItem = ({ count, onPress }) => (
 );
 
 const WishThem = ({ title = "Wish Them :", wishes = [], onSeeMore }) => {
+    const [selectedImage, setSelectedImage] = useState(null);
+
     if (!wishes || wishes.length === 0) {
         return (
             <View style={styles.container}>
@@ -77,7 +81,13 @@ const WishThem = ({ title = "Wish Them :", wishes = [], onSeeMore }) => {
                         type={item.type || "B'DAY"}
                         image={item.image}
                         dob={item.dob}
-                        onPress={item.onPress}
+                        onPress={() => {
+                            if (item.image) {
+                                setSelectedImage(item.image);
+                            } else if (item.onPress) {
+                                item.onPress();
+                            }
+                        }}
                     />
                 ))}
 
@@ -85,6 +95,32 @@ const WishThem = ({ title = "Wish Them :", wishes = [], onSeeMore }) => {
                     <SeeMoreItem count={2} onPress={onSeeMore} />
                 )} */}
             </ScrollView>
+
+            <Modal
+                visible={!!selectedImage}
+                transparent={true}
+                onRequestClose={() => setSelectedImage(null)}
+                animationType="fade"
+            >
+                <Pressable
+                    style={styles.modalOverlay}
+                    onPress={() => setSelectedImage(null)}
+                >
+                    <TouchableOpacity
+                        style={styles.closeButton}
+                        onPress={() => setSelectedImage(null)}
+                    >
+                        <Ionicons name="close-circle" size={40} color="#fff" />
+                    </TouchableOpacity>
+                    {selectedImage && (
+                        <Image
+                            source={{ uri: selectedImage }}
+                            style={styles.modalImage}
+                            resizeMode="contain"
+                        />
+                    )}
+                </Pressable>
+            </Modal>
         </View>
     );
 };
@@ -177,6 +213,24 @@ const styles = StyleSheet.create({
         color: '#6B7280',
         textAlign: 'center',
         marginTop: 2,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 50,
+        right: 20,
+        zIndex: 10,
+        padding: 10,
+    },
+    modalImage: {
+        width: width * 0.95,
+        height: width * 0.95,
+        borderRadius: 8,
     },
 });
 
