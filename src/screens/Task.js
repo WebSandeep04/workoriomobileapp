@@ -31,7 +31,7 @@ import {
 import { styles } from '../css/TaskStyles';
 import Header from '../components/Header';
 
-const Task = ({ navigation }) => {
+const Task = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const {
         createdTasks,
@@ -46,7 +46,13 @@ const Task = ({ navigation }) => {
     } = useSelector(state => state.task);
     const { user } = useSelector(state => state.auth);
 
-    const [activeTab, setActiveTab] = useState('assigned'); // 'assigned' | 'created'
+    const [activeTab, setActiveTab] = useState(route?.params?.activeTab || 'assigned'); // 'assigned' | 'created'
+
+    useEffect(() => {
+        if (route?.params?.activeTab) {
+            setActiveTab(route.params.activeTab);
+        }
+    }, [route?.params?.activeTab]);
     const [createModalVisible, setCreateModalVisible] = useState(false);
     const [detailModalVisible, setDetailModalVisible] = useState(false);
 

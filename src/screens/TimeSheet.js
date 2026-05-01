@@ -101,7 +101,7 @@ const CustomPicker = ({ label, value, options, onSelect, placeholder = "Select..
     );
 };
 
-const TimeSheet = () => {
+const TimeSheet = ({ route }) => {
     const dispatch = useDispatch();
     const {
         entryTypes,
@@ -114,7 +114,13 @@ const TimeSheet = () => {
         loading
     } = useSelector((state) => state.worklog);
 
-    const [activeTab, setActiveTab] = useState('entry'); // 'entry' | 'history'
+    const [activeTab, setActiveTab] = useState(route?.params?.activeTab || 'entry'); // 'entry' | 'history'
+
+    useEffect(() => {
+        if (route?.params?.activeTab) {
+            setActiveTab(route.params.activeTab);
+        }
+    }, [route?.params?.activeTab]);
 
     // Form State
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);

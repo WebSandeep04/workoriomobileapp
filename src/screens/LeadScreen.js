@@ -23,7 +23,7 @@ import AddProspectModal from '../components/AddProspectModal';
 import Header from '../components/Header';
 import LeadFilterModal from '../components/LeadFilterModal';
 
-const LeadScreen = () => {
+const LeadScreen = ({ route }) => {
     const dispatch = useDispatch();
     const { leads, pagination, loading, filterOptions, cityOptions, actionLoading } = useSelector((state) => state.lead);
 
@@ -39,17 +39,21 @@ const LeadScreen = () => {
 
     const [summaryStats, setSummaryStats] = useState(null);
     const [statusCounts, setStatusCounts] = useState([]);
-    const [activeFilterType, setActiveFilterType] = useState(null);
+    const [activeFilterType, setActiveFilterType] = useState(route?.params?.filterType || null);
     const [activeStatusId, setActiveStatusId] = useState(null);
 
     const [selectedLead, setSelectedLead] = useState(null);
 
     // Initial Fetch
     useEffect(() => {
-        loadLeads(1);
+        const initialFilterType = route?.params?.filterType || null;
+        if (initialFilterType) {
+            setActiveFilterType(initialFilterType);
+        }
+        loadLeads(1, false, null, initialFilterType, null);
         fetchDashboardStats();
         dispatch(fetchFilterOptions());
-    }, [dispatch]);
+    }, [dispatch, route?.params?.filterType]);
 
     const fetchDashboardStats = async () => {
         try {
