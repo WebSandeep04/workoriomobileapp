@@ -23,8 +23,14 @@ const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
                             <Ionicons name="arrow-back" size={24} color="#333" />
                         </TouchableOpacity>
                     ) : (
-                        <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('Profile')}>
-                            <Ionicons name="person-outline" size={24} color="#434AFA" />
+                        <TouchableOpacity style={styles.avatarContainer} onPress={() => {
+                            if (navigation.openDrawer) {
+                                navigation.openDrawer();
+                            } else {
+                                navigation.navigate('Profile');
+                            }
+                        }}>
+                            <Ionicons name="menu-outline" size={24} color="#434AFA" />
                         </TouchableOpacity>
                     )}
                 </View>

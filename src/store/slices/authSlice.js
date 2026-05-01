@@ -19,6 +19,7 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await api.post('/login', { email, password });
       const { data } = response.data; // Structure: { success: true, data: { token, ...user } }
+      console.log('Login API Response Data:', JSON.stringify(response.data, null, 2));
 
       if (!data?.token) {
         return rejectWithValue('Authentication failed: Token not found');

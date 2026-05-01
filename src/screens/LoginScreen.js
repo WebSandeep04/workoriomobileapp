@@ -65,7 +65,7 @@ const LoginScreen = ({ navigation }) => {
       setShowSplash(true);
       const timer = setTimeout(() => {
         setIsPasswordVisible(false); // Reset
-        navigation.replace('BottomTabs');
+        navigation.replace('MainDrawer');
       }, 3000); // 3 seconds splash
       return () => clearTimeout(timer);
     }
