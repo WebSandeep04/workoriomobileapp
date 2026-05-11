@@ -1,13 +1,53 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from './AuthContext';
 import { mobileMenuConfig } from './menuConfig';
 
+const BOOTSTRAP_ICON_MAP = {
+  // Standalone Items
+  'bi bi-kanban': 'apps-outline',
+  'bi bi-arrow-repeat': 'repeat-outline',
+  'bi bi-geo-alt': 'location-outline',
+  'bi bi-cash-stack': 'cash-outline',
+  'bi bi-person-lines-fill': 'people-outline',
+  'bi bi-box-seam': 'cube-outline',
+  'bi bi-envelope': 'mail-outline',
+  
+  // Group Headings
+  'bi bi-cart': 'cart-outline',
+  'bi bi-telephone-outbound': 'call-outline',
+  'bi bi-person-plus': 'person-add-outline',
+  'bi bi-clock': 'time-outline',
+  'bi bi-diagram-3': 'git-network-outline',
+  'bi bi-calendar3': 'calendar-outline',
+  'bi bi-person-badge': 'person-circle-outline',
+  'bi bi-list-task': 'list-outline',
+  'bi bi-person-check': 'checkmark-circle-outline',
+  'bi bi-file-earmark-bar-graph': 'stats-chart-outline',
+  'bi bi-folder2-open': 'folder-open-outline',
+  'bi bi-check2-circle': 'checkmark-done-outline',
+};
+
+const getIconName = (rawIcon) => {
+  if (!rawIcon) return 'folder-outline';
+  return BOOTSTRAP_ICON_MAP[rawIcon] || 'folder-outline';
+};
+
 export function CustomDrawerContent(props) {
   const { user, permissions = [], featureFlags = {}, logout } = useContext(AuthContext);
   const isAdmin = (user?.role_name?.toLowerCase() === 'admin') || (Number(user?.role_id) === 1);
+
+  // Accordion State: Tracks visibility of dropdown sections
+  const [expandedSections, setExpandedSections] = useState({});
+
+  const toggleSection = (key) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
 
   const handleLogout = async () => {
     if (logout) {
@@ -60,15 +100,16 @@ export function CustomDrawerContent(props) {
               }
 
               return (
-                <DrawerItem
-                  key={section.key}
-                  label={section.title}
-                  labelStyle={styles.drawerLabel}
-                  icon={({ color, size }) => (
-                    <Ionicons name={section.icon || 'folder-outline'} size={size} color="#475569" />
-                  )}
-                  onPress={() => props.navigation.navigate(section.route || section.name)}
-                />
+                <View key={section.key} style={styles.sectionContainer}>
+                  <TouchableOpacity 
+                    style={styles.sectionHeader} 
+                    onPress={() => props.navigation.navigate(section.route || section.name)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name={getIconName(section.icon)} size={15} color="#475569" style={{ marginRight: 10 }} />
+                    <Text style={[styles.sectionHeaderText, { flex: 1 }]}>{section.title}</Text>
+                  </TouchableOpacity>
+                </View>
               );
             }
 
@@ -98,12 +139,25 @@ export function CustomDrawerContent(props) {
                 return null;
               }
 
+              const isExpanded = !!expandedSections[section.key];
+
               return (
                 <View key={section.key} style={styles.sectionContainer}>
-                  <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionHeaderText}>{section.title}</Text>
-                  </View>
-                  {visibleSubItems.map((subItem) => (
+                  <TouchableOpacity 
+                    style={styles.sectionHeader} 
+                    onPress={() => toggleSection(section.key)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name={getIconName(section.icon)} size={15} color="#475569" style={{ marginRight: 10 }} />
+                    <Text style={[styles.sectionHeaderText, { flex: 1 }]}>{section.title}</Text>
+                    <Ionicons 
+                      name={isExpanded ? "chevron-up" : "chevron-down"} 
+                      size={14} 
+                      color="#94a3b8" 
+                    />
+                  </TouchableOpacity>
+                  
+                  {isExpanded && visibleSubItems.map((subItem) => (
                     <DrawerItem
                       key={subItem.route || subItem.name || subItem.title}
                       label={subItem.title}
@@ -206,13 +260,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   sectionHeaderText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#475569',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#334155',
   },
   drawerLabel: {
     fontSize: 14,
