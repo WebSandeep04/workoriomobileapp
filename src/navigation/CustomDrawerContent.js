@@ -7,6 +7,7 @@ import { mobileMenuConfig } from './menuConfig';
 
 export function CustomDrawerContent(props) {
   const { user, permissions = [], featureFlags = {}, logout } = useContext(AuthContext);
+  const isAdmin = (user?.role_name?.toLowerCase() === 'admin') || (Number(user?.role_id) === 1);
 
   const handleLogout = async () => {
     if (logout) {
@@ -51,8 +52,8 @@ export function CustomDrawerContent(props) {
 
             // 2. If it is a direct single screen (no items array)
             if ((section.route || section.name) && !section.items) {
-              const hasDirectPermission = !section.permission || permissions.includes(section.permission);
-              const matchesDirectRole = !section.roles || (user?.role_name && section.roles.includes(user.role_name));
+              const hasDirectPermission = isAdmin || !section.permission || permissions.includes(section.permission);
+              const matchesDirectRole = isAdmin || !section.roles || (user?.role_name && section.roles.includes(user.role_name));
 
               if (!hasDirectPermission || !matchesDirectRole) {
                 return null;
@@ -76,6 +77,10 @@ export function CustomDrawerContent(props) {
               const visibleSubItems = section.items.filter((subItem) => {
                 if (subItem.feature_flag && !featureFlags[subItem.feature_flag]) {
                   return false;
+                }
+                // Admin can access everything enabled by feature flags
+                if (isAdmin) {
+                  return true;
                 }
                 if (subItem.condition && !user?.[subItem.condition]) {
                   return false;

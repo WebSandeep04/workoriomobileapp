@@ -6,6 +6,12 @@ export const canViewMenuItem = (item, permissions = [], featureFlags = {}, role 
     return false;
   }
 
+  // Admin bypass
+  const isAdmin = (role && role.toLowerCase() === 'admin') || (Number(user?.role_id) === 1);
+  if (isAdmin) {
+    return true;
+  }
+
   // Check role
   if (item.roles && !item.roles.includes(role)) {
     return false;

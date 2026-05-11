@@ -1,8 +1,13 @@
 import { View, Text, StyleSheet } from 'react-native';
+import Header from '../components/Header';
+
 const Subscription = () => {
     return (
-        <View style={styles.container}>
-            <Text style={styles.text}>Subscription</Text>
+        <View style={{ flex: 1 }}>
+            <Header title="Subscription" />
+            <View style={styles.container}>
+                <Text style={styles.text}>Subscription</Text>
+            </View>
         </View>
     );
 };

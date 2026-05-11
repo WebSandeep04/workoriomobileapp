@@ -269,39 +269,3 @@ export const mobileMenuConfig = [
   }
 ];
 
-export const bottomTabsConfig = [
-  {
-    name: 'Home',
-    title: 'Home',
-    icon: 'home',
-    iconOutline: 'home-outline'
-  },
-  {
-    name: 'TimeSheet',
-    title: 'TimeSheet',
-    icon: 'time',
-    iconOutline: 'time-outline',
-    feature_flag: 'is_worklog_enabled'
-  },
-  {
-    name: 'Task',
-    title: 'Task',
-    icon: 'list',
-    iconOutline: 'list-outline',
-    feature_flag: 'is_task_reminders_enabled'
-  },
-  {
-    name: 'Lead',
-    title: 'Lead',
-    icon: 'people',
-    iconOutline: 'people-outline',
-    feature_flag: 'is_sales_enabled'
-  },
-  {
-    name: 'Subscription',
-    title: 'Subscription',
-    icon: 'ticket',
-    iconOutline: 'ticket-outline',
-    feature_flag: 'is_subscription_enabled'
-  }
-];

@@ -7,6 +7,7 @@ import AttendanceCard from '../components/AttendanceCard';
 import QuickActions from '../components/QuickActions';
 import WishThem from '../components/WishThem';
 import UpcomingHolidays from '../components/UpcomingHolidays';
+import Header from '../components/Header';
 import { styles } from '../css/HomeScreenStyles';
 
 const HomeScreen = ({ navigation }) => {
@@ -43,11 +44,13 @@ const HomeScreen = ({ navigation }) => {
   }));
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} />}
-    >
-      <QuickActions actions={[
+    <View style={{ flex: 1 }}>
+      <Header title="Home" />
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} />}
+      >
+        <QuickActions actions={[
         {
           id: 1,
           title: 'Apply\nLeave',
@@ -64,7 +67,7 @@ const HomeScreen = ({ navigation }) => {
           id: 3,
           title: 'Attendance\nSummary',
           icon: 'clipboard-outline',
-          onPress: () => navigation.navigate('AttandanceSummary'),
+          onPress: () => navigation.navigate('attendance.history'),
         },
         {
           id: 4,
@@ -107,6 +110,7 @@ const HomeScreen = ({ navigation }) => {
       </Modal>
 
     </ScrollView >
+    </View>
   );
 };
 

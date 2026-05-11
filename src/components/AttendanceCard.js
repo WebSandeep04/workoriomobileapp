@@ -255,7 +255,7 @@ const AttendanceCard = () => {
                 </View>
 
                 {/* Arrow */}
-                <TouchableOpacity onPress={() => navigation.navigate('Attandance')}>
+                <TouchableOpacity onPress={() => navigation.navigate('attendance')}>
                     <Ionicons name="chevron-forward" size={24} color={COLORS.textWhite} />
                 </TouchableOpacity>
             </View>
