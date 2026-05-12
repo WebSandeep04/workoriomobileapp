@@ -58,7 +58,7 @@ const AttandanceSummary = () => {
     const renderHeader = () => (
         <View style={styles.tableHeader}>
             <Text style={[styles.columnHeader, { width: 140 }]}>Date</Text>
-            <Text style={[styles.columnHeader, { width: 100 }]}>Status</Text>
+            <Text style={[styles.columnHeader, { width: 140 }]}>Status</Text>
             <Text style={[styles.columnHeader, { width: 90 }]}>Punch In</Text>
             <Text style={[styles.columnHeader, { width: 90 }]}>Punch Out</Text>
             <Text style={[styles.columnHeader, { width: 90 }]}>Field In</Text>
@@ -80,10 +80,10 @@ const AttandanceSummary = () => {
 
         return (
             <View style={[styles.tableRow, { backgroundColor: rowBg }]}>
-                <Text style={[styles.cell, { width: 140, fontSize: 13, fontWeight: '600', textAlign: 'left', paddingLeft: 12, color: '#1E293B' }]}>{item.display_date || item.date}</Text>
-                <View style={{ width: 100 }}>
-                    <View style={[styles.statusBadge, { backgroundColor: `${statusColor}15` }]}>
-                        <Text style={[styles.statusText, { color: statusColor }]}>{(item.status || 'N/A').toUpperCase()}</Text>
+                <Text style={[styles.cell, { width: 140, fontSize: 12, fontWeight: '600', textAlign: 'left', paddingLeft: 12, color: '#1E293B' }]}>{item.display_date || item.date}</Text>
+                <View style={{ width: 140 }}>
+                    <View style={[styles.statusBadge, { backgroundColor: `${statusColor}15`, width: '90%' }]}>
+                        <Text style={[styles.statusText, { color: statusColor }]}>{item.status || 'N/A'}</Text>
                     </View>
                 </View>
 
@@ -148,7 +148,7 @@ const AttandanceSummary = () => {
                         {renderHeader()}
 
                         {loadingSummary && currentPage === 1 ? (
-                            <View style={[styles.center, { width: 960 }]}>
+                            <View style={[styles.center, { width: 1000 }]}>
                                 <ActivityIndicator size="large" color={COLORS.primary} />
                                 <Text style={{ marginTop: 12, color: '#64748B', fontSize: 14, fontWeight: '500' }}>Fetching records...</Text>
                             </View>

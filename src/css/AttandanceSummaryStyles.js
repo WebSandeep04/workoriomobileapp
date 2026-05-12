@@ -53,16 +53,16 @@ export const styles = StyleSheet.create({
     tableHeader: {
         flexDirection: 'row',
         backgroundColor: COLORS.headerBg,
-        paddingVertical: 14,
+        paddingVertical: 10,
         paddingHorizontal: 12,
         borderRadius: 12,
         marginBottom: 12,
-        minWidth: 960,
+        minWidth: 1000,
     },
     columnHeader: {
         color: COLORS.headerText,
         fontWeight: '700',
-        fontSize: 12,
+        fontSize: 11,
         textAlign: 'center',
         paddingHorizontal: 4,
         textTransform: 'uppercase',
@@ -70,23 +70,23 @@ export const styles = StyleSheet.create({
     },
     tableRow: {
         flexDirection: 'row',
-        paddingVertical: 14,
+        paddingVertical: 8,
         paddingHorizontal: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#F1F5F9',
         alignItems: 'center',
-        minWidth: 960,
+        minWidth: 1000,
         backgroundColor: '#FFF',
     },
     cell: {
-        fontSize: 13,
+        fontSize: 12,
         color: '#334155',
         textAlign: 'center',
         paddingHorizontal: 4,
     },
     statusBadge: {
-        paddingVertical: 6,
-        paddingHorizontal: 10,
+        paddingVertical: 4,
+        paddingHorizontal: 8,
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
@@ -94,7 +94,8 @@ export const styles = StyleSheet.create({
     },
     statusText: {
         fontSize: 11,
-        fontWeight: '700',
+        fontWeight: '600',
+        textAlign: 'center',
     },
     center: {
         paddingTop: 60,
@@ -106,12 +107,12 @@ export const styles = StyleSheet.create({
         marginTop: 60,
         color: '#94A3B8',
         fontSize: 15,
-        width: 960,
+        width: 1000,
         fontWeight: '500',
     },
     footerLoader: {
         paddingVertical: 24,
         alignItems: 'center',
-        width: 960
+        width: 1000
     }
 });
