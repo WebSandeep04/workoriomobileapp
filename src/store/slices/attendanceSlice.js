@@ -91,15 +91,32 @@ export const fetchHolidays = createAsyncThunk(
 
 export const fetchAttendanceSummary = createAsyncThunk(
     'attendance/fetchSummary',
-    async (page = 1, { rejectWithValue }) => {
+    async (arg = 1, { rejectWithValue }) => {
         try {
-            const response = await api.get(`/attendance/history?page=${page}`);
+            let page = 1;
+            let month = null;
+            let year = null;
+
+            // Accept either numeric page number or full config object
+            if (typeof arg === 'object' && arg !== null) {
+                page = arg.page || 1;
+                month = arg.month || null;
+                year = arg.year || null;
+            } else {
+                page = arg || 1;
+            }
+
+            let url = `/attendance/history?page=${page}`;
+            if (month) url += `&month=${month}`;
+            if (year) url += `&year=${year}`;
+
+            const response = await api.get(url);
             if (response.data) {
-                // If response.data directly contains 'data' array and pagination info
+                // Direct mapping
                 if (response.data.data && Array.isArray(response.data.data)) {
-                    return response.data; // Return full object { data: [], current_page: 1, ... }
+                    return response.data; 
                 }
-                // If pagination is nested in a 'data' property
+                // Nested mapping
                 if (response.data.data?.data && Array.isArray(response.data.data.data)) {
                     return response.data.data;
                 }
