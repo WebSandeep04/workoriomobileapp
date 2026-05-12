@@ -27,7 +27,6 @@ export const styles = StyleSheet.create({
         justifyContent: 'space-between',
         backgroundColor: '#FFF',
         padding: 12,
-        borderRadius: 16,
         marginBottom: 12,
         borderWidth: 1,
         borderColor: '#F1F5F9',
@@ -40,7 +39,6 @@ export const styles = StyleSheet.create({
     filterBtn: {
         width: 36,
         height: 36,
-        borderRadius: 10,
         backgroundColor: '#F8FAFC',
         justifyContent: 'center',
         alignItems: 'center',
@@ -55,7 +53,6 @@ export const styles = StyleSheet.create({
         backgroundColor: COLORS.headerBg,
         paddingVertical: 10,
         paddingHorizontal: 12,
-        borderRadius: 12,
         marginBottom: 12,
         minWidth: 1000,
     },
@@ -87,7 +84,6 @@ export const styles = StyleSheet.create({
     statusBadge: {
         paddingVertical: 4,
         paddingHorizontal: 8,
-        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
         alignSelf: 'center',
