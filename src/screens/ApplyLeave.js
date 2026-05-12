@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
 import Header from '../components/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchLeaveTypes, fetchLeaveHistory, applyLeave, clearLeaveMessages } from '../store/slices/leaveSlice';
+import { fetchLeaveTypes, fetchLeaveHistory, applyLeave, clearLeaveMessages, cancelLeave } from '../store/slices/leaveSlice';
 import { useFocusEffect } from '@react-navigation/native';
 import { styles, COLORS } from '../css/ApplyLeaveStyles';
 
@@ -22,13 +22,21 @@ const ApplyLeave = ({ navigation }) => {
 
     // UI/Form State
     const [activeTab, setActiveTab] = useState('apply'); // 'apply' | 'history'
-    const [selectedType, setSelectedType] = useState(null); // { id, name }
-    const [date, setDate] = useState('');
+    const [selectedType, setSelectedType] = useState(null); // Full Type Object
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [reason, setReason] = useState('');
+    
+    // Half-Day / Specific Type Extensions
+    const [isHalfDay, setIsHalfDay] = useState(false);
+    const [halfDayPeriod, setHalfDayPeriod] = useState('pre_lunch'); // 'pre_lunch' | 'post_lunch'
+    const [selectedRh, setSelectedRh] = useState(null);
 
-    // UI Local State
-    const [modalVisible, setModalVisible] = useState(false);
+    // UI System State
+    const [modalVisible, setModalVisible] = useState(false); // Leave Type Selection Modal
+    const [rhModalVisible, setRhModalVisible] = useState(false); // RH selection list modal
     const [calendarVisible, setCalendarVisible] = useState(false);
+    const [calendarTarget, setCalendarTarget] = useState('start'); // 'start' | 'end'
     const [pickerDate, setPickerDate] = useState(new Date());
     const [localErrors, setLocalErrors] = useState({});
 
@@ -57,9 +65,12 @@ const ApplyLeave = ({ navigation }) => {
                 {
                     text: 'OK',
                     onPress: () => {
-                        setDate('');
+                        setStartDate('');
+                        setEndDate('');
                         setReason('');
                         setSelectedType(null);
+                        setIsHalfDay(false);
+                        setSelectedRh(null);
                         setActiveTab('history');
                         dispatch(clearLeaveMessages());
                     }
@@ -87,20 +98,41 @@ const ApplyLeave = ({ navigation }) => {
         let valid = true;
         let newErrors = {};
 
-        if (!date) {
-            newErrors.date = 'Date is required (YYYY-MM-DD).';
-            valid = false;
-        } else {
-            const regex = /^\d{4}-\d{2}-\d{2}$/;
-            if (!regex.test(date)) {
-                newErrors.date = 'Invalid format. Use YYYY-MM-DD.';
-                valid = false;
-            }
-        }
-
         if (!selectedType) {
             newErrors.type = 'Please select a leave type.';
             valid = false;
+        }
+
+        // If restricted holiday, we require a selection from the RH dropdown instead of direct calendar
+        if (selectedType?.is_restricted) {
+            if (!selectedRh) {
+                newErrors.rh = 'Please select a Holiday from the list.';
+                valid = false;
+            }
+        } else {
+            const regex = /^\d{4}-\d{2}-\d{2}$/;
+            
+            if (!startDate) {
+                newErrors.startDate = 'Start date is required.';
+                valid = false;
+            } else if (!regex.test(startDate)) {
+                newErrors.startDate = 'Invalid format. Use YYYY-MM-DD.';
+                valid = false;
+            }
+
+            // If not half day, need end date.
+            if (!isHalfDay) {
+                if (!endDate) {
+                    newErrors.endDate = 'End date is required.';
+                    valid = false;
+                } else if (!regex.test(endDate)) {
+                    newErrors.endDate = 'Invalid format. Use YYYY-MM-DD.';
+                    valid = false;
+                } else if (new Date(endDate) < new Date(startDate)) {
+                    newErrors.endDate = 'End date cannot be before start date.';
+                    valid = false;
+                }
+            }
         }
 
         setLocalErrors(newErrors);
@@ -110,10 +142,22 @@ const ApplyLeave = ({ navigation }) => {
     const handleSubmit = () => {
         if (!validate()) return;
 
+        let finalStart = startDate;
+        let finalEnd = isHalfDay ? startDate : endDate;
+
+        // Overrides for Restricted Holiday mapping
+        if (selectedType?.is_restricted && selectedRh) {
+            finalStart = selectedRh.holiday_date;
+            finalEnd = selectedRh.holiday_date;
+        }
+
         const payload = {
-            date: date,
+            start_date: finalStart,
+            end_date: finalEnd,
             leave_type_id: selectedType.id,
             reason: reason,
+            is_half_day: isHalfDay,
+            half_day_period: isHalfDay ? halfDayPeriod : null
         };
 
         dispatch(applyLeave(payload));
@@ -146,15 +190,22 @@ const ApplyLeave = ({ navigation }) => {
     };
 
     const handleDateSelect = (selectedDate) => {
-        // Format YYYY-MM-DD
-        // Use local time to avoid timezone offsets when formatting
         const year = selectedDate.getFullYear();
         const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
         const day = String(selectedDate.getDate()).padStart(2, '0');
+        const formatted = `${year}-${month}-${day}`;
 
-        setDate(`${year}-${month}-${day}`);
+        if (calendarTarget === 'start') {
+            setStartDate(formatted);
+            // If user selected a start date but no end date yet, help them by defaulting end date to same initially
+            if (!endDate || isHalfDay) setEndDate(formatted);
+            if (localErrors.startDate) setLocalErrors(prev => ({ ...prev, startDate: null }));
+        } else {
+            setEndDate(formatted);
+            if (localErrors.endDate) setLocalErrors(prev => ({ ...prev, endDate: null }));
+        }
+
         setCalendarVisible(false);
-        if (localErrors.date) setLocalErrors(prev => ({ ...prev, date: null }));
     };
 
     const changeMonth = (increment) => {
@@ -198,7 +249,8 @@ const ApplyLeave = ({ navigation }) => {
                             if (!dayDate) return <View key={index} style={styles.dayCell} />;
 
                             const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
-                            const isSelected = date === dateStr;
+                            const activeCompare = calendarTarget === 'start' ? startDate : endDate;
+                            const isSelected = activeCompare === dateStr;
                             const isToday = new Date().toDateString() === dayDate.toDateString();
 
                             return (
@@ -240,46 +292,88 @@ const ApplyLeave = ({ navigation }) => {
         }
     };
 
+    const handleCancel = (leaveId) => {
+        Alert.alert(
+            'Cancel Leave',
+            'Are you sure you want to cancel this leave request? Any deducted balance will be automatically refunded.',
+            [
+                { text: 'No', style: 'cancel' },
+                { text: 'Yes, Cancel', style: 'destructive', onPress: () => dispatch(cancelLeave(leaveId)) }
+            ]
+        );
+    };
+
     const renderHistoryItem = ({ item }) => {
-        const formattedDate = item.date ? new Date(item.date).toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        }) : '';
+        const sDateStr = item.start_date ? new Date(item.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+        const eDateStr = item.end_date ? new Date(item.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        
+        const isSingleDay = item.start_date === item.end_date;
+        const rangeDisplay = isSingleDay ? new Date(item.start_date).toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'}) : `${sDateStr} - ${eDateStr}`;
 
         return (
             <View style={styles.historyCard}>
                 <View style={styles.historyRow}>
-                    <View>
+                    <View style={{flex: 1}}>
                         <Text style={styles.historyType}>{item.leave_type?.name || 'Leave'}</Text>
-                        <Text style={styles.historyDate}>{formattedDate}</Text>
+                        <Text style={styles.historyDate}>{rangeDisplay}</Text>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
-                        <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status}</Text>
+                    <View style={{alignItems: 'flex-end'}}>
+                        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
+                            <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+                                {item.status?.toUpperCase()}
+                            </Text>
+                        </View>
+                        <Text style={{fontSize: 11, color: COLORS.textGray, marginTop: 4, fontWeight: '600'}}>
+                            {parseFloat(item.total_days || 0).toFixed(1)} Days
+                        </Text>
                     </View>
                 </View>
+                
                 {item.reason ? (
-                    <Text style={styles.historyReason} numberOfLines={2}>
-                        {item.reason}
-                    </Text>
+                    <View style={{marginTop: 8, borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 8}}>
+                        <Text style={[styles.historyReason, {fontStyle: 'italic'}]}>"{item.reason}"</Text>
+                    </View>
                 ) : null}
+
+                {/* Show Cancel Action if Pending */}
+                {item.status?.toLowerCase() === 'pending' && (
+                    <TouchableOpacity 
+                        style={{marginTop: 12, padding: 10, backgroundColor: '#FEF2F2', borderRadius: 8, alignItems: 'center'}}
+                        onPress={() => handleCancel(item.id)}
+                    >
+                        <Text style={{color: '#EF4444', fontWeight: '700', fontSize: 13}}>Cancel Request</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         );
     };
 
-    const renderTypeItem = ({ item }) => (
-        <TouchableOpacity
-            style={styles.modalItem}
-            onPress={() => {
-                setSelectedType(item);
-                setModalVisible(false);
-                setLocalErrors((prev) => ({ ...prev, type: null }));
-            }}
-        >
-            <Text style={styles.modalItemText}>{item.name}</Text>
-            {selectedType?.id === item.id && <Ionicons name="checkmark" size={20} color={COLORS.primary} />}
-        </TouchableOpacity>
-    );
+    const renderTypeItem = ({ item }) => {
+        const hasInfBalance = item.is_unlimited;
+        const displayBal = hasInfBalance ? 'Unlimited' : parseFloat(item.balance || 0).toFixed(1);
+        
+        return (
+            <TouchableOpacity
+                style={styles.modalItem}
+                onPress={() => {
+                    setSelectedType(item);
+                    setModalVisible(false);
+                    setLocalErrors((prev) => ({ ...prev, type: null }));
+                    // Auto-reset extra fields when type flips
+                    setIsHalfDay(false);
+                    setSelectedRh(null);
+                }}
+            >
+                <View style={{flex: 1}}>
+                    <Text style={styles.modalItemText}>{item.name}</Text>
+                    <Text style={{fontSize: 12, color: COLORS.primary, fontWeight: '600', marginTop: 2}}>
+                        Remaining: {displayBal}
+                    </Text>
+                </View>
+                {selectedType?.id === item.id && <Ionicons name="checkmark" size={20} color={COLORS.primary} />}
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -319,28 +413,122 @@ const ApplyLeave = ({ navigation }) => {
                         {localErrors.type && <Text style={styles.errorText}>{localErrors.type}</Text>}
                     </View>
 
-                    {/* Date Input */}
-                    <View style={styles.formGroup}>
-                        <Text style={styles.label}>Date <Text style={styles.required}>*</Text></Text>
-                        <View style={[styles.inputRow, localErrors.date && styles.inputError]}>
-                            <TextInput
-                                style={styles.inputField}
-                                placeholder="YYYY-MM-DD"
-                                placeholderTextColor={COLORS.textGray}
-                                value={date}
-                                onChangeText={(text) => {
-                                    setDate(text);
-                                    if (localErrors.date) setLocalErrors(prev => ({ ...prev, date: null }));
-                                }}
-                                keyboardType="numbers-and-punctuation"
-                                maxLength={10}
-                            />
-                            <TouchableOpacity onPress={() => setCalendarVisible(true)}>
-                                <Ionicons name="calendar-outline" size={20} color={COLORS.textGray} />
+                    {selectedType?.is_restricted ? (
+                        /* RESTRICTED HOLIDAY PICKER */
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>Select Restricted Holiday <Text style={styles.required}>*</Text></Text>
+                            <TouchableOpacity
+                                style={[styles.input, styles.selector, localErrors.rh && styles.inputError]}
+                                onPress={() => setRhModalVisible(true)}
+                            >
+                                <View>
+                                    <Text style={selectedRh ? styles.inputText : styles.placeholder}>
+                                        {selectedRh ? selectedRh.name : 'Select an Available Holiday'}
+                                    </Text>
+                                    {selectedRh && (
+                                        <Text style={{fontSize: 12, color: COLORS.textGray, marginTop: 2}}>
+                                            {new Date(selectedRh.holiday_date).toLocaleDateString(undefined, { weekday: 'long', year:'numeric', month:'long', day:'numeric' })}
+                                        </Text>
+                                    )}
+                                </View>
+                                <Ionicons name="calendar" size={20} color={COLORS.textGray} />
                             </TouchableOpacity>
+                            {localErrors.rh && <Text style={styles.errorText}>{localErrors.rh}</Text>}
+                            <Text style={{fontSize:12, color: '#64748B', fontStyle:'italic', marginTop: 4}}>
+                                * Restricted Holidays are predetermined locked dates.
+                            </Text>
                         </View>
-                        {localErrors.date && <Text style={styles.errorText}>{localErrors.date}</Text>}
-                    </View>
+                    ) : (
+                        /* STANDARD DATE SELECTION */
+                        <>
+                            {/* Start Date Input */}
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>Start Date <Text style={styles.required}>*</Text></Text>
+                                <View style={[styles.inputRow, localErrors.startDate && styles.inputError]}>
+                                    <TextInput
+                                        style={styles.inputField}
+                                        placeholder="YYYY-MM-DD"
+                                        placeholderTextColor={COLORS.textGray}
+                                        value={startDate}
+                                        onChangeText={(text) => {
+                                            setStartDate(text);
+                                            if (localErrors.startDate) setLocalErrors(prev => ({ ...prev, startDate: null }));
+                                        }}
+                                        keyboardType="numbers-and-punctuation"
+                                        maxLength={10}
+                                    />
+                                    <TouchableOpacity onPress={() => { setCalendarTarget('start'); setCalendarVisible(true); }}>
+                                        <Ionicons name="calendar-outline" size={20} color={COLORS.textGray} />
+                                    </TouchableOpacity>
+                                </View>
+                                {localErrors.startDate && <Text style={styles.errorText}>{localErrors.startDate}</Text>}
+                            </View>
+
+                            {/* Half Day Switch (Only visible if allowed by Type) */}
+                            {selectedType?.allow_half_day === 1 && (
+                                <View style={{marginBottom: 16, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0'}}>
+                                    <TouchableOpacity 
+                                        style={{flexDirection: 'row', alignItems: 'center'}} 
+                                        onPress={() => {
+                                            setIsHalfDay(!isHalfDay);
+                                            if (!isHalfDay) setEndDate(startDate); // Lock end date immediately
+                                        }}
+                                    >
+                                        <Ionicons 
+                                            name={isHalfDay ? "checkbox" : "square-outline"} 
+                                            size={24} 
+                                            color={isHalfDay ? COLORS.primary : COLORS.textGray} 
+                                        />
+                                        <Text style={{marginLeft: 8, fontWeight: '600', color: COLORS.textDark}}>
+                                            Apply as Half-Day
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    {isHalfDay && (
+                                        <View style={{flexDirection: 'row', marginTop: 12, gap: 12}}>
+                                            <TouchableOpacity 
+                                                style={{flex: 1, padding: 10, borderWidth: 1, borderColor: halfDayPeriod === 'pre_lunch' ? COLORS.primary : '#CBD5E1', borderRadius: 8, backgroundColor: halfDayPeriod === 'pre_lunch' ? '#EFF6FF' : 'white', alignItems: 'center'}}
+                                                onPress={() => setHalfDayPeriod('pre_lunch')}
+                                            >
+                                                <Text style={{color: halfDayPeriod === 'pre_lunch' ? COLORS.primary : '#64748B', fontWeight: '600'}}>First Half</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity 
+                                                style={{flex: 1, padding: 10, borderWidth: 1, borderColor: halfDayPeriod === 'post_lunch' ? COLORS.primary : '#CBD5E1', borderRadius: 8, backgroundColor: halfDayPeriod === 'post_lunch' ? '#EFF6FF' : 'white', alignItems: 'center'}}
+                                                onPress={() => setHalfDayPeriod('post_lunch')}
+                                            >
+                                                <Text style={{color: halfDayPeriod === 'post_lunch' ? COLORS.primary : '#64748B', fontWeight: '600'}}>Second Half</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+                                </View>
+                            )}
+
+                            {/* End Date Input (Hidden if isHalfDay locked) */}
+                            {!isHalfDay && (
+                                <View style={styles.formGroup}>
+                                    <Text style={styles.label}>End Date <Text style={styles.required}>*</Text></Text>
+                                    <View style={[styles.inputRow, localErrors.endDate && styles.inputError]}>
+                                        <TextInput
+                                            style={styles.inputField}
+                                            placeholder="YYYY-MM-DD"
+                                            placeholderTextColor={COLORS.textGray}
+                                            value={endDate}
+                                            onChangeText={(text) => {
+                                                setEndDate(text);
+                                                if (localErrors.endDate) setLocalErrors(prev => ({ ...prev, endDate: null }));
+                                            }}
+                                            keyboardType="numbers-and-punctuation"
+                                            maxLength={10}
+                                        />
+                                        <TouchableOpacity onPress={() => { setCalendarTarget('end'); setCalendarVisible(true); }}>
+                                            <Ionicons name="calendar-outline" size={20} color={COLORS.textGray} />
+                                        </TouchableOpacity>
+                                    </View>
+                                    {localErrors.endDate && <Text style={styles.errorText}>{localErrors.endDate}</Text>}
+                                </View>
+                            )}
+                        </>
+                    )}
 
                     {/* Reason Input */}
                     <View style={styles.formGroup}>
@@ -414,6 +602,54 @@ const ApplyLeave = ({ navigation }) => {
                                 keyExtractor={(item) => item.id.toString()}
                                 renderItem={renderTypeItem}
                             />
+                        )}
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* Restricted Holidays Selection Modal */}
+            <Modal
+                transparent={true}
+                visible={rhModalVisible}
+                animationType="slide"
+                onRequestClose={() => setRhModalVisible(false)}
+            >
+                <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setRhModalVisible(false)}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Choose Restricted Holiday</Text>
+                            <TouchableOpacity onPress={() => setRhModalVisible(false)}>
+                                <Ionicons name="close" size={24} color={COLORS.textDark} />
+                            </TouchableOpacity>
+                        </View>
+                        {selectedType?.rh_list && selectedType.rh_list.length > 0 ? (
+                            <FlatList
+                                data={selectedType.rh_list}
+                                keyExtractor={(item) => item.id.toString()}
+                                renderItem={({item}) => (
+                                    <TouchableOpacity
+                                        style={[styles.modalItem, {paddingVertical: 16}]}
+                                        onPress={() => {
+                                            setSelectedRh(item);
+                                            setRhModalVisible(false);
+                                            if (localErrors.rh) setLocalErrors(prev => ({ ...prev, rh: null }));
+                                        }}
+                                    >
+                                        <View style={{flex:1}}>
+                                            <Text style={[styles.modalItemText, {fontWeight:'700'}]}>{item.name}</Text>
+                                            <Text style={{color: COLORS.textGray, marginTop: 4}}>
+                                                {new Date(item.holiday_date).toLocaleDateString(undefined, { weekday: 'long', year:'numeric', month:'long', day:'numeric' })}
+                                            </Text>
+                                        </View>
+                                        {selectedRh?.id === item.id && <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />}
+                                    </TouchableOpacity>
+                                )}
+                            />
+                        ) : (
+                            <View style={{padding: 30, alignItems: 'center'}}>
+                                <Ionicons name="calendar-outline" size={48} color="#CBD5E1" />
+                                <Text style={{marginTop: 12, color: '#64748B', textAlign:'center'}}>No restricted holidays are available for this cycle.</Text>
+                            </View>
                         )}
                     </View>
                 </TouchableOpacity>

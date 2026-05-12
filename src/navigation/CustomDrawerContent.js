@@ -39,6 +39,9 @@ export function CustomDrawerContent(props) {
   const { user, permissions = [], featureFlags = {}, logout } = useContext(AuthContext);
   const isAdmin = (user?.role_name?.toLowerCase() === 'admin') || (Number(user?.role_id) === 1);
 
+  // Get the currently active route from props.state
+  const activeRoute = props.state.routes[props.state.index]?.name;
+
   // Accordion State: Tracks visibility of dropdown sections
   const [expandedSections, setExpandedSections] = useState({});
 
@@ -99,15 +102,22 @@ export function CustomDrawerContent(props) {
                 return null;
               }
 
+              const isActive = activeRoute === (section.route || section.name);
+
               return (
                 <View key={section.key} style={styles.sectionContainer}>
                   <TouchableOpacity 
-                    style={styles.sectionHeader} 
+                    style={[styles.sectionHeader, isActive && styles.activeSectionHeader]} 
                     onPress={() => props.navigation.navigate(section.route || section.name)}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name={getIconName(section.icon)} size={15} color="#475569" style={{ marginRight: 10 }} />
-                    <Text style={[styles.sectionHeaderText, { flex: 1 }]}>{section.title}</Text>
+                    <Ionicons 
+                      name={getIconName(section.icon)} 
+                      size={15} 
+                      color={isActive ? '#2563eb' : '#475569'} 
+                      style={{ marginRight: 10 }} 
+                    />
+                    <Text style={[styles.sectionHeaderText, { flex: 1 }, isActive && styles.activeSectionHeaderText]}>{section.title}</Text>
                   </TouchableOpacity>
                 </View>
               );
@@ -157,17 +167,30 @@ export function CustomDrawerContent(props) {
                     />
                   </TouchableOpacity>
                   
-                  {isExpanded && visibleSubItems.map((subItem) => (
-                    <DrawerItem
-                      key={subItem.route || subItem.name || subItem.title}
-                      label={subItem.title}
-                      labelStyle={styles.subDrawerLabel}
-                      icon={({ color, size }) => (
-                        <Ionicons name="chevron-forward" size={14} color="#64748b" />
-                      )}
-                      onPress={() => props.navigation.navigate(subItem.route || subItem.name)}
-                    />
-                  ))}
+                  {isExpanded && visibleSubItems.map((subItem) => {
+                    const subRoute = subItem.route || subItem.name;
+                    const isSubActive = activeRoute === subRoute;
+
+                    return (
+                      <DrawerItem
+                        key={subRoute || subItem.title}
+                        label={subItem.title}
+                        focused={isSubActive}
+                        activeTintColor="#2563eb"
+                        activeBackgroundColor="#eff6ff"
+                        inactiveTintColor="#475569"
+                        labelStyle={[styles.subDrawerLabel, isSubActive && { fontWeight: '700' }]}
+                        icon={({ color, size }) => (
+                          <Ionicons 
+                            name="chevron-forward" 
+                            size={12} 
+                            color={isSubActive ? "#2563eb" : "#64748b"} 
+                          />
+                        )}
+                        onPress={() => props.navigation.navigate(subRoute)}
+                      />
+                    );
+                  })}
                 </View>
               );
             }
@@ -267,6 +290,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#334155',
+  },
+  activeSectionHeader: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 8,
+  },
+  activeSectionHeaderText: {
+    color: '#2563eb',
+    fontWeight: '700',
   },
   drawerLabel: {
     fontSize: 14,

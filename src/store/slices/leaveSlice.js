@@ -49,6 +49,7 @@ export const applyLeave = createAsyncThunk(
             const response = await api.post('/leave', payload);
             if (response.data?.success) {
                 dispatch(fetchLeaveHistory()); // Refresh history on success
+                dispatch(fetchLeaveTypes()); // Refresh dynamic balances
                 return response.data.message || 'Leave applied successfully.';
             }
             return rejectWithValue('Unknown error occurred');
@@ -64,6 +65,23 @@ export const applyLeave = createAsyncThunk(
                 status: error.response?.status,
                 message: error.response?.data?.message || 'Failed to apply leave'
             });
+        }
+    }
+);
+
+export const cancelLeave = createAsyncThunk(
+    'leave/cancel',
+    async (leaveId, { rejectWithValue, dispatch }) => {
+        try {
+            const response = await api.delete(`/leave/${leaveId}`);
+            if (response.data?.success) {
+                dispatch(fetchLeaveHistory());
+                dispatch(fetchLeaveTypes()); // Refunds balance
+                return response.data.message || 'Leave cancelled successfully.';
+            }
+            return rejectWithValue('Failed to cancel leave.');
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to cancel leave');
         }
     }
 );
@@ -127,6 +145,20 @@ const leaveSlice = createSlice({
                 } else {
                     state.error = action.payload?.message || "Failed to apply leave";
                 }
+            })
+            
+            // Cancel Leave
+            .addCase(cancelLeave.pending, (state) => {
+                state.submitting = true;
+                state.error = null;
+            })
+            .addCase(cancelLeave.fulfilled, (state, action) => {
+                state.submitting = false;
+                state.successMessage = action.payload;
+            })
+            .addCase(cancelLeave.rejected, (state, action) => {
+                state.submitting = false;
+                state.error = action.payload;
             });
     }
 });

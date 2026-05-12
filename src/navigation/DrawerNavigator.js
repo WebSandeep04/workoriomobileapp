@@ -28,7 +28,7 @@ export default function DrawerNavigator() {
       {/* Attendance Management mapped to menuConfig.js keys */}
       <Drawer.Screen name="attendance" component={AttandanceScreen} />
       <Drawer.Screen name="attendance.history" component={AttandanceSummary} />
-      <Drawer.Screen name="leave.index" component={LeaveBalance} />
+      <Drawer.Screen name="leave.index" component={ApplyLeave} />
       
       {/* Core App Views */}
       <Drawer.Screen name="Attandance" component={AttandanceScreen} />
