@@ -26,7 +26,7 @@ const ApplyLeave = ({ navigation }) => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [reason, setReason] = useState('');
-    
+
     // Half-Day / Specific Type Extensions
     const [isHalfDay, setIsHalfDay] = useState(false);
     const [halfDayPeriod, setHalfDayPeriod] = useState('pre_lunch'); // 'pre_lunch' | 'post_lunch'
@@ -111,7 +111,7 @@ const ApplyLeave = ({ navigation }) => {
             }
         } else {
             const regex = /^\d{4}-\d{2}-\d{2}$/;
-            
+
             if (!startDate) {
                 newErrors.startDate = 'Start date is required.';
                 valid = false;
@@ -306,42 +306,42 @@ const ApplyLeave = ({ navigation }) => {
     const renderHistoryItem = ({ item }) => {
         const sDateStr = item.start_date ? new Date(item.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
         const eDateStr = item.end_date ? new Date(item.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-        
+
         const isSingleDay = item.start_date === item.end_date;
-        const rangeDisplay = isSingleDay ? new Date(item.start_date).toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'}) : `${sDateStr} - ${eDateStr}`;
+        const rangeDisplay = isSingleDay ? new Date(item.start_date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : `${sDateStr} - ${eDateStr}`;
 
         return (
             <View style={styles.historyCard}>
                 <View style={styles.historyRow}>
-                    <View style={{flex: 1}}>
+                    <View style={{ flex: 1 }}>
                         <Text style={styles.historyType}>{item.leave_type?.name || 'Leave'}</Text>
                         <Text style={styles.historyDate}>{rangeDisplay}</Text>
                     </View>
-                    <View style={{alignItems: 'flex-end'}}>
+                    <View style={{ alignItems: 'flex-end' }}>
                         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
                             <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
                                 {item.status?.toUpperCase()}
                             </Text>
                         </View>
-                        <Text style={{fontSize: 11, color: COLORS.textGray, marginTop: 4, fontWeight: '600'}}>
+                        <Text style={{ fontSize: 11, color: COLORS.textGray, marginTop: 4, fontWeight: '600' }}>
                             {parseFloat(item.total_days || 0).toFixed(1)} Days
                         </Text>
                     </View>
                 </View>
-                
+
                 {item.reason ? (
-                    <View style={{marginTop: 8, borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 8}}>
-                        <Text style={[styles.historyReason, {fontStyle: 'italic'}]}>"{item.reason}"</Text>
+                    <View style={{ marginTop: 8, borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 8 }}>
+                        <Text style={[styles.historyReason, { fontStyle: 'italic' }]}>"{item.reason}"</Text>
                     </View>
                 ) : null}
 
                 {/* Show Cancel Action if Pending */}
                 {item.status?.toLowerCase() === 'pending' && (
-                    <TouchableOpacity 
-                        style={{marginTop: 12, padding: 10, backgroundColor: '#FEF2F2', borderRadius: 8, alignItems: 'center'}}
+                    <TouchableOpacity
+                        style={{ marginTop: 12, padding: 10, backgroundColor: '#FEF2F2', borderRadius: 8, alignItems: 'center' }}
                         onPress={() => handleCancel(item.id)}
                     >
-                        <Text style={{color: '#EF4444', fontWeight: '700', fontSize: 13}}>Cancel Request</Text>
+                        <Text style={{ color: '#EF4444', fontWeight: '700', fontSize: 13 }}>Cancel Request</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -351,7 +351,7 @@ const ApplyLeave = ({ navigation }) => {
     const renderTypeItem = ({ item }) => {
         const hasInfBalance = item.is_unlimited;
         const displayBal = hasInfBalance ? 'Unlimited' : parseFloat(item.balance || 0).toFixed(1);
-        
+
         return (
             <TouchableOpacity
                 style={styles.modalItem}
@@ -364,9 +364,9 @@ const ApplyLeave = ({ navigation }) => {
                     setSelectedRh(null);
                 }}
             >
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                     <Text style={styles.modalItemText}>{item.name}</Text>
-                    <Text style={{fontSize: 12, color: COLORS.primary, fontWeight: '600', marginTop: 2}}>
+                    <Text style={{ fontSize: 12, color: COLORS.primary, fontWeight: '600', marginTop: 2 }}>
                         Remaining: {displayBal}
                     </Text>
                 </View>
@@ -426,15 +426,15 @@ const ApplyLeave = ({ navigation }) => {
                                         {selectedRh ? selectedRh.name : 'Select an Available Holiday'}
                                     </Text>
                                     {selectedRh && (
-                                        <Text style={{fontSize: 12, color: COLORS.textGray, marginTop: 2}}>
-                                            {new Date(selectedRh.holiday_date).toLocaleDateString(undefined, { weekday: 'long', year:'numeric', month:'long', day:'numeric' })}
+                                        <Text style={{ fontSize: 12, color: COLORS.textGray, marginTop: 2 }}>
+                                            {new Date(selectedRh.holiday_date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                         </Text>
                                     )}
                                 </View>
                                 <Ionicons name="calendar" size={20} color={COLORS.textGray} />
                             </TouchableOpacity>
                             {localErrors.rh && <Text style={styles.errorText}>{localErrors.rh}</Text>}
-                            <Text style={{fontSize:12, color: '#64748B', fontStyle:'italic', marginTop: 4}}>
+                            <Text style={{ fontSize: 12, color: '#64748B', fontStyle: 'italic', marginTop: 4 }}>
                                 * Restricted Holidays are predetermined locked dates.
                             </Text>
                         </View>
@@ -466,37 +466,37 @@ const ApplyLeave = ({ navigation }) => {
 
                             {/* Half Day Switch (Only visible if allowed by Type) */}
                             {selectedType?.allow_half_day === 1 && (
-                                <View style={{marginBottom: 16, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0'}}>
-                                    <TouchableOpacity 
-                                        style={{flexDirection: 'row', alignItems: 'center'}} 
+                                <View style={{ marginBottom: 16, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                                    <TouchableOpacity
+                                        style={{ flexDirection: 'row', alignItems: 'center' }}
                                         onPress={() => {
                                             setIsHalfDay(!isHalfDay);
                                             if (!isHalfDay) setEndDate(startDate); // Lock end date immediately
                                         }}
                                     >
-                                        <Ionicons 
-                                            name={isHalfDay ? "checkbox" : "square-outline"} 
-                                            size={24} 
-                                            color={isHalfDay ? COLORS.primary : COLORS.textGray} 
+                                        <Ionicons
+                                            name={isHalfDay ? "checkbox" : "square-outline"}
+                                            size={24}
+                                            color={isHalfDay ? COLORS.primary : COLORS.textGray}
                                         />
-                                        <Text style={{marginLeft: 8, fontWeight: '600', color: COLORS.textDark}}>
+                                        <Text style={{ marginLeft: 8, fontWeight: '600', color: COLORS.textDark }}>
                                             Apply as Half-Day
                                         </Text>
                                     </TouchableOpacity>
 
                                     {isHalfDay && (
-                                        <View style={{flexDirection: 'row', marginTop: 12, gap: 12}}>
-                                            <TouchableOpacity 
-                                                style={{flex: 1, padding: 10, borderWidth: 1, borderColor: halfDayPeriod === 'pre_lunch' ? COLORS.primary : '#CBD5E1', borderRadius: 8, backgroundColor: halfDayPeriod === 'pre_lunch' ? '#EFF6FF' : 'white', alignItems: 'center'}}
+                                        <View style={{ flexDirection: 'row', marginTop: 12, gap: 12 }}>
+                                            <TouchableOpacity
+                                                style={{ flex: 1, padding: 10, borderWidth: 1, borderColor: halfDayPeriod === 'pre_lunch' ? COLORS.primary : '#CBD5E1', borderRadius: 8, backgroundColor: halfDayPeriod === 'pre_lunch' ? '#EFF6FF' : 'white', alignItems: 'center' }}
                                                 onPress={() => setHalfDayPeriod('pre_lunch')}
                                             >
-                                                <Text style={{color: halfDayPeriod === 'pre_lunch' ? COLORS.primary : '#64748B', fontWeight: '600'}}>First Half</Text>
+                                                <Text style={{ color: halfDayPeriod === 'pre_lunch' ? COLORS.primary : '#64748B', fontWeight: '600' }}>First Half</Text>
                                             </TouchableOpacity>
-                                            <TouchableOpacity 
-                                                style={{flex: 1, padding: 10, borderWidth: 1, borderColor: halfDayPeriod === 'post_lunch' ? COLORS.primary : '#CBD5E1', borderRadius: 8, backgroundColor: halfDayPeriod === 'post_lunch' ? '#EFF6FF' : 'white', alignItems: 'center'}}
+                                            <TouchableOpacity
+                                                style={{ flex: 1, padding: 10, borderWidth: 1, borderColor: halfDayPeriod === 'post_lunch' ? COLORS.primary : '#CBD5E1', borderRadius: 8, backgroundColor: halfDayPeriod === 'post_lunch' ? '#EFF6FF' : 'white', alignItems: 'center' }}
                                                 onPress={() => setHalfDayPeriod('post_lunch')}
                                             >
-                                                <Text style={{color: halfDayPeriod === 'post_lunch' ? COLORS.primary : '#64748B', fontWeight: '600'}}>Second Half</Text>
+                                                <Text style={{ color: halfDayPeriod === 'post_lunch' ? COLORS.primary : '#64748B', fontWeight: '600' }}>Second Half</Text>
                                             </TouchableOpacity>
                                         </View>
                                     )}
@@ -626,19 +626,19 @@ const ApplyLeave = ({ navigation }) => {
                             <FlatList
                                 data={selectedType.rh_list}
                                 keyExtractor={(item) => item.id.toString()}
-                                renderItem={({item}) => (
+                                renderItem={({ item }) => (
                                     <TouchableOpacity
-                                        style={[styles.modalItem, {paddingVertical: 16}]}
+                                        style={[styles.modalItem, { paddingVertical: 16 }]}
                                         onPress={() => {
                                             setSelectedRh(item);
                                             setRhModalVisible(false);
                                             if (localErrors.rh) setLocalErrors(prev => ({ ...prev, rh: null }));
                                         }}
                                     >
-                                        <View style={{flex:1}}>
-                                            <Text style={[styles.modalItemText, {fontWeight:'700'}]}>{item.name}</Text>
-                                            <Text style={{color: COLORS.textGray, marginTop: 4}}>
-                                                {new Date(item.holiday_date).toLocaleDateString(undefined, { weekday: 'long', year:'numeric', month:'long', day:'numeric' })}
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={[styles.modalItemText, { fontWeight: '700' }]}>{item.name}</Text>
+                                            <Text style={{ color: COLORS.textGray, marginTop: 4 }}>
+                                                {new Date(item.holiday_date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                             </Text>
                                         </View>
                                         {selectedRh?.id === item.id && <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />}
@@ -646,9 +646,9 @@ const ApplyLeave = ({ navigation }) => {
                                 )}
                             />
                         ) : (
-                            <View style={{padding: 30, alignItems: 'center'}}>
+                            <View style={{ padding: 30, alignItems: 'center' }}>
                                 <Ionicons name="calendar-outline" size={48} color="#CBD5E1" />
-                                <Text style={{marginTop: 12, color: '#64748B', textAlign:'center'}}>No restricted holidays are available for this cycle.</Text>
+                                <Text style={{ marginTop: 12, color: '#64748B', textAlign: 'center' }}>No restricted holidays are available for this cycle.</Text>
                             </View>
                         )}
                     </View>

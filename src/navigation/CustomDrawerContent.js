@@ -14,7 +14,7 @@ const BOOTSTRAP_ICON_MAP = {
   'bi bi-person-lines-fill': 'people-outline',
   'bi bi-box-seam': 'cube-outline',
   'bi bi-envelope': 'mail-outline',
-  
+
   // Group Headings
   'bi bi-cart': 'cart-outline',
   'bi bi-telephone-outbound': 'call-outline',
@@ -106,16 +106,16 @@ export function CustomDrawerContent(props) {
 
               return (
                 <View key={section.key} style={styles.sectionContainer}>
-                  <TouchableOpacity 
-                    style={[styles.sectionHeader, isActive && styles.activeSectionHeader]} 
+                  <TouchableOpacity
+                    style={[styles.sectionHeader, isActive && styles.activeSectionHeader]}
                     onPress={() => props.navigation.navigate(section.route || section.name)}
                     activeOpacity={0.7}
                   >
-                    <Ionicons 
-                      name={getIconName(section.icon)} 
-                      size={15} 
-                      color={isActive ? '#2563eb' : '#475569'} 
-                      style={{ marginRight: 10 }} 
+                    <Ionicons
+                      name={getIconName(section.icon)}
+                      size={15}
+                      color={isActive ? '#2563eb' : '#475569'}
+                      style={{ marginRight: 10 }}
                     />
                     <Text style={[styles.sectionHeaderText, { flex: 1 }, isActive && styles.activeSectionHeaderText]}>{section.title}</Text>
                   </TouchableOpacity>
@@ -153,20 +153,20 @@ export function CustomDrawerContent(props) {
 
               return (
                 <View key={section.key} style={styles.sectionContainer}>
-                  <TouchableOpacity 
-                    style={styles.sectionHeader} 
+                  <TouchableOpacity
+                    style={styles.sectionHeader}
                     onPress={() => toggleSection(section.key)}
                     activeOpacity={0.7}
                   >
                     <Ionicons name={getIconName(section.icon)} size={15} color="#475569" style={{ marginRight: 10 }} />
                     <Text style={[styles.sectionHeaderText, { flex: 1 }]}>{section.title}</Text>
-                    <Ionicons 
-                      name={isExpanded ? "chevron-up" : "chevron-down"} 
-                      size={14} 
-                      color="#94a3b8" 
+                    <Ionicons
+                      name={isExpanded ? "chevron-up" : "chevron-down"}
+                      size={14}
+                      color="#94a3b8"
                     />
                   </TouchableOpacity>
-                  
+
                   {isExpanded && visibleSubItems.map((subItem) => {
                     const subRoute = subItem.route || subItem.name;
                     const isSubActive = activeRoute === subRoute;
@@ -177,14 +177,14 @@ export function CustomDrawerContent(props) {
                         label={subItem.title}
                         focused={isSubActive}
                         activeTintColor="#2563eb"
-                        activeBackgroundColor="#eff6ff"
+                        activeBackgroundColor="transparent"
                         inactiveTintColor="#475569"
                         labelStyle={[styles.subDrawerLabel, isSubActive && { fontWeight: '700' }]}
                         icon={({ color, size }) => (
-                          <Ionicons 
-                            name="chevron-forward" 
-                            size={12} 
-                            color={isSubActive ? "#2563eb" : "#64748b"} 
+                          <Ionicons
+                            name="chevron-forward"
+                            size={12}
+                            color={isSubActive ? "#2563eb" : "#64748b"}
                           />
                         )}
                         onPress={() => props.navigation.navigate(subRoute)}
@@ -292,8 +292,7 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   activeSectionHeader: {
-    backgroundColor: '#eff6ff',
-    borderRadius: 8,
+    // only change font color
   },
   activeSectionHeaderText: {
     color: '#2563eb',
