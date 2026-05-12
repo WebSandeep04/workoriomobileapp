@@ -8,6 +8,7 @@ import { styles, COLORS } from '../css/AttandanceStyles';
 import Header from '../components/Header';
 import DashboardStats from '../components/DashboardStats';
 import AttendanceActionCard from '../components/AttendanceActionCard';
+import AttendanceTimeline from '../components/AttendanceTimeline';
 
 const AttandanceScreen = ({ navigation }) => {
     const dispatch = useDispatch();
@@ -115,6 +116,9 @@ const AttandanceScreen = ({ navigation }) => {
 
                 {/* New Attendance Card with 3 Buttons */}
                 <AttendanceActionCard />
+
+                {/* Modern Daily Timeline Table matching Web platform */}
+                <AttendanceTimeline />
 
             </ScrollView>
         </View>

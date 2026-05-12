@@ -45,6 +45,7 @@ const initialState = {
         field_cycles: 0,
         break_cycles: 0
     },
+    movements: {},
     workingHours: '0h 0m',
     completedHours: '0h 0m',
 };
@@ -253,6 +254,11 @@ const attendanceSlice = createSlice({
                 state.completedHours = completed_hours || '0h 0m';
                 if (cycles) {
                     state.cycles = cycles;
+                }
+
+                // Store movements history for the daily timeline
+                if (movements) {
+                    state.movements = movements;
                 }
 
                 // Store lockout state

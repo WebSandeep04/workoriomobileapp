@@ -413,7 +413,6 @@ const styles = StyleSheet.create({
     },
     btnLayout: {
         width: '100%',
-        borderRadius: 20,
         paddingVertical: 18,
         paddingHorizontal: 24,
         justifyContent: 'center',
@@ -449,7 +448,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF',
         borderWidth: 1.5,
         borderColor: '#FEF3C7',
-        borderRadius: 16,
         paddingVertical: 14,
         gap: 8,
     },
@@ -469,7 +467,6 @@ const styles = StyleSheet.create({
     auxiliaryBar: {
         flexDirection: 'row',
         backgroundColor: '#F8FAFC',
-        borderRadius: 12,
         paddingVertical: 10,
         borderWidth: 1,
         borderColor: '#F1F5F9',
@@ -500,8 +497,6 @@ const styles = StyleSheet.create({
     },
     modernModal: {
         backgroundColor: '#FFF',
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
         paddingBottom: Platform.OS === 'ios' ? 40 : 24,
         maxHeight: '85%',
         shadowColor: '#000',
@@ -546,7 +541,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         backgroundColor: '#F8FAFC',
-        borderRadius: 16,
         marginBottom: 10,
         borderWidth: 1.5,
         borderColor: '#F1F5F9',
@@ -586,7 +580,6 @@ const styles = StyleSheet.create({
     },
     fancyInput: {
         backgroundColor: '#F8FAFC',
-        borderRadius: 16,
         borderWidth: 1.5,
         borderColor: '#E2E8F0',
         padding: 16,
@@ -603,7 +596,6 @@ const styles = StyleSheet.create({
     fBtnCancel: {
         flex: 1,
         paddingVertical: 16,
-        borderRadius: 16,
         backgroundColor: '#F1F5F9',
         alignItems: 'center',
     },
@@ -614,7 +606,6 @@ const styles = StyleSheet.create({
     fBtnSubmit: {
         flex: 2,
         paddingVertical: 16,
-        borderRadius: 16,
         backgroundColor: '#1E293B',
         alignItems: 'center',
     },
