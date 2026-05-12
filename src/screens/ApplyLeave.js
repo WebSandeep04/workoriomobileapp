@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Modal, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import Header from '../components/Header';
+import Toast from 'react-native-toast-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchLeaveTypes, fetchLeaveHistory, applyLeave, clearLeaveMessages, cancelLeave } from '../store/slices/leaveSlice';
@@ -61,33 +62,42 @@ const ApplyLeave = ({ navigation }) => {
     // Handle Redux Side Effects
     useEffect(() => {
         if (successMessage) {
-            Alert.alert('Success', successMessage, [
-                {
-                    text: 'OK',
-                    onPress: () => {
-                        setStartDate('');
-                        setEndDate('');
-                        setReason('');
-                        setSelectedType(null);
-                        setIsHalfDay(false);
-                        setSelectedRh(null);
-                        setActiveTab('history');
-                        dispatch(clearLeaveMessages());
-                    }
-                }
-            ]);
+            Toast.show({
+                type: 'success',
+                text1: 'Application Successful',
+                text2: successMessage
+            });
+            
+            // Auto reset form
+            setStartDate('');
+            setEndDate('');
+            setReason('');
+            setSelectedType(null);
+            setIsHalfDay(false);
+            setSelectedRh(null);
+            setActiveTab('history');
+            dispatch(clearLeaveMessages());
         }
 
         if (validationErrors) {
-            // Map validation errors from API to local string for Alert
+            // Map validation errors from API to local string
             const firstErrorKey = Object.keys(validationErrors)[0];
-            const msg = firstErrorKey ? `Validation Error: ${validationErrors[firstErrorKey][0]}` : 'Please check your inputs';
-            Alert.alert('Validation Failed', msg);
+            const msg = firstErrorKey ? validationErrors[firstErrorKey][0] : 'Please check your inputs';
+            
+            Toast.show({
+                type: 'error',
+                text1: 'Validation Failed',
+                text2: msg
+            });
             dispatch(clearLeaveMessages());
         }
 
         if (reduxError) {
-            Alert.alert('Error', reduxError);
+            Toast.show({
+                type: 'error',
+                text1: 'Action Failed',
+                text2: reduxError
+            });
             dispatch(clearLeaveMessages());
         }
 
@@ -118,6 +128,19 @@ const ApplyLeave = ({ navigation }) => {
             } else if (!regex.test(startDate)) {
                 newErrors.startDate = 'Invalid format. Use YYYY-MM-DD.';
                 valid = false;
+            } else {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today);
+                tomorrow.setDate(today.getDate() + 1);
+                
+                const chosen = new Date(startDate);
+                chosen.setHours(0, 0, 0, 0);
+                
+                if (chosen < tomorrow) {
+                    newErrors.startDate = 'Leave can only be applied starting from Tomorrow.';
+                    valid = false;
+                }
             }
 
             // If not half day, need end date.
@@ -251,7 +274,18 @@ const ApplyLeave = ({ navigation }) => {
                             const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
                             const activeCompare = calendarTarget === 'start' ? startDate : endDate;
                             const isSelected = activeCompare === dateStr;
-                            const isToday = new Date().toDateString() === dayDate.toDateString();
+                            
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const tomorrow = new Date(today);
+                            tomorrow.setDate(today.getDate() + 1);
+                            
+                            const cellDate = new Date(dayDate);
+                            cellDate.setHours(0, 0, 0, 0);
+
+                            // Disable logic: Start from today + 1
+                            const isDisabled = cellDate < tomorrow;
+                            const isToday = today.toDateString() === cellDate.toDateString();
 
                             return (
                                 <TouchableOpacity
@@ -259,14 +293,17 @@ const ApplyLeave = ({ navigation }) => {
                                     style={[
                                         styles.dayCell,
                                         isSelected && styles.selectedDayCell,
-                                        isToday && !isSelected && styles.todayCell
+                                        isToday && !isSelected && styles.todayCell,
+                                        isDisabled && { opacity: 0.4 }
                                     ]}
-                                    onPress={() => handleDateSelect(dayDate)}
+                                    onPress={() => !isDisabled && handleDateSelect(dayDate)}
+                                    disabled={isDisabled}
                                 >
                                     <Text style={[
                                         styles.dayText,
                                         isSelected && styles.selectedDayText,
-                                        isToday && !isSelected && styles.todayText
+                                        isToday && !isSelected && styles.todayText,
+                                        isDisabled && { color: '#CBD5E1' }
                                     ]}>
                                         {dayDate.getDate()}
                                     </Text>

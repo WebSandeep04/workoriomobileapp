@@ -83,7 +83,7 @@ export const mobileMenuConfig = [
     items: [
       { route: 'worklog', title: 'Timesheet', icon: 'bi bi-clipboard-check', permission: 'worklog.entry' },
       { route: 'worklog-history', title: 'Timesheet History', icon: 'bi bi-clock-history', permission: 'worklog.history' },
-      { route: 'worklog-missing-summary', title: 'Missing Entries Summary', icon: 'bi bi-exclamation-triangle', permission: 'worklog.missing_summary' },
+      // { route: 'worklog-missing-summary', title: 'Missing Entries Summary', icon: 'bi bi-exclamation-triangle', permission: 'worklog.missing_summary' },
     ]
   },
   {
@@ -106,7 +106,7 @@ export const mobileMenuConfig = [
     roles: ['admin'],
     items: [
       { route: 'calendar.index', title: 'Calendar', icon: 'bi bi-calendar3', permission: 'calendar.view' },
-      { route: 'calendar-client-event.links', title: 'Manage Calendar', icon: 'bi bi-diagram-2', permission: 'calendar.client_event_links' },
+      // { route: 'calendar-client-event.links', title: 'Manage Calendar', icon: 'bi bi-diagram-2', permission: 'calendar.client_event_links' },
     ]
   },
   {
