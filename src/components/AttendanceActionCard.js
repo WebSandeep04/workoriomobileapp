@@ -2,73 +2,58 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput, Alert, Image, ScrollView, PermissionsAndroid, Platform } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { NativeModules } from 'react-native';
-
-const { WorkorioLocation } = NativeModules;
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { punchIn, punchOut, toggleBreak, clearMessages } from '../store/slices/attendanceSlice';
 
-const COLORS = {
-    cardBg: '#434AFA',
-    primary: '#434AFA',
-    textWhite: '#FFFFFF',
-    textGray: '#E0E7FF',
-    buttonBg: '#FFFFFF',
-    buttonText: '#434AFA',
-    textDark: '#1F2937'
-};
+const { WorkorioLocation } = NativeModules;
 
 const AttendanceActionCard = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const isFocused = useIsFocused();
-    const { status, actionLoading, validationError, successMessage, error } = useSelector(state => state.attendance);
+    const { status, actionLoading, validationError, successMessage, error, isLocked } = useSelector(state => state.attendance);
     const { user } = useSelector(state => state.auth);
 
     // Status selectors
     const officeStatus = status?.office || {};
     const fieldStatus = status?.field || {};
     const breakStatus = status?.break || {};
-    const isOnBreak = breakStatus.can_end; // True if break is active (can be ended)
+    const isOnBreak = breakStatus.can_end; 
 
     // Local State
     const [lateModalVisible, setLateModalVisible] = useState(false);
     const [lateReason, setLateReason] = useState('');
     const [lateReasonOptions, setLateReasonOptions] = useState([]);
     const [pendingAction, setPendingAction] = useState(null);
-    const [loadingAction, setLoadingAction] = useState(null); // 'office' | 'field' | 'break'
+    const [loadingAction, setLoadingAction] = useState(null); // 'office' | 'field' | 'break' | 'emergency' | 'wfh'
 
     // --- Effects ---
     useEffect(() => {
         if (!isFocused) return;
 
         if (successMessage) {
-            Toast.show({
-                type: 'success',
-                text1: 'Success',
-                text2: successMessage
-            });
+            Toast.show({ type: 'success', text1: 'Status Updated', text2: successMessage });
             dispatch(clearMessages());
-            setLateModalVisible(false);
-            setLateReason('');
-            setLateReasonOptions([]);
-            setPendingAction(null);
-            setLoadingAction(null);
+            cleanupLocals();
         }
 
         if (error) {
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: error
-            });
+            const errorMsg = String(error);
+            if (errorMsg.toLowerCase().includes('pending task')) {
+                Alert.alert('Tasks Require Update', errorMsg, [
+                    { text: 'Dismiss', style: 'cancel' },
+                    { text: 'Go to Tasks', onPress: () => navigation.navigate('Task') }
+                ]);
+            } else {
+                Toast.show({ type: 'error', text1: 'Request Failed', text2: errorMsg });
+            }
             dispatch(clearMessages());
             setLoadingAction(null);
         }
 
         if (validationError) {
-            // Check for require_late_reason in direct object OR nested data
             const isLate = validationError.require_late_reason || validationError.data?.require_late_reason;
             const reasons = validationError.late_reasons || validationError.data?.late_reasons || [];
 
@@ -77,36 +62,32 @@ const AttendanceActionCard = () => {
                 setLateModalVisible(true);
                 setLoadingAction(null);
             } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Action Failed',
-                    text2: validationError.message || validationError.data?.message || "Validation Error"
-                });
+                Toast.show({ type: 'error', text1: 'Validation Failed', text2: validationError.message || validationError.data?.message || "Unable to proceed." });
                 setLoadingAction(null);
             }
             dispatch(clearMessages());
         }
     }, [successMessage, error, validationError, dispatch, isFocused]);
 
+    const cleanupLocals = () => {
+        setLateModalVisible(false);
+        setLateReason('');
+        setLateReasonOptions([]);
+        setPendingAction(null);
+        setLoadingAction(null);
+    };
+
     // --- Handlers ---
-
-    // --- Location Permission Helper ---
     const requestLocationPermission = async () => {
-        console.log('[AttendanceActionCard] Requesting location permission...');
-        if (Platform.OS === 'ios') {
-            const auth = await Geolocation.requestAuthorization('whenInUse');
-            return auth === 'granted';
-        }
-
+        if (Platform.OS === 'ios') return true; // Standard practice to assume configured via info.plist
+        
         if (Platform.OS === 'android') {
             const granted = await PermissionsAndroid.request(
                 PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
                 {
-                    title: "Location Permission",
-                    message: "Workorio needs access to your location to verify your punch-in.",
-                    buttonNeutral: "Ask Me Later",
-                    buttonNegative: "Cancel",
-                    buttonPositive: "OK"
+                    title: "Location Access Required",
+                    message: "To secure attendance validation, please allow access to your current location.",
+                    buttonPositive: "Confirm"
                 }
             );
             return granted === PermissionsAndroid.RESULTS.GRANTED;
@@ -114,683 +95,532 @@ const AttendanceActionCard = () => {
         return true;
     };
 
-    // --- Handlers ---
-
     const getCurrentLocation = async () => {
-        console.log('[AttendanceActionCard] Getting current location from Native...');
         try {
             const coords = await WorkorioLocation.getCurrentLocation();
-            console.log('[AttendanceActionCard] Coords from Native:', coords.latitude, coords.longitude);
             return coords;
-        } catch (error) {
-            console.error('[AttendanceActionCard] Native Location Error:', error);
-            throw error;
+        } catch (e) {
+            throw e;
         }
     };
 
-    // 1. Office Punch
-    const handlePunchAction = async () => {
-        console.log('[AttendanceActionCard] handlePunchAction triggered');
-        if (officeStatus.can_start) {
-            console.log('[AttendanceActionCard] Starting Office Punch In sequence');
-            // Punch In Logic with Location
-            setLoadingAction('office');
-            setPendingAction({ type: 'office' });
-
-            // 1. Check Permission
-            const hasPermission = await requestLocationPermission();
-            if (!hasPermission) {
-                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required to punch in.' });
-                setLoadingAction(null);
-                return;
-            }
-
-            // 2. Get Location
-            try {
-                const coords = await getCurrentLocation();
-                if (!coords || !coords.latitude || !coords.longitude) {
-                    console.error('[AttendanceActionCard] Invalid coordinates received:', coords);
-                    Toast.show({ type: 'error', text1: 'Location Error', text2: 'Could not fetch valid coordinates.' });
-                    setLoadingAction(null);
-                    return;
-                }
-
-                console.log(`[AttendanceActionCard] Dispatching punchIn. Lat: ${coords.latitude}, Long: ${coords.longitude}`);
-                // 3. Dispatch
-                dispatch(punchIn({
-                    type: 'office',
-                    latitude: coords.latitude,
-                    longitude: coords.longitude
-                }));
-            } catch (error) {
-                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get current location. Please ensure GPS is on.' });
-                setLoadingAction(null);
-            }
-
-        } else if (officeStatus.can_end) {
-            setLoadingAction('office');
-            // Punch Out with Location
-            const hasPermission = await requestLocationPermission();
-            if (!hasPermission) {
-                // Even if permission denied, maybe we should allow punch out? 
-                // User request says "Accept latitude and longitude", usually implies it is required or desired.
-                // For consistency, if we require it for Punch In, we likely want it for Punch Out. 
-                // However, blocking Punch Out might be bad UX if GPS fails.
-                // let's try to get it, but proceed if it fails?
-                // The user prompt "implement this also" suggests strict parity with API updates.
-                // The API "Accepts" it. It doesn't say "Requires" it. but for Punch In usually it is required.
-                // I'll follow the pattern: Try to get location, if permission/fetch fails, warn or fail?
-                // In punchIn logic (lines 165-168), it catches error and shows Toast, implying it STOPS.
-                // So I will STOP if location fails, to ensure data quality.
-                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required to punch out.' });
-                setLoadingAction(null);
-                return;
-            }
-
-            try {
-                const coords = await getCurrentLocation();
-                dispatch(punchOut({
-                    type: 'office',
-                    latitude: coords.latitude,
-                    longitude: coords.longitude
-                }));
-            } catch (error) {
-                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get location for punch out.' });
-                setLoadingAction(null);
-            }
-        }
-    };
-
-    // 2. Field Action
-    const handleFieldAction = async () => {
-        console.log('[AttendanceActionCard] handleFieldAction triggered');
-        if (fieldStatus.can_start) {
-            console.log('[AttendanceActionCard] Starting Field Punch In sequence');
-            // Field In Logic with Location
-            setLoadingAction('field');
-            setPendingAction({ type: 'field' });
-
-            // 1. Check Permission
-            const hasPermission = await requestLocationPermission();
-            if (!hasPermission) {
-                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required for field visit.' });
-                setLoadingAction(null);
-                return;
-            }
-
-            // 2. Get Location
-            try {
-                const coords = await getCurrentLocation();
-                // 3. Dispatch
-                dispatch(punchIn({
-                    type: 'field',
-                    latitude: coords.latitude,
-                    longitude: coords.longitude
-                }));
-            } catch (error) {
-                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get location for field visit.' });
-                setLoadingAction(null);
-            }
-        } else if (fieldStatus.can_end) {
-            setLoadingAction('field');
-            // Field Out with Location
-            const hasPermission = await requestLocationPermission();
-            if (!hasPermission) {
-                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required to punch out.' });
-                setLoadingAction(null);
-                return;
-            }
-
-            try {
-                const coords = await getCurrentLocation();
-                dispatch(punchOut({
-                    type: 'field',
-                    latitude: coords.latitude,
-                    longitude: coords.longitude
-                }));
-            } catch (error) {
-                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get location for field out.' });
-                setLoadingAction(null);
-            }
-        }
-    };
-
-    // 3. Break Action
-    const handleBreakAction = async () => {
-        if (breakStatus.can_start || breakStatus.can_end) {
-            const actionType = breakStatus.can_start ? 'start' : 'end';
-            setLoadingAction('break');
-
-            // Get Location
-            const hasPermission = await requestLocationPermission();
-            if (!hasPermission) {
-                Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Location permission is required for break.' });
-                setLoadingAction(null);
-                return;
-            }
-
-            try {
-                const coords = await getCurrentLocation();
-                dispatch(toggleBreak({
-                    action: actionType,
-                    latitude: coords.latitude,
-                    longitude: coords.longitude
-                }));
-            } catch (error) {
-                Toast.show({ type: 'error', text1: 'Location Error', text2: 'Failed to get location for break.' });
-                setLoadingAction(null);
-            }
-        }
-    };
-
-
-    const submitLateReason = async () => {
-        console.log(`[AttendanceActionCard] submitLateReason. Reason: ${lateReason}`);
-        if (!lateReason.trim()) {
-            Toast.show({
-                type: 'info',
-                text1: 'Validation',
-                text2: 'Please enter a reason.'
-            });
+    const performAction = async (type, actionCategory) => {
+        if (isLocked) return;
+        setLoadingAction(type);
+        
+        const hasPermission = await requestLocationPermission();
+        if (!hasPermission) {
+            Toast.show({ type: 'info', text1: 'Permission Needed', text2: 'Enable location in your settings to proceed.' });
+            setLoadingAction(null);
             return;
         }
-        if (pendingAction?.type) {
-            setLoadingAction(pendingAction.type);
 
-            try {
-                // We retry with location just in case it's needed again
-                let coords = null;
-                const hasPermission = await requestLocationPermission();
-                if (hasPermission) {
-                    try {
-                        const locationData = await getCurrentLocation();
-                        coords = locationData;
-                    } catch (locErr) {
-                        console.log("Location error on retry:", locErr);
-                        // deciding to proceed even if location fails on retry, or maybe not? 
-                        // The user is already adding a reason, let's try to send it.
-                    }
-                }
-
+        try {
+            const coords = await getCurrentLocation();
+            if (actionCategory === 'break') {
+                const subAction = breakStatus.can_start ? 'start' : 'end';
+                dispatch(toggleBreak({ action: subAction, latitude: coords.latitude, longitude: coords.longitude }));
+            } else if (actionCategory === 'punch-out') {
+                dispatch(punchOut({ type, latitude: coords.latitude, longitude: coords.longitude }));
+            } else {
+                // punch-in
+                setPendingAction({ type, isEmergency: type==='emergency', isWFH: type==='wfh' });
                 dispatch(punchIn({
-                    type: pendingAction.type,
-                    reason: lateReason,
-                    latitude: coords?.latitude,
-                    longitude: coords?.longitude,
-                    emergency_attendance: pendingAction.isEmergency,
-                    work_from_home: pendingAction.isWFH
-                }));
-            } catch (e) {
-                dispatch(punchIn({
-                    type: pendingAction.type,
-                    reason: lateReason,
-                    emergency_attendance: pendingAction.isEmergency,
-                    work_from_home: pendingAction.isWFH
+                    type: (type === 'emergency' || type === 'wfh') ? 'office' : type,
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    emergency_attendance: type === 'emergency',
+                    work_from_home: type === 'wfh'
                 }));
             }
+        } catch (err) {
+            Toast.show({ type: 'error', text1: 'Location Error', text2: 'Ensure GPS is enabled on your device.' });
+            setLoadingAction(null);
         }
     };
 
-    const handleEmergencyPunch = async () => {
-        console.log('[AttendanceActionCard] Emergency Attendance Button Clicked');
-        if (officeStatus.can_start) {
-            setLoadingAction('emergency');
-            console.log('[AttendanceActionCard] Requesting Location for Emergency Punch');
+    const submitLateReason = async () => {
+        if (!lateReason.trim()) return;
+        const dispatchType = pendingAction?.type || 'office';
+        setLoadingAction(dispatchType);
+        
+        let coords = null;
+        try {
+            coords = await getCurrentLocation();
+        } catch (e) {}
 
-            // Try permission
-            const hasPermission = await requestLocationPermission();
-            let coords = {};
-            if (hasPermission) {
-                try {
-                    coords = await getCurrentLocation();
-                    console.log('[AttendanceActionCard] Emergency Location:', coords);
-                } catch (e) {
-                    console.log('[AttendanceActionCard] Failed to get location for emergency', e);
-                }
-            } else {
-                console.log('[AttendanceActionCard] Permission denied for emergency');
-            }
-
-            setPendingAction({ type: 'office', isEmergency: true });
-
-            console.log('[AttendanceActionCard] Dispatching Emergency Punch In');
-            dispatch(punchIn({
-                type: 'office',
-                latitude: coords?.latitude,
-                longitude: coords?.longitude,
-                emergency_attendance: true
-            }));
-        } else {
-            console.log('[AttendanceActionCard] Emergency Punch blocked: can_start is false');
-            Alert.alert('Info', 'You are seemingly already punched in.');
-        }
-    };
-
-    const handleWFHPunch = async () => {
-        console.log('[AttendanceActionCard] WFH Attendance Button Clicked');
-        if (officeStatus.can_start) {
-            setLoadingAction('wfh');
-            console.log('[AttendanceActionCard] Requesting Location for WFH Punch');
-
-            // Try permission
-            const hasPermission = await requestLocationPermission();
-            let coords = {};
-            if (hasPermission) {
-                try {
-                    coords = await getCurrentLocation();
-                    console.log('[AttendanceActionCard] WFH Location:', coords);
-                } catch (e) {
-                    console.log('[AttendanceActionCard] Failed to get location for WFH', e);
-                }
-            } else {
-                console.log('[AttendanceActionCard] Permission denied for WFH');
-            }
-
-            setPendingAction({ type: 'office', isWFH: true });
-
-            console.log('[AttendanceActionCard] Dispatching WFH Punch In');
-            dispatch(punchIn({
-                type: 'office',
-                latitude: coords?.latitude,
-                longitude: coords?.longitude,
-                work_from_home: true
-            }));
-        } else {
-            console.log('[AttendanceActionCard] WFH Punch blocked: can_start is false');
-            Alert.alert('Info', 'You are seemingly already punched in.');
-        }
-    };
-
-    // Helper for display
-    const formatDate = (date) => {
-        const options = { day: 'numeric', month: 'long', weekday: 'long' };
-        return date.toLocaleDateString('en-GB', options);
+        dispatch(punchIn({
+            type: (dispatchType === 'emergency' || dispatchType === 'wfh') ? 'office' : dispatchType,
+            reason: lateReason,
+            latitude: coords?.latitude,
+            longitude: coords?.longitude,
+            emergency_attendance: pendingAction?.isEmergency,
+            work_from_home: pendingAction?.isWFH
+        }));
     };
 
     const formatTime = (timeString) => {
-        if (!timeString) return '';
-        const [hours, minutes] = timeString.split(':');
-        const date = new Date();
-        date.setHours(parseInt(hours, 10));
-        date.setMinutes(parseInt(minutes, 10));
-        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+        if (!timeString) return 'N/A';
+        try {
+            const [hours, minutes] = timeString.split(':');
+            const d = new Date();
+            d.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch(e) { return timeString; }
     };
 
-    // Label Helpers
-    const getPunchLabel = () => {
-        if (officeStatus.can_start) return "Punch In";
-        if (officeStatus.can_end) return "Punch Out";
-        return "Completed";
+    // Component Builders
+    const renderActionBtn = (label, subLabel, isActive, isDisabled, isActionLoading, onPress, themeColor) => {
+        // Theme logic: When active, fill with color. When inactive, use strong modern border outline or light fill?
+        // Let's use solid bold colors when actionable, light gray when disabled.
+        const buttonBg = isDisabled ? '#F1F5F9' : (isActive ? themeColor : '#FFFFFF');
+        const textColor = isDisabled ? '#94A3B8' : (isActive ? '#FFFFFF' : themeColor);
+        const borderColor = isDisabled ? '#E2E8F0' : themeColor;
+
+        return (
+            <TouchableOpacity 
+                style={[
+                    styles.btnLayout, 
+                    { backgroundColor: buttonBg, borderColor: borderColor, borderWidth: isActive ? 0 : 1.5 }
+                ]}
+                onPress={onPress}
+                disabled={isDisabled || isActionLoading}
+                activeOpacity={0.85}
+            >
+                {isActionLoading ? (
+                    <ActivityIndicator color={textColor} size="small" />
+                ) : (
+                    <View style={styles.btnContent}>
+                        <Text style={[styles.btnMainText, { color: textColor }]}>{label}</Text>
+                        {subLabel ? <Text style={[styles.btnSubText, { color: textColor, opacity: 0.8 }]}>{subLabel}</Text> : null}
+                    </View>
+                )}
+            </TouchableOpacity>
+        );
     };
 
-    const getFieldLabel = () => {
-        if (fieldStatus.can_start) return "Field In";
-        if (fieldStatus.can_end || fieldStatus.status === 'Running') return "Field Out";
-        // If 'Running' isn't exact status string, rely on can_end
-        return "Field Completed";
-    };
-
-    const getBreakLabel = () => {
-        if (breakStatus.can_start) return "Break";
-        if (breakStatus.can_end) return "End Break";
-        return "Break Done";
-    };
-
-    // Data for View
     const shift = user?.employee_details?.shift;
-    const shiftName = shift?.name ? shift.name.toUpperCase() : "GENERAL";
-    const shiftTiming = shift?.start_time && shift?.end_time
-        ? `( ${formatTime(shift.start_time)} - ${formatTime(shift.end_time)} )`
-        : "( 10:00 AM - 6:35 PM )";
-
-    const workingHours = officeStatus.last_action_time ? ` | ${officeStatus.working_hours || '0hr 0min'}` : '';
+    const shiftString = shift ? `${formatTime(shift.start_time)} - ${formatTime(shift.end_time)}` : 'General (10AM-6PM)';
 
     return (
-        <View>
-            <View style={styles.card}>
-                {/* Header: Shift Info */}
-                <View style={styles.headerRow}>
-                    <Text style={styles.headerLabel}>
-                        Shift Today : <Text style={styles.headerValue}>{shiftName} {shiftTiming}</Text>
-                    </Text>
-                </View>
-
-                {/* User Profile Row */}
-                <View style={styles.profileRow}>
-                    <View style={styles.avatarContainer}>
-                        {user?.image ? (
-                            <Image
-                                source={{ uri: user.image }}
-                                style={styles.avatar}
-                            />
-                        ) : (
-                            <Ionicons name="person" size={24} color={COLORS.primary} />
-                        )}
+        <View style={styles.wrapper}>
+            {/* Overview Sub-Header */}
+            <View style={styles.dashMetaRow}>
+                <View style={styles.profileBlock}>
+                    <View style={styles.imgCircle}>
+                        {user?.image ? <Image source={{ uri: user.image }} style={styles.avatar} /> : <Ionicons name="person" size={20} color="#94A3B8" />}
                     </View>
-                    <View style={styles.userInfo}>
-                        <Text style={styles.userName}>{user?.name || "Employee"}</Text>
-                        <Text style={styles.userDate}>{formatDate(new Date())}{workingHours}</Text>
+                    <View>
+                        <Text style={styles.welcomeText}>Hi, {user?.name?.split(' ')[0] || 'Member'}</Text>
+                        <Text style={styles.subDateText}>{new Date().toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}</Text>
                     </View>
                 </View>
 
-                {/* Action Buttons Row */}
-                <View style={styles.actionsRow}>
-                    {/* 1. Punch In/Out (White) */}
-                    <TouchableOpacity
-                        style={[styles.actionBtn, styles.btnWhite, (actionLoading || isOnBreak) && styles.disabledBtn]}
-                        onPress={handlePunchAction}
-                        activeOpacity={0.8}
-                        disabled={actionLoading || isOnBreak}
-                    >
-                        {actionLoading && loadingAction === 'office' ? (
-                            <ActivityIndicator color={COLORS.primary} size="small" />
-                        ) : (
-                            !(actionLoading || isOnBreak) && <Text style={[styles.btnText, { color: COLORS.primary }]}>{getPunchLabel()}</Text>
-                        )}
-                    </TouchableOpacity>
-
-                    {/* 2. Field Cycle (Red) */}
-                    <TouchableOpacity
-                        style={[styles.actionBtn, styles.btnRed, (actionLoading || isOnBreak) && styles.disabledBtn]}
-                        onPress={handleFieldAction}
-                        activeOpacity={0.8}
-                        disabled={actionLoading || isOnBreak}
-                    >
-                        {actionLoading && loadingAction === 'field' ? (
-                            <ActivityIndicator color="#FFF" size="small" />
-                        ) : (
-                            !(actionLoading || isOnBreak) && <Text style={[styles.btnText, { color: '#FFF' }]}>{getFieldLabel()}</Text>
-                        )}
-                    </TouchableOpacity>
-
-                    {/* 3. Break (Orange) */}
-                    <TouchableOpacity
-                        style={[styles.actionBtn, styles.btnOrange, actionLoading && styles.disabledBtn]}
-                        onPress={handleBreakAction}
-                        activeOpacity={0.8}
-                        disabled={actionLoading}
-                    >
-                        {actionLoading && loadingAction === 'break' ? (
-                            <ActivityIndicator color="#FFF" size="small" />
-                        ) : (
-                            !actionLoading && <Text style={[styles.btnText, { color: '#FFF' }]}>{getBreakLabel()}</Text>
-                        )}
-                    </TouchableOpacity>
-                </View>
-
-                {/* Late Reason Modal */}
-                <Modal
-                    visible={lateModalVisible}
-                    transparent
-                    animationType="fade"
-                    statusBarTranslucent
-                    onRequestClose={() => setLateModalVisible(false)}
-                >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Running Late?</Text>
-                            <Text style={{ marginBottom: 12, color: '#6B7280', fontSize: 14 }}>
-                                {validationError?.message || "Please select a reason for late punch-in:"}
-                            </Text>
-
-                            {lateReasonOptions.length > 0 ? (
-                                <View style={{ maxHeight: 300 }}>
-                                    <ScrollView showsVerticalScrollIndicator={true}>
-                                        {lateReasonOptions.map((item) => (
-                                            <TouchableOpacity
-                                                key={item.id}
-                                                style={[
-                                                    styles.reasonItem,
-                                                    lateReason === item.reason && styles.selectedReasonItem
-                                                ]}
-                                                onPress={() => setLateReason(item.reason)}
-                                            >
-                                                <Text style={[
-                                                    styles.reasonText,
-                                                    lateReason === item.reason && styles.selectedReasonText
-                                                ]}>
-                                                    {item.reason}
-                                                </Text>
-
-                                                {lateReason === item.reason && (
-                                                    <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
-                                                )}
-                                            </TouchableOpacity>
-                                        ))}
-                                    </ScrollView>
-                                </View>
-                            ) : (
-                                // Fallback if no reasons provided
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Reason for late..."
-                                    value={lateReason}
-                                    onChangeText={setLateReason}
-                                />
-                            )}
-
-                            <View style={styles.modalButtons}>
-                                <TouchableOpacity
-                                    style={[styles.modalBtn, styles.cancelBtn]}
-                                    onPress={() => {
-                                        setLateModalVisible(false);
-                                        setLateReason('');
-                                        setLateReasonOptions([]);
-                                    }}
-                                >
-                                    <Text>Cancel</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[styles.modalBtn, styles.submitBtn, !lateReason && { opacity: 0.5 }]}
-                                    onPress={submitLateReason}
-                                    disabled={!lateReason}
-                                >
-                                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Submit</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
+                {isLocked ? (
+                    <View style={[styles.chip, styles.chipLocked]}>
+                        <Ionicons name="lock-closed" size={12} color="#FFF" style={{marginRight:4}} />
+                        <Text style={styles.chipTextLocked}>LOCKED</Text>
                     </View>
-                </Modal>
+                ) : (
+                    <View style={styles.chip}>
+                        <Text style={styles.chipText}>{shiftString}</Text>
+                    </View>
+                )}
             </View>
 
-            {(!officeStatus.can_start || !fieldStatus.can_start || isOnBreak) ? null :
-                <TouchableOpacity
-                    style={[styles.emergencyBtn, actionLoading && { opacity: 0.7 }]}
-                    onPress={handleEmergencyPunch}
-                    activeOpacity={0.8}
-                    disabled={actionLoading}
-                >
-                    {actionLoading && loadingAction === 'emergency' ? (
-                        <ActivityIndicator color="#FFF" size="small" />
-                    ) : (
-                        <Text style={styles.emergencyText}>Provisional Attendance</Text>
-                    )}
-                </TouchableOpacity>
-            }
+            {/* Primary Interactive Button List */}
+            <View style={styles.btnStack}>
+                {renderActionBtn(
+                    officeStatus.can_start ? "Punch In" : (officeStatus.can_end ? "Punch Out" : "Completed"),
+                    "Office Space",
+                    officeStatus.can_end, // Active state
+                    (isLocked || isOnBreak || (!officeStatus.can_start && !officeStatus.can_end)),
+                    (loadingAction === 'office' && actionLoading),
+                    () => performAction('office', officeStatus.can_end ? 'punch-out' : 'punch-in'),
+                    '#4F46E5'
+                )}
 
-            {(!officeStatus.can_start || !fieldStatus.can_start || isOnBreak) ? null :
-                <TouchableOpacity
-                    style={[styles.wfhBtn, actionLoading && { opacity: 0.7 }]}
-                    onPress={handleWFHPunch}
+                {renderActionBtn(
+                    fieldStatus.can_start ? "Field In" : (fieldStatus.can_end ? "Field Out" : "Done"),
+                    "Client Side",
+                    fieldStatus.can_end, // Active state
+                    (isLocked || isOnBreak || (!fieldStatus.can_start && !fieldStatus.can_end)),
+                    (loadingAction === 'field' && actionLoading),
+                    () => performAction('field', fieldStatus.can_end ? 'punch-out' : 'punch-in'),
+                    '#0891B2'
+                )}
+            </View>
+
+            {/* Break & Auxiliary Section */}
+            <View style={styles.secondaryRow}>
+                <TouchableOpacity 
+                    style={[
+                        styles.breakButton, 
+                        isOnBreak && styles.breakButtonActive,
+                        isLocked && styles.disabledBtnFade
+                    ]}
+                    disabled={isLocked || actionLoading}
+                    onPress={() => performAction('break', 'break')}
                     activeOpacity={0.8}
-                    disabled={actionLoading}
                 >
-                    {actionLoading && loadingAction === 'wfh' ? (
-                        <ActivityIndicator color="#FFF" size="small" />
+                    {loadingAction === 'break' && actionLoading ? (
+                        <ActivityIndicator color={isOnBreak ? "#FFF" : "#D97706"} size="small" />
                     ) : (
-                        <Text style={styles.wfhText}>Work From Home</Text>
+                        <Text style={[styles.breakBtnText, isOnBreak && {color:'#FFF'}]}>{isOnBreak ? 'End Current Break' : 'Take a Break'}</Text>
                     )}
                 </TouchableOpacity>
-            }
+            </View>
+
+            {/* Emergency/WFH Minimal Footer Bar */}
+            {(!isLocked && officeStatus.can_start && fieldStatus.can_start && !isOnBreak) && (
+                <View style={styles.auxiliaryBar}>
+                    <TouchableOpacity style={styles.auxBtn} onPress={() => performAction('emergency', 'punch-in')} disabled={actionLoading}>
+                        <Text style={styles.auxBtnText}>Emergency</Text>
+                    </TouchableOpacity>
+                    <View style={styles.vDivider} />
+                    <TouchableOpacity style={styles.auxBtn} onPress={() => performAction('wfh', 'punch-in')} disabled={actionLoading}>
+                        <Text style={styles.auxBtnText}>Work from Home</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            {/* Modernized Late Reason Modal */}
+            <Modal visible={lateModalVisible} transparent animationType="slide" statusBarTranslucent onRequestClose={cleanupLocals}>
+                <View style={styles.modalBackdrop}>
+                    <View style={styles.modernModal}>
+                        <View style={styles.modalHeader}>
+                            <View style={styles.alertIconBox}>
+                                <Ionicons name="time" size={24} color="#F59E0B" />
+                            </View>
+                            <Text style={styles.modalH1}>Report Reason</Text>
+                            <Text style={styles.modalH2}>Logging attendance outside scheduled shift times requires a policy reason.</Text>
+                        </View>
+
+                        <ScrollView style={styles.modalScroll} bounces={false}>
+                            {lateReasonOptions.length > 0 ? (
+                                lateReasonOptions.map(item => (
+                                    <TouchableOpacity 
+                                        key={item.id} 
+                                        style={[styles.optionRow, lateReason === item.reason && styles.optionRowSelected]}
+                                        onPress={() => setLateReason(item.reason)}
+                                    >
+                                        <View style={[styles.radio, lateReason === item.reason && styles.radioActive]}>
+                                            {lateReason === item.reason && <View style={styles.radioDot} />}
+                                        </View>
+                                        <Text style={[styles.optionText, lateReason === item.reason && styles.optionTextActive]}>{item.reason}</Text>
+                                    </TouchableOpacity>
+                                ))
+                            ) : (
+                                <TextInput
+                                    style={styles.fancyInput}
+                                    placeholder="Briefly explain delay..."
+                                    value={lateReason}
+                                    onChangeText={setLateReason}
+                                    multiline
+                                />
+                            )}
+                        </ScrollView>
+
+                        <View style={styles.modalFooter}>
+                            <TouchableOpacity style={styles.fBtnCancel} onPress={cleanupLocals}>
+                                <Text style={styles.fBtnCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={[styles.fBtnSubmit, !lateReason.trim() && {opacity:0.6}]} 
+                                onPress={submitLateReason} 
+                                disabled={!lateReason.trim() || actionLoading}
+                            >
+                                {actionLoading ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.fBtnSubmitText}>Confirm Punch In</Text>}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: COLORS.cardBg,
-        borderRadius: 12,
-        padding: 16,
-        paddingBottom: 20,
+    wrapper: {
         marginHorizontal: 16,
-        marginVertical: 12,
-        shadowColor: '#434AFA',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-        elevation: 8,
-    },
-    headerRow: {
-        marginBottom: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.1)',
-        paddingBottom: 12,
-    },
-    headerLabel: {
-        color: 'rgba(255,255,255,0.8)',
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    headerValue: {
-        color: '#FFFFFF',
-        fontWeight: 'bold',
-    },
-    profileRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
         marginBottom: 20,
     },
-    avatarContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#fff',
+    dashMetaRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 4,
+    },
+    profileBlock: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    imgCircle: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#F1F5F9',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        marginRight: 12,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
         overflow: 'hidden',
-        borderWidth: 2,
-        borderColor: '#fff',
     },
     avatar: {
         width: '100%',
         height: '100%',
     },
-    userInfo: {
-        flex: 1,
-        justifyContent: 'center',
+    welcomeText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1E293B',
+        letterSpacing: -0.3,
     },
-    userName: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 2,
-    },
-    userDate: {
-        color: 'rgba(255,255,255,0.8)',
+    subDateText: {
         fontSize: 12,
+        color: '#64748B',
+        fontWeight: '500',
     },
-    actionsRow: {
+    chip: {
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#DBEAFE',
+    },
+    chipLocked: {
+        backgroundColor: '#EF4444',
+        borderColor: '#DC2626',
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 8,
+        alignItems: 'center',
     },
-    actionBtn: {
-        flex: 1,
-        height: 44,
-        borderRadius: 8,
+    chipText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#3B82F6',
+    },
+    chipTextLocked: {
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#FFF',
+    },
+    btnStack: {
+        gap: 12,
+        marginBottom: 16,
+    },
+    btnLayout: {
+        width: '100%',
+        borderRadius: 20,
+        paddingVertical: 18,
+        paddingHorizontal: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 3,
+        shadowColor: '#64748B',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
         elevation: 3,
     },
-    btnWhite: { backgroundColor: '#FFFFFF' },
-    btnRed: { backgroundColor: '#DC2626' },
-    btnOrange: { backgroundColor: '#D97706' },
-    disabledBtn: {
-        backgroundColor: '#D1D5DB', // Grey
-        opacity: 0.7,
-        shadowOpacity: 0,
-        elevation: 0,
+    btnContent: {
+        alignItems: 'center',
     },
-    btnText: {
-        fontSize: 13,
+    btnMainText: {
+        fontSize: 18,
+        fontWeight: '800',
+        letterSpacing: 0.2,
+    },
+    btnSubText: {
+        fontSize: 12,
+        fontWeight: '600',
+        marginTop: 4,
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
+    },
+    secondaryRow: {
+        marginBottom: 16,
+    },
+    breakButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#FFF',
+        borderWidth: 1.5,
+        borderColor: '#FEF3C7',
+        borderRadius: 16,
+        paddingVertical: 14,
+        gap: 8,
+    },
+    breakButtonActive: {
+        backgroundColor: '#D97706',
+        borderColor: '#B45309',
+    },
+    breakBtnText: {
+        fontSize: 14,
         fontWeight: '700',
+        color: '#D97706',
+    },
+    disabledBtnFade: {
+        opacity: 0.5,
+        borderColor: '#E2E8F0',
+    },
+    auxiliaryBar: {
+        flexDirection: 'row',
+        backgroundColor: '#F8FAFC',
+        borderRadius: 12,
+        paddingVertical: 10,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+    },
+    auxBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 6,
+    },
+    auxBtnText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#64748B',
+    },
+    vDivider: {
+        width: 1,
+        height: '100%',
+        backgroundColor: '#E2E8F0',
     },
 
-    // Modal
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 24 },
-    modalContent: { backgroundColor: '#fff', padding: 20, borderRadius: 12 },
-    modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 12 },
-    input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 16 },
-    modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-    modalBtn: { padding: 10, borderRadius: 6 },
-    cancelBtn: { backgroundColor: '#eee' },
-    submitBtn: { backgroundColor: COLORS.primary },
-    reasonItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        marginBottom: 8,
-        backgroundColor: '#F9FAFB'
-    },
-    selectedReasonItem: {
-        borderColor: COLORS.primary,
-        backgroundColor: '#EFF6FF'
-    },
-    reasonText: {
-        fontSize: 14,
-        color: '#374151',
+    // MODAL DESIGN UPGRADE
+    modalBackdrop: {
         flex: 1,
-        marginRight: 8
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        justifyContent: 'flex-end',
     },
-    selectedReasonText: {
-        color: COLORS.primary,
-        fontWeight: 'bold'
+    modernModal: {
+        backgroundColor: '#FFF',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+        maxHeight: '85%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -10 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+        elevation: 24,
     },
-    emergencyBtn: {
-        backgroundColor: '#434AFA',
-        marginHorizontal: 16,
-        marginBottom: 12,
-        paddingVertical: 14,
-        borderRadius: 12,
+    modalHeader: {
         alignItems: 'center',
-        shadowColor: '#434AFA',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-        elevation: 6,
+        paddingHorizontal: 24,
+        paddingTop: 32,
+        paddingBottom: 20,
     },
-    emergencyText: {
-        color: '#FFFFFF',
-        fontWeight: 'bold',
-        fontSize: 16
-    },
-    wfhBtn: {
-        backgroundColor: '#434AFA',
-        marginHorizontal: 16,
-        marginBottom: 24,
-        paddingVertical: 14,
-        borderRadius: 12,
+    alertIconBox: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#FEF3C7',
+        justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#434AFA',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-        elevation: 6,
+        marginBottom: 16,
     },
-    wfhText: {
-        color: '#FFFFFF',
-        fontWeight: 'bold',
-        fontSize: 16
+    modalH1: {
+        fontSize: 20,
+        fontWeight: '800',
+        color: '#1E293B',
+        marginBottom: 8,
+    },
+    modalH2: {
+        fontSize: 14,
+        color: '#64748B',
+        textAlign: 'center',
+        lineHeight: 20,
+    },
+    modalScroll: {
+        paddingHorizontal: 24,
+        marginBottom: 20,
+    },
+    optionRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        backgroundColor: '#F8FAFC',
+        borderRadius: 16,
+        marginBottom: 10,
+        borderWidth: 1.5,
+        borderColor: '#F1F5F9',
+    },
+    optionRowSelected: {
+        borderColor: '#F59E0B',
+        backgroundColor: '#FFFBEB',
+    },
+    radio: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#CBD5E1',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    radioActive: {
+        borderColor: '#F59E0B',
+    },
+    radioDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#F59E0B',
+    },
+    optionText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#475569',
+        flex: 1,
+    },
+    optionTextActive: {
+        color: '#B45309',
+        fontWeight: '700',
+    },
+    fancyInput: {
+        backgroundColor: '#F8FAFC',
+        borderRadius: 16,
+        borderWidth: 1.5,
+        borderColor: '#E2E8F0',
+        padding: 16,
+        fontSize: 16,
+        color: '#1E293B',
+        minHeight: 100,
+        textAlignVertical: 'top',
+    },
+    modalFooter: {
+        flexDirection: 'row',
+        paddingHorizontal: 24,
+        gap: 12,
+    },
+    fBtnCancel: {
+        flex: 1,
+        paddingVertical: 16,
+        borderRadius: 16,
+        backgroundColor: '#F1F5F9',
+        alignItems: 'center',
+    },
+    fBtnCancelText: {
+        fontWeight: '700',
+        color: '#475569',
+    },
+    fBtnSubmit: {
+        flex: 2,
+        paddingVertical: 16,
+        borderRadius: 16,
+        backgroundColor: '#1E293B',
+        alignItems: 'center',
+    },
+    fBtnSubmitText: {
+        fontWeight: '700',
+        color: '#FFF',
     }
 });
 

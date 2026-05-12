@@ -38,7 +38,15 @@ const initialState = {
     currentPage: 1,
     lastPage: 1,
     birthdays: [],
-    isTrackingEnabled: false, // Default to false; waiting for explicit '1' from backend
+    isTrackingEnabled: false,
+    isLocked: false,
+    cycles: {
+        office_cycles: 0,
+        field_cycles: 0,
+        break_cycles: 0
+    },
+    workingHours: '0h 0m',
+    completedHours: '0h 0m',
 };
 
 export const fetchAttendanceStatus = createAsyncThunk(
@@ -221,7 +229,17 @@ const attendanceSlice = createSlice({
             })
             .addCase(fetchAttendanceStatus.fulfilled, (state, action) => {
                 state.loading = false;
-                const { status, worklog_validation, working_hours, movements } = action.payload;
+                const { status, worklog_validation, working_hours, completed_hours, cycles, movements, attendance } = action.payload;
+
+                // Store Stats
+                state.workingHours = working_hours || '0h 0m';
+                state.completedHours = completed_hours || '0h 0m';
+                if (cycles) {
+                    state.cycles = cycles;
+                }
+
+                // Store lockout state
+                state.isLocked = attendance?.is_locked === 1;
 
                 if (status) {
                     state.status = status;

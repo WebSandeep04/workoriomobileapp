@@ -1,53 +1,53 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const StatCard = ({ title, value, borderBottomColor }) => {
+const StatCard = ({ title, value, iconName, color }) => {
     return (
-        <View style={[styles.card, { borderBottomColor }]}>
-            <Text style={styles.cardTitle}>{title}</Text>
-            <Text style={styles.cardValue}>{value}</Text>
-            {/* Background Icon/Watermark */}
-            <View style={styles.watermark}>
-                <Ionicons name="stats-chart" size={48} color="#F3F4F6" />
+        <View style={styles.card}>
+            <View style={[styles.iconCircle, { backgroundColor: `${color}15` }]}>
+                <Ionicons name={iconName} size={18} color={color} />
+            </View>
+            <View style={styles.cardContent}>
+                <Text style={styles.cardValue}>{value}</Text>
+                <Text style={styles.cardTitle}>{title}</Text>
             </View>
         </View>
     );
 };
 
-const DashboardStats = ({ stats }) => {
-    // Dummy Data if not provided
-    const displayData = [
-        { id: 1, title: 'Total Entries', value: '60', color: '#D946EF' },   // Magenta
-        { id: 2, title: 'Total Hours', value: '43h 20m', color: '#4338ca' }, // Indigo
-        { id: 3, title: 'Total Entries', value: '20', color: '#D946EF' },        // Magenta
-        { id: 4, title: 'Total Entries', value: '60', color: '#D946EF' },      // Magenta
-    ];
+const DashboardStats = () => {
+    const { workingHours, completedHours, cycles } = useSelector(state => state.attendance);
 
     return (
         <View style={styles.container}>
             <View style={styles.row}>
                 <StatCard
-                    title={displayData[0].title}
-                    value={displayData[0].value}
-                    borderBottomColor={displayData[0].color}
+                    title="Worked Today"
+                    value={completedHours || '0h 0m'}
+                    iconName="time-outline"
+                    color="#4F46E5" // Indigo
                 />
                 <StatCard
-                    title={displayData[1].title}
-                    value={displayData[1].value}
-                    borderBottomColor={displayData[1].color}
+                    title="Total Elapsed"
+                    value={workingHours || '0h 0m'}
+                    iconName="hourglass-outline"
+                    color="#10B981" // Green
                 />
             </View>
             <View style={styles.row}>
                 <StatCard
-                    title={displayData[2].title}
-                    value={displayData[2].value}
-                    borderBottomColor={displayData[2].color}
+                    title="Office Cycles"
+                    value={cycles?.office_cycles || '0'}
+                    iconName="business-outline"
+                    color="#EC4899" // Pink
                 />
                 <StatCard
-                    title={displayData[3].title}
-                    value={displayData[3].value}
-                    borderBottomColor={displayData[3].color}
+                    title="Field Visits"
+                    value={cycles?.field_cycles || '0'}
+                    iconName="navigate-circle-outline"
+                    color="#F59E0B" // Amber
                 />
             </View>
         </View>
@@ -57,51 +57,55 @@ const DashboardStats = ({ stats }) => {
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 16,
-        paddingTop: 16,
+        paddingTop: 20,
         paddingBottom: 8,
     },
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 16,
-        gap: 16,
+        marginBottom: 12,
+        gap: 12,
     },
     card: {
         flex: 1,
         backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        padding: 16,
-        shadowColor: '#000',
+        borderRadius: 16,
+        padding: 14,
+        flexDirection: 'row',
+        alignItems: 'center',
+        shadowColor: '#64748B',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
         elevation: 2,
-        borderBottomWidth: 4,
-        overflow: 'hidden',
-        position: 'relative',
-        height: 100,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+    },
+    iconCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    cardContent: {
+        flex: 1,
         justifyContent: 'center',
     },
     cardTitle: {
-        fontSize: 12,
-        color: '#6B7280',
-        marginBottom: 4,
-        zIndex: 2,
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#64748B',
+        marginTop: 2,
+        textTransform: 'uppercase',
+        letterSpacing: 0.3,
     },
     cardValue: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#111827',
-        zIndex: 2,
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1E293B',
     },
-    watermark: {
-        position: 'absolute',
-        right: -10,
-        bottom: -10,
-        opacity: 0.5,
-        transform: [{ rotate: '-15deg' }],
-        zIndex: 1,
-    }
 });
 
 export default DashboardStats;

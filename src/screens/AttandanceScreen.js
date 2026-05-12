@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchAttendanceStatus, clearMessages } from '../store/slices/attendanceSlice';
 import { styles, COLORS } from '../css/AttandanceStyles';
@@ -51,16 +52,53 @@ const AttandanceScreen = ({ navigation }) => {
     // 2. Worklog Block State
     if (worklogValidation && !worklogValidation.can_perform_attendance) {
         return (
-            <ScrollView
-                contentContainerStyle={styles.centerContainer}
-                refreshControl={<RefreshControl refreshing={loading} onRefresh={loadStatus} />}
-            >
-                <View style={[styles.card, { alignItems: 'center', width: '100%' }]}>
-                    <Text style={[styles.errorText, { marginBottom: 10 }]}>Action Required</Text>
-                    <Text style={styles.messageText}>{worklogValidation.message}</Text>
-                    {/* Add a button to navigate to worklog or refresh */}
-                </View>
-            </ScrollView>
+            <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+                <Header title="Access Restricted" />
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
+                    refreshControl={<RefreshControl refreshing={loading} onRefresh={loadStatus} />}
+                >
+                    <View style={{
+                        backgroundColor: '#FFF',
+                        borderRadius: 24,
+                        padding: 32,
+                        alignItems: 'center',
+                        borderWidth: 1,
+                        borderColor: '#FEE2E2',
+                        shadowColor: '#EF4444',
+                        shadowOffset: { width: 0, height: 10 },
+                        shadowOpacity: 0.05,
+                        shadowRadius: 20,
+                        elevation: 4
+                    }}>
+                        <View style={{
+                            width: 64,
+                            height: 64,
+                            borderRadius: 32,
+                            backgroundColor: '#FEF2F2',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginBottom: 20
+                        }}>
+                            <Ionicons name="alert-circle" size={32} color="#EF4444" />
+                        </View>
+                        <Text style={{
+                            fontSize: 20,
+                            fontWeight: '800',
+                            color: '#1E293B',
+                            marginBottom: 12,
+                            textAlign: 'center'
+                        }}>Action Required</Text>
+                        <Text style={{
+                            fontSize: 15,
+                            color: '#64748B',
+                            textAlign: 'center',
+                            lineHeight: 22,
+                            marginBottom: 24
+                        }}>{worklogValidation.message || 'You need to complete your pending worklogs before continuing.'}</Text>
+                    </View>
+                </ScrollView>
+            </View>
         );
     }
 

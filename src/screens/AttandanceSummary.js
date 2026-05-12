@@ -44,15 +44,21 @@ const AttandanceSummary = () => {
 
     const renderItem = ({ item, index }) => {
         const isEven = index % 2 === 0;
+        const rowBg = isEven ? COLORS.rowEven : COLORS.rowOdd;
+        const statusColor = getStatusColor(item.status);
 
         const officeTime = item.formatted_hours?.office || item.formattedHours?.office || item.total_office_time || '-';
         const fieldTime = item.formatted_hours?.field || item.formattedHours?.field || item.total_field_time || '-';
         const totalTime = item.formatted_hours?.total || item.formattedHours?.total || item.total_working_hours || item.total_hours || '-';
 
         return (
-            <View style={[styles.tableRow, { backgroundColor: isEven ? COLORS.rowEven : COLORS.rowOdd }]}>
-                <Text style={[styles.cell, { width: 140, fontSize: 13, fontWeight: '600' }]}>{item.display_date || item.date}</Text>
-                <Text style={[styles.cell, { width: 100, color: getStatusColor(item.status), fontWeight: '600' }]}>{item.status}</Text>
+            <View style={[styles.tableRow, { backgroundColor: rowBg }]}>
+                <Text style={[styles.cell, { width: 140, fontSize: 13, fontWeight: '600', textAlign: 'left', paddingLeft: 12, color: '#1E293B' }]}>{item.display_date || item.date}</Text>
+                <View style={{ width: 100 }}>
+                    <View style={[styles.statusBadge, { backgroundColor: `${statusColor}15` }]}>
+                        <Text style={[styles.statusText, { color: statusColor }]}>{(item.status || 'N/A').toUpperCase()}</Text>
+                    </View>
+                </View>
 
                 <Text style={[styles.cell, { width: 90 }]}>{item.punch_in || '-'}</Text>
                 <Text style={[styles.cell, { width: 90 }]}>{item.punch_out || '-'}</Text>
@@ -60,9 +66,9 @@ const AttandanceSummary = () => {
                 <Text style={[styles.cell, { width: 90 }]}>{item.field_in || '-'}</Text>
                 <Text style={[styles.cell, { width: 90 }]}>{item.field_out || '-'}</Text>
 
-                <Text style={[styles.cell, { width: 100 }]}>{officeTime}</Text>
-                <Text style={[styles.cell, { width: 100 }]}>{fieldTime}</Text>
-                <Text style={[styles.cell, { width: 100 }]}>{totalTime}</Text>
+                <Text style={[styles.cell, { width: 100, fontWeight: '600' }]}>{officeTime}</Text>
+                <Text style={[styles.cell, { width: 100, fontWeight: '600' }]}>{fieldTime}</Text>
+                <Text style={[styles.cell, { width: 100, color: COLORS.primary, fontWeight: '700' }]}>{totalTime}</Text>
             </View>
         );
     };
