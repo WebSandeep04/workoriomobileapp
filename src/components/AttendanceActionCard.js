@@ -271,8 +271,8 @@ const AttendanceActionCard = () => {
                 </TouchableOpacity>
             </View>
 
-            {/* Emergency/WFH Minimal Footer Bar */}
-            {(!isLocked && officeStatus.can_start && fieldStatus.can_start && !isOnBreak) && (
+            {/* Emergency/WFH Minimal Footer Bar - Only show if FIRST PUNCH NOT YET DONE */}
+            {(!isLocked && officeStatus.can_start && fieldStatus.can_start && !isOnBreak && !officeStatus.last_action_time && !fieldStatus.last_action_time) && (
                 <View style={styles.auxiliaryBar}>
                     <TouchableOpacity style={styles.auxBtn} onPress={() => performAction('emergency', 'punch-in')} disabled={actionLoading}>
                         <Text style={styles.auxBtnText}>Emergency</Text>
