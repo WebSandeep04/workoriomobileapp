@@ -20,6 +20,7 @@ const BOOTSTRAP_ICON_MAP = {
   'bi bi-lock': 'lock-closed-outline',
   'bi bi-calendar-date': 'calendar-clear-outline',
   'bi bi-trash': 'trash-outline',
+  'bi bi-people': 'people-outline',
 
   // Group Headings
   'bi bi-cart': 'cart-outline',
