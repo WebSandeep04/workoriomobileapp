@@ -7,9 +7,14 @@ import {
     ActivityIndicator,
     RefreshControl,
     TouchableOpacity,
-    Alert
+    Alert,
+    Modal,
+    TextInput,
+    ScrollView,
+    Platform
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import DocumentPicker, { types } from 'react-native-document-picker';
 import api from '../../api/client';
 import Header from '../../components/Header';
 
@@ -21,6 +26,12 @@ const CallingListScreen = () => {
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [lastUpdated, setLastUpdated] = useState('--');
+
+    // Create / Import states
+    const [importModalVisible, setImportModalVisible] = useState(false);
+    const [importName, setImportName] = useState('');
+    const [pickedFile, setPickedFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         loadSegments(1, false);
@@ -58,6 +69,83 @@ const CallingListScreen = () => {
 
     const handleRefresh = () => {
         loadSegments(1, true);
+    };
+
+    const handlePickFile = async () => {
+        // Safety check for missing native modules if user hasn't rebuilt the binary
+        if (!DocumentPicker || typeof DocumentPicker.pickSingle !== 'function') {
+            Alert.alert(
+                'Native Module Pending',
+                'Document Picker requires a native rebuild. Please terminate Metro and run "npm run android" to compile the new assets!'
+            );
+            return;
+        }
+
+        try {
+            const res = await DocumentPicker.pickSingle({
+                type: [types.allFiles], // Allows picking CSV / TXT safely across iOS & Android
+            });
+            setPickedFile(res);
+        } catch (err) {
+            if (DocumentPicker.isCancel(err)) {
+                console.log('User cancelled file selection');
+            } else {
+                console.log('Error picking document:', err);
+                Alert.alert('Error', 'Failed to open document selection interface.');
+            }
+        }
+    };
+
+    const handleUploadSubmit = async () => {
+        if (!importName.trim()) {
+            Alert.alert('Input Validation', 'Please assign a name for this new list segment.');
+            return;
+        }
+        if (!pickedFile) {
+            Alert.alert('Input Validation', 'Please select a CSV file containing lead contacts to import.');
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('name', importName.trim());
+            
+            // Format URI safely for React Native Multi-part submissions
+            const fileUri = Platform.OS === 'android' ? pickedFile.uri : pickedFile.uri.replace('file://', '');
+            formData.append('excel_file', {
+                uri: fileUri,
+                name: pickedFile.name || 'calling_leads.csv',
+                type: pickedFile.type || 'text/csv'
+            });
+
+            const response = await api.post('/calling/lists', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            if (response.data.success) {
+                Alert.alert('Import Successful', response.data.message || 'Dataset uploaded.');
+                
+                // Clear state and reload
+                setImportModalVisible(false);
+                setImportName('');
+                setPickedFile(null);
+                loadSegments(1, false);
+            } else {
+                Alert.alert('Import Breakdown', response.data.message || 'File processing failed.');
+            }
+        } catch (err) {
+            console.log('Failed to upload segment', err);
+            if (err.response && err.response.status === 422) {
+                Alert.alert('Validation Failed', 'Please confirm you are uploading a valid CSV file structure.');
+            } else {
+                Alert.alert('Error', err.response?.data?.message || 'A backend communication error interrupted file imports.');
+            }
+        } finally {
+            setUploading(false);
+        }
     };
 
     const confirmDelete = (item) => {
@@ -180,6 +268,11 @@ const CallingListScreen = () => {
 
             {renderSummaryStats()}
 
+            {/* Quick Action Bar */}
+            <View style={styles.actionBar}>
+                <Text style={styles.actionTitle}>Indexed Lists</Text>
+            </View>
+
             {loading && pagination.current_page === 1 && !refreshing ? (
                 <View style={styles.centerBox}>
                     <ActivityIndicator size="large" color="#434AFA" />
@@ -203,6 +296,96 @@ const CallingListScreen = () => {
                     {segments.length > 0 && <PaginationControls />}
                 </View>
             )}
+
+            {/* Floating Action Button */}
+            <TouchableOpacity 
+                style={styles.fab} 
+                onPress={() => setImportModalVisible(true)}
+                activeOpacity={0.8}
+            >
+                <Ionicons name="add" size={30} color="#FFF" />
+            </TouchableOpacity>
+
+            {/* IMPORT NEW LIST OVERLAY */}
+            <Modal
+                visible={importModalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => !uploading && setImportModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalBox}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Import Segment Dataset</Text>
+                            <TouchableOpacity disabled={uploading} onPress={() => setImportModalVisible(false)}>
+                                <Ionicons name="close" size={24} color={uploading ? "#CCC" : "#333"} />
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView style={styles.modalScroll} keyboardShouldPersistTaps="handled">
+                            <Text style={styles.fieldLabel}>Segment Name *</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g., Q2 Mumbai Corporate Batch"
+                                value={importName}
+                                onChangeText={setImportName}
+                                editable={!uploading}
+                                placeholderTextColor="#9CA3AF"
+                            />
+
+                            <Text style={[styles.fieldLabel, { marginTop: 20 }]}>Leads Contacts Attachment *</Text>
+                            <TouchableOpacity
+                                disabled={uploading}
+                                style={[styles.filePickerBtn, pickedFile && styles.filePickerBtnActive]}
+                                onPress={handlePickFile}
+                            >
+                                <Ionicons
+                                    name={pickedFile ? "checkmark-circle" : "document-text-outline"}
+                                    size={24}
+                                    color={pickedFile ? "#10B981" : "#64748B"}
+                                />
+                                <View style={styles.pickerMeta}>
+                                    <Text style={[styles.pickerMainText, pickedFile && styles.pickerMainTextActive]} numberOfLines={1}>
+                                        {pickedFile ? pickedFile.name : "Choose CSV or TXT File"}
+                                    </Text>
+                                    <Text style={styles.pickerSubText}>
+                                        {pickedFile ? `${(pickedFile.size / 1024).toFixed(2)} KB` : "Max size limit: 10MB"}
+                                    </Text>
+                                </View>
+                                {!pickedFile && <Ionicons name="chevron-forward" size={18} color="#64748B" />}
+                            </TouchableOpacity>
+
+                            <View style={styles.instructionBox}>
+                                <Ionicons name="information-circle-outline" size={18} color="#2563EB" style={{ marginRight: 8 }} />
+                                <Text style={styles.instructionText}>
+                                    Ensure your file matches standard headers: Name, Email, Phone, Company Name, Contact Person, City, State, Turnover.
+                                </Text>
+                            </View>
+                        </ScrollView>
+
+                        <View style={styles.modalFooter}>
+                            <TouchableOpacity
+                                disabled={uploading}
+                                style={[styles.footerBtn, styles.footerBtnCancel]}
+                                onPress={() => setImportModalVisible(false)}
+                            >
+                                <Text style={styles.footerBtnTextCancel}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                disabled={uploading}
+                                style={[styles.footerBtn, styles.footerBtnSubmit]}
+                                onPress={handleUploadSubmit}
+                            >
+                                {uploading ? (
+                                    <ActivityIndicator size="small" color="#FFF" />
+                                ) : (
+                                    <Text style={styles.footerBtnTextSubmit}>Import & Index</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -222,6 +405,29 @@ const styles = StyleSheet.create({
     statsContent: { flex: 1 },
     statsCount: { fontSize: 14, fontWeight: 'bold', color: '#1E293B' },
     statsLabel: { fontSize: 10, color: '#64748B' },
+
+    actionBar: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+        marginHorizontal: 16, marginBottom: 12
+    },
+    actionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1E293B' },
+    fab: {
+        position: 'absolute',
+        right: 16,
+        bottom: 24,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#434AFA',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 6,
+        zIndex: 99
+    },
 
     listContainer: { paddingHorizontal: 16, paddingBottom: 30 },
     card: { backgroundColor: '#FFF', borderRadius: 12, marginBottom: 12, elevation: 2, overflow: 'hidden' },
@@ -258,7 +464,46 @@ const styles = StyleSheet.create({
     centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     loadingText: { marginTop: 10, color: '#64748B' },
     emptyBox: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
-    emptyText: { marginTop: 12, fontSize: 14, color: '#94A3B8' }
+    emptyText: { marginTop: 12, fontSize: 14, color: '#94A3B8' },
+
+    // Modal Styling
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+    modalBox: { backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' },
+    modalHeader: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+        padding: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9'
+    },
+    modalTitle: { fontSize: 17, fontWeight: 'bold', color: '#1E293B' },
+    modalScroll: { padding: 20 },
+    fieldLabel: { fontSize: 13, fontWeight: 'bold', color: '#374151', marginBottom: 8 },
+    input: {
+        backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#D1D5DB',
+        borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#1F2937'
+    },
+    filePickerBtn: {
+        flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderWidth: 1,
+        borderColor: '#D1D5DB', borderStyle: 'dashed', borderRadius: 10, padding: 16
+    },
+    filePickerBtnActive: {
+        backgroundColor: '#F0FDF4', borderColor: '#10B981', borderStyle: 'solid'
+    },
+    pickerMeta: { flex: 1, marginLeft: 12 },
+    pickerMainText: { fontSize: 14, color: '#4B5563', fontWeight: '500' },
+    pickerMainTextActive: { color: '#065F46', fontWeight: 'bold' },
+    pickerSubText: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+    instructionBox: {
+        flexDirection: 'row', backgroundColor: '#EFF6FF', padding: 12, borderRadius: 8, marginTop: 20
+    },
+    instructionText: { flex: 1, fontSize: 12, color: '#1E40AF', lineHeight: 18 },
+    
+    modalFooter: {
+        flexDirection: 'row', padding: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9', gap: 12
+    },
+    footerBtn: { flex: 1, height: 46, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+    footerBtnCancel: { backgroundColor: '#F3F4F6' },
+    footerBtnSubmit: { backgroundColor: '#434AFA' },
+    footerBtnTextCancel: { color: '#4B5563', fontWeight: 'bold' },
+    footerBtnTextSubmit: { color: '#FFF', fontWeight: 'bold' }
 });
 
 export default CallingListScreen;
