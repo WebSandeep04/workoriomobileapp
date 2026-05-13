@@ -8,16 +8,18 @@ import {
     TouchableOpacity,
     ScrollView,
     ActivityIndicator,
-    Alert
+    Alert,
+    KeyboardAvoidingView,
+    Platform
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { createProspect, clearProspectMessages } from '../store/slices/prospectSlice';
-import { fetchFilterOptions, fetchCities, resetCityOptions } from '../store/slices/leadSlice'; // Reuse lead slice options
+import { fetchCities, resetCityOptions } from '../store/slices/leadSlice';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const AddProspectModal = ({ visible, onClose }) => {
     const dispatch = useDispatch();
-    const { actionLoading, successMessage, error } = useSelector((state) => state.prospect);
+    const { actionLoading, successMessage } = useSelector((state) => state.prospect);
     const { filterOptions, cityOptions } = useSelector((state) => state.lead);
 
     const [formData, setFormData] = useState({
@@ -34,23 +36,12 @@ const AddProspectModal = ({ visible, onClose }) => {
     const [activeDropdown, setActiveDropdown] = useState(null);
 
     useEffect(() => {
-        if (visible) {
-            dispatch(fetchFilterOptions());
-        }
-    }, [visible, dispatch]);
-
-    useEffect(() => {
         if (successMessage) {
-            Alert.alert("Success", "Prospect Added Successfully");
-            dispatch(clearProspectMessages());
             resetForm();
+            dispatch(clearProspectMessages());
             onClose();
         }
-        if (error) {
-            Alert.alert("Error", typeof error === 'string' ? error : "Failed to add prospect");
-            dispatch(clearProspectMessages());
-        }
-    }, [successMessage, error, dispatch, onClose]);
+    }, [successMessage, onClose, dispatch]);
 
     const resetForm = () => {
         setFormData({
@@ -79,9 +70,10 @@ const AddProspectModal = ({ visible, onClose }) => {
 
     const handleSubmit = () => {
         if (!formData.prospectus_name || !formData.contact_person || !formData.contact_number) {
-            Alert.alert("Required", "Please fill Name, Contact Person and Number.");
+            Alert.alert("Validation Error", "Please fill required fields.");
             return;
         }
+
         dispatch(createProspect(formData));
     };
 
@@ -89,23 +81,21 @@ const AddProspectModal = ({ visible, onClose }) => {
         setActiveDropdown(activeDropdown === name ? null : name);
     };
 
-    const renderDropdown = (label, valueKey, options, labelKey = 'name', onSelect, placeholder = 'Select') => {
-        const selectedOption = options.find(opt => opt.id === formData[valueKey]);
+    const renderInlineDropdown = (label, valueKey, options, labelKey = 'name', onSelect, placeholder = 'Select') => {
+        const selectedOption = options && Array.isArray(options) ? options.find(opt => String(opt.id) === String(formData[valueKey])) : null;
         const displayText = selectedOption
-            ? (selectedOption[labelKey] || selectedOption.name || selectedOption.state_name || selectedOption.city_name || selectedOption.business_name || selectedOption.status_name || "Selected")
+            ? (selectedOption[labelKey] || selectedOption.name || selectedOption.state_name || selectedOption.city_name || selectedOption.business_name || "Selected")
             : placeholder;
         const isOpen = activeDropdown === valueKey;
 
         return (
-            <View>
-                <Text style={styles.label}>{label}</Text>
+            <View style={{ marginBottom: 12, zIndex: isOpen ? 1000 : 1 }}>
+                <Text style={styles.formLabel}>{label}</Text>
                 <TouchableOpacity
-                    style={styles.input}
+                    style={[styles.formInput, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
                     onPress={() => toggleDropdown(valueKey)}
                 >
-                    <Text style={{ color: formData[valueKey] ? '#000' : '#999' }}>
-                        {displayText}
-                    </Text>
+                    <Text style={{ color: formData[valueKey] ? '#000' : '#999' }}>{displayText}</Text>
                     <Ionicons name={isOpen ? "chevron-up" : "chevron-down"} size={20} color="#999" />
                 </TouchableOpacity>
 
@@ -115,8 +105,8 @@ const AddProspectModal = ({ visible, onClose }) => {
                         nestedScrollEnabled={true}
                         keyboardShouldPersistTaps="handled"
                     >
-                        {options.length > 0 ? options.map(opt => {
-                            const label = opt[labelKey] || opt.name || opt.state_name || opt.city_name || opt.business_name || opt.status_name || opt.type_name || opt.title || "Unknown";
+                        {options && options.length > 0 ? options.map(opt => {
+                            const optLabel = opt[labelKey] || opt.name || opt.state_name || opt.city_name || opt.business_name || "Unknown";
                             return (
                                 <TouchableOpacity
                                     key={opt.id}
@@ -126,7 +116,7 @@ const AddProspectModal = ({ visible, onClose }) => {
                                         if (!onSelect) setActiveDropdown(null);
                                     }}
                                 >
-                                    <Text style={styles.dropdownItemText}>{label}</Text>
+                                    <Text style={styles.dropdownItemText}>{optLabel}</Text>
                                 </TouchableOpacity>
                             );
                         }) : (
@@ -142,167 +132,140 @@ const AddProspectModal = ({ visible, onClose }) => {
 
     return (
         <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContainer}>
-                    <View style={styles.header}>
-                        <Text style={styles.headerTitle}>Add New Prospect</Text>
-                        <TouchableOpacity onPress={onClose}>
-                            <Ionicons name="close" size={24} color="#000" />
-                        </TouchableOpacity>
-                    </View>
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                <View style={styles.ovlWrapper}>
+                    <View style={[styles.ovlSheet, { height: '85%', maxHeight: '85%' }]}>
+                        <View style={[styles.popupHeader, { backgroundColor: '#6366F1', margin: 0, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16 }]}>
+                            <Text style={[styles.popupTitle, { color: '#FFF' }]}>Record New Entity</Text>
+                            <TouchableOpacity onPress={onClose}>
+                                <Ionicons name="close" size={24} color="#FFF" />
+                            </TouchableOpacity>
+                        </View>
 
-                    <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
+                        <ScrollView style={{ flex: 1, padding: 16 }} keyboardShouldPersistTaps="handled">
 
-                        <Text style={styles.label}>Company/Prospect Name *</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g. Acme Corp"
-                            value={formData.prospectus_name}
-                            onChangeText={(text) => handleChange('prospectus_name', text)}
-                        />
+                            <View style={styles.inputGroupBlock}>
+                                <Text style={styles.formLabel}>Company/Prospect Name <Text style={{ color: '#EF4444' }}>*</Text></Text>
+                                <TextInput
+                                    style={styles.formInput}
+                                    placeholder="e.g. Acme Corp"
+                                    value={formData.prospectus_name}
+                                    onChangeText={(text) => handleChange('prospectus_name', text)}
+                                />
+                            </View>
 
-                        <Text style={styles.label}>Contact Person *</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="John Doe"
-                            value={formData.contact_person}
-                            onChangeText={(text) => handleChange('contact_person', text)}
-                        />
+                            <View style={styles.rowInputsGrid}>
+                                <View style={[styles.inputGroupBlock, { flex: 1 }]}>
+                                    <Text style={styles.formLabel}>Contact Person <Text style={{ color: '#EF4444' }}>*</Text></Text>
+                                    <TextInput
+                                        style={styles.formInput}
+                                        placeholder="John Doe"
+                                        value={formData.contact_person}
+                                        onChangeText={(text) => handleChange('contact_person', text)}
+                                    />
+                                </View>
+                                <View style={[styles.inputGroupBlock, { flex: 1 }]}>
+                                    <Text style={styles.formLabel}>Contact Number <Text style={{ color: '#EF4444' }}>*</Text></Text>
+                                    <TextInput
+                                        style={styles.formInput}
+                                        placeholder="Phone number"
+                                        keyboardType="phone-pad"
+                                        value={formData.contact_number}
+                                        onChangeText={(text) => handleChange('contact_number', text)}
+                                    />
+                                </View>
+                            </View>
 
-                        <Text style={styles.label}>Contact Number *</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="1234567890"
-                            keyboardType="phone-pad"
-                            value={formData.contact_number}
-                            onChangeText={(text) => handleChange('contact_number', text)}
-                        />
+                            <View style={styles.rowInputsGrid}>
+                                <View style={[styles.inputGroupBlock, { flex: 1 }]}>
+                                    <Text style={styles.formLabel}>Email ID</Text>
+                                    <TextInput
+                                        style={styles.formInput}
+                                        placeholder="client@company.com"
+                                        keyboardType="email-address"
+                                        value={formData.email}
+                                        onChangeText={(text) => handleChange('email', text)}
+                                    />
+                                </View>
+                            </View>
 
-                        <Text style={styles.label}>Email</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="john@example.com"
-                            keyboardType="email-address"
-                            value={formData.email}
-                            onChangeText={(text) => handleChange('email', text)}
-                        />
+                            <View style={styles.inputGroupBlock}>
+                                <Text style={styles.formLabel}>Full Street Address</Text>
+                                <TextInput
+                                    style={styles.formInput}
+                                    placeholder="Physical Location"
+                                    value={formData.address}
+                                    onChangeText={(text) => handleChange('address', text)}
+                                />
+                            </View>
 
-                        <Text style={styles.label}>Address</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="123 Main St"
-                            value={formData.address}
-                            onChangeText={(text) => handleChange('address', text)}
-                        />
+                            <View style={styles.rowInputsGrid}>
+                                <View style={{ flex: 1, zIndex: 10 }}>
+                                    {renderInlineDropdown('State', 'state_id', filterOptions.states || [], 'name', handleStateChange)}
+                                </View>
+                                <View style={{ flex: 1, zIndex: 9 }}>
+                                    {renderInlineDropdown('City', 'city_id', cityOptions || [], 'name', null, formData.state_id ? 'Select City' : 'Select State First')}
+                                </View>
+                            </View>
 
-                        {renderDropdown('State', 'state_id', filterOptions.states || [], 'name', handleStateChange)}
+                            <View style={{ zIndex: 8, marginBottom: 32 }}>
+                                {renderInlineDropdown('B2B Business Scale', 'business_type_id', filterOptions.business_types || [], 'business_name')}
+                            </View>
 
-                        {renderDropdown('City', 'city_id', cityOptions || [], 'name', null, formData.state_id ? 'Select City' : 'Select State First')}
+                        </ScrollView>
 
-                        {renderDropdown('Business Type', 'business_type_id', filterOptions.business_types || [], 'business_name')}
-
-                    </ScrollView>
-
-                    <View style={styles.footer}>
-                        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={actionLoading}>
-                            {actionLoading ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text style={styles.submitButtonText}>Create Prospect</Text>
-                            )}
-                        </TouchableOpacity>
+                        <View style={styles.ovlFooter}>
+                            <TouchableOpacity 
+                                style={[styles.sheetBtn, styles.sheetBtnApply, actionLoading && { opacity: 0.7 }]} 
+                                onPress={handleSubmit} 
+                                disabled={actionLoading}
+                            >
+                                {actionLoading ? (
+                                    <ActivityIndicator size="small" color="#FFF" />
+                                ) : (
+                                    <Text style={styles.sheetBtnApplyTxt}>Commit Prospect</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'flex-end',
-    },
-    modalContainer: {
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        height: '90%',
-        width: '100%',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    formContent: {
-        padding: 20,
-        paddingBottom: 40,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#666',
-        marginBottom: 8,
-        marginTop: 12,
-    },
-    input: {
-        backgroundColor: '#f9f9f9',
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 16,
-        color: '#333',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
+    ovlWrapper: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+    ovlSheet: { backgroundColor: '#FFF', borderTopLeftRadius: 16, borderTopRightRadius: 16 },
+    popupHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', alignItems: 'center' },
+    popupTitle: { fontSize: 15, fontWeight: '800', color: '#1E293B' },
+    
+    inputGroupBlock: { marginBottom: 12 },
+    rowInputsGrid: { flexDirection: 'row', gap: 10 },
+    formLabel: { fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 5 },
+    formInput: { height: 38, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 6, paddingHorizontal: 10, color: '#1E293B', backgroundColor: '#FAFAFA', fontSize: 13 },
+
     dropdownList: {
         marginTop: 5,
         borderWidth: 1,
-        borderColor: '#e0e0e0',
+        borderColor: '#CBD5E1',
         borderRadius: 8,
-        backgroundColor: '#fff',
+        backgroundColor: '#FFF',
         maxHeight: 200,
         elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
         zIndex: 1000,
     },
-    dropdownItem: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-    },
-    dropdownItemText: {
-        fontSize: 16,
-        color: '#333',
-    },
-    footer: {
-        padding: 20,
-        borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
-        backgroundColor: '#fff',
-    },
-    submitButton: {
-        backgroundColor: '#434AFA',
-        padding: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    submitButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
+    dropdownItem: { padding: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+    dropdownItemText: { fontSize: 13, color: '#1E293B' },
+
+    ovlFooter: { flexDirection: 'row', padding: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9', gap: 10, backgroundColor: '#FFF' },
+    sheetBtn: { flex: 1, height: 40, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
+    sheetBtnApply: { backgroundColor: '#6366F1' },
+    sheetBtnApplyTxt: { color: '#FFF', fontWeight: '700', fontSize: 12.5 },
 });
 
 export default AddProspectModal;
