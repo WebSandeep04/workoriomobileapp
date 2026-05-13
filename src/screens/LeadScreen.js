@@ -29,6 +29,7 @@ const LeadScreen = ({ route }) => {
 
     const isAllData = route.name === 'alldata';
     const isAssignedLeads = route.name === 'assignedleads';
+    const isTeamLeads = route.name === 'teamleads';
 
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -68,6 +69,9 @@ const LeadScreen = ({ route }) => {
             } else if (isAssignedLeads) {
                 statsUrl = '/leads/assigned-stats';
                 statusCountsUrl = '/leads/assigned-status-counts';
+            } else if (isTeamLeads) {
+                statsUrl = '/leads/team-stats';
+                statusCountsUrl = '/leads/team-status-counts';
             }
             const [statsRes, statusRes] = await Promise.all([
                 api.get(statsUrl),
@@ -90,6 +94,7 @@ const LeadScreen = ({ route }) => {
             search: searchQuery,
             isAllData,
             isAssignedLeads,
+            isTeamLeads,
             ...activeFilters,
             ...(currentFilterType && { filter_type: currentFilterType }),
             ...(currentStatusId && { status_id: currentStatusId })
@@ -166,7 +171,7 @@ const LeadScreen = ({ route }) => {
         <TouchableOpacity
             activeOpacity={0.9}
             style={styles.card}
-            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id, isAllData })}
+            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id, isAllData, isAssignedLeads, isTeamLeads })}
         >
             <View style={styles.cardHeader}>
                 <Text style={styles.leadName}>{item.leads_name || 'No Name'}</Text>
@@ -226,7 +231,7 @@ const LeadScreen = ({ route }) => {
     const renderTableItem = ({ item }) => (
         <TouchableOpacity
             style={styles.tableRow}
-            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id, isAllData })}
+            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id, isAllData, isAssignedLeads, isTeamLeads })}
         >
             {/* 1. Status */}
             <View style={[styles.tableCell, { width: 120, alignItems: 'center' }]}>
@@ -486,7 +491,7 @@ const LeadScreen = ({ route }) => {
 
     return (
         <View style={styles.container}>
-            <Header title={isAllData ? "All Data" : (isAssignedLeads ? "Assigned Leads" : "Lead")} />
+            <Header title={isAllData ? "All Data" : (isAssignedLeads ? "Assigned Leads" : (isTeamLeads ? "Team Leads" : "Lead"))} />
             {/* Search Bar & View Toggle */}
             <View style={{ flexDirection: 'row', alignItems: 'center', margin: 16 }}>
                 <View style={[styles.searchContainer, { margin: 0, flex: 1 }]}>

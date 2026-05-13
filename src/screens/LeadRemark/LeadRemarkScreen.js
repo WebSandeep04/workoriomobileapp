@@ -20,7 +20,8 @@ const LeadRemarkScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const { leadId, isAllData } = route.params;
+    const { leadId, isAllData, isAssignedLeads, isTeamLeads } = route.params;
+    const isViewOnly = isAllData || isAssignedLeads || isTeamLeads;
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -173,7 +174,7 @@ const LeadRemarkScreen = () => {
                 </View>
 
                 {/* Action Form */}
-                {!isAllData && (
+                {!isViewOnly && (
                     <View style={[styles.formSection, editMode && { borderColor: '#434AFA', borderWidth: 1 }]}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                             <Text style={[styles.sectionTitle, { flex: 1, marginRight: 8 }]}>
@@ -251,7 +252,7 @@ const LeadRemarkScreen = () => {
                                             {item.remark_date ? item.remark_date.split('T')[0].split(' ')[0] : ''}
                                         </Text>
                                     </View>
-                                    {!isAllData && (
+                                    {!isViewOnly && (
                                         <TouchableOpacity
                                             onPress={() => handleEditRemark(item)}
                                             style={styles.editIconBtn}

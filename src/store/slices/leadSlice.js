@@ -32,12 +32,14 @@ export const fetchMyLeads = createAsyncThunk(
     async (params = {}, { rejectWithValue }) => {
         try {
             // Params can include page, per_page, search, status_id, etc.
-            const { isAllData, isAssignedLeads, ...restParams } = params;
+            const { isAllData, isAssignedLeads, isTeamLeads, ...restParams } = params;
             let endpoint = '/leads/my-leads';
             if (isAllData) {
                 endpoint = '/leads/all-leads';
             } else if (isAssignedLeads) {
                 endpoint = '/leads/assigned-leads';
+            } else if (isTeamLeads) {
+                endpoint = '/leads/team-leads';
             }
             const response = await api.get(endpoint, { params: restParams });
             return response.data;

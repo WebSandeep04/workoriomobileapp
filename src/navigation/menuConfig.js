@@ -11,9 +11,9 @@ export const mobileMenuConfig = [
       { route: 'teamleads', title: 'Team Leads', icon: 'bi bi-people', condition: 'has_subordinates', permission: 'sales.teamleads' },
       { route: 'assignedleads', title: 'Assigned Leads', icon: 'bi bi-person-check', condition: 'is_manager', permission: 'sales.assignedleads' },
       { route: 'followup', title: 'Follow Up', icon: 'bi bi-bell', permission: 'sales.followup' },
-      { route: 'quotation', title: 'Quotation', icon: 'bi bi-file-text', permission: 'sales.quotation' },
-      { route: 'payment-followup', title: 'Payment Followup', icon: 'bi bi-cash-coin', permission: 'sales.payment_followup' },
-      { route: 'formbuilder.index', title: 'Lead Form', icon: 'bi bi-ui-checks-grid', permission: 'sales.leadform' },
+      // { route: 'quotation', title: 'Quotation', icon: 'bi bi-file-text', permission: 'sales.quotation' },
+      // { route: 'payment-followup', title: 'Payment Followup', icon: 'bi bi-cash-coin', permission: 'sales.payment_followup' },
+      // { route: 'formbuilder.index', title: 'Lead Form', icon: 'bi bi-ui-checks-grid', permission: 'sales.leadform' },
       { route: 'indiamart.index', title: 'External Leads', icon: 'bi bi-bag', permission: 'sales.indiamart' },
       { route: 'indiamart.junk.index', title: 'External Junk Leads', icon: 'bi bi-trash', permission: 'sales.indiamart.junk' },
     ]
