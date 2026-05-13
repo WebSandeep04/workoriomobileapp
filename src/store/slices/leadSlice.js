@@ -15,7 +15,8 @@ const initialState = {
         cities: [], // This might be dynamic based on state selection
         business_types: [],
         lead_sources: [],
-        products: [] // Added based on API docs (products_id)
+        products: [], // Added based on API docs (products_id)
+        users: []
     },
     teamMembers: [],
     cityOptions: [], // Separate list for cities fetched by state
@@ -31,7 +32,9 @@ export const fetchMyLeads = createAsyncThunk(
     async (params = {}, { rejectWithValue }) => {
         try {
             // Params can include page, per_page, search, status_id, etc.
-            const response = await api.get('/leads/my-leads', { params });
+            const { isAllData, ...restParams } = params;
+            const endpoint = isAllData ? '/leads/all-leads' : '/leads/my-leads';
+            const response = await api.get(endpoint, { params: restParams });
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch leads');
@@ -190,6 +193,7 @@ const leadSlice = createSlice({
                     business_types: action.payload.business_types || [],
                     lead_sources: action.payload.lead_sources || [],
                     products: action.payload.products || [], // Handle potential missing key gracefully
+                    users: action.payload.users || []
                 };
             })
 

@@ -20,7 +20,7 @@ const LeadRemarkScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const { leadId } = route.params;
+    const { leadId, isAllData } = route.params;
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -173,68 +173,70 @@ const LeadRemarkScreen = () => {
                 </View>
 
                 {/* Action Form */}
-                <View style={[styles.formSection, editMode && { borderColor: '#434AFA', borderWidth: 1 }]}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                        <Text style={[styles.sectionTitle, { flex: 1, marginRight: 8 }]}>
-                            {editMode ? `Editing Remark - ${remarkDate}` : 'Add New Remark'}
-                        </Text>
-                        {editMode && (
-                            <TouchableOpacity onPress={handleCancelEdit} style={{ padding: 6, backgroundColor: '#FFEBEE', borderRadius: 6 }}>
-                                <Text style={{ color: '#D32F2F', fontSize: 12, fontWeight: '600' }}>Cancel Edit</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                {!isAllData && (
+                    <View style={[styles.formSection, editMode && { borderColor: '#434AFA', borderWidth: 1 }]}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                            <Text style={[styles.sectionTitle, { flex: 1, marginRight: 8 }]}>
+                                {editMode ? `Editing Remark - ${remarkDate}` : 'Add New Remark'}
+                            </Text>
+                            {editMode && (
+                                <TouchableOpacity onPress={handleCancelEdit} style={{ padding: 6, backgroundColor: '#FFEBEE', borderRadius: 6 }}>
+                                    <Text style={{ color: '#D32F2F', fontSize: 12, fontWeight: '600' }}>Cancel Edit</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
 
-                    <Text style={styles.label}>Status</Text>
-                    {renderStatusSelector()}
+                        <Text style={styles.label}>Status</Text>
+                        {renderStatusSelector()}
 
-                    <Text style={styles.label}>Ticket Value</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="0.00"
-                        keyboardType="numeric"
-                        value={ticketValue}
-                        onChangeText={setTicketValue}
-                    />
+                        <Text style={styles.label}>Ticket Value</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="0.00"
+                            keyboardType="numeric"
+                            value={ticketValue}
+                            onChangeText={setTicketValue}
+                        />
 
-                    <Text style={styles.label}>Next Follow Up (YYYY-MM-DD)</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="YYYY-MM-DD"
-                        value={nextFollowUpDate}
-                        onChangeText={setNextFollowUpDate}
-                    />
+                        <Text style={styles.label}>Next Follow Up (YYYY-MM-DD)</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="YYYY-MM-DD"
+                            value={nextFollowUpDate}
+                            onChangeText={setNextFollowUpDate}
+                        />
 
-                    <Text style={styles.label}>Remark</Text>
-                    <TextInput
-                        style={[styles.input, styles.textArea]}
-                        placeholder="Enter remark..."
-                        multiline
-                        numberOfLines={4}
-                        value={remarkText}
-                        onChangeText={setRemarkText}
-                    />
+                        <Text style={styles.label}>Remark</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Enter remark..."
+                            multiline
+                            numberOfLines={4}
+                            value={remarkText}
+                            onChangeText={setRemarkText}
+                        />
 
-                    {!editMode && (
-                        <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-                            * Adding a remark for today will update the lead's main status.
-                        </Text>
-                    )}
-
-                    <TouchableOpacity
-                        style={styles.submitButton}
-                        onPress={handleSubmitRemark}
-                        disabled={submitting}
-                    >
-                        {submitting ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.submitButtonText}>
-                                {editMode ? "Update Details" : "Add Remark"}
+                        {!editMode && (
+                            <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                                * Adding a remark for today will update the lead's main status.
                             </Text>
                         )}
-                    </TouchableOpacity>
-                </View>
+
+                        <TouchableOpacity
+                            style={styles.submitButton}
+                            onPress={handleSubmitRemark}
+                            disabled={submitting}
+                        >
+                            {submitting ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <Text style={styles.submitButtonText}>
+                                    {editMode ? "Update Details" : "Add Remark"}
+                                </Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                )}
 
                 {/* History */}
                 <View style={styles.historySection}>
@@ -249,12 +251,14 @@ const LeadRemarkScreen = () => {
                                             {item.remark_date ? item.remark_date.split('T')[0].split(' ')[0] : ''}
                                         </Text>
                                     </View>
-                                    <TouchableOpacity
-                                        onPress={() => handleEditRemark(item)}
-                                        style={styles.editIconBtn}
-                                    >
-                                        <Ionicons name="create-outline" size={20} color="#666" />
-                                    </TouchableOpacity>
+                                    {!isAllData && (
+                                        <TouchableOpacity
+                                            onPress={() => handleEditRemark(item)}
+                                            style={styles.editIconBtn}
+                                        >
+                                            <Ionicons name="create-outline" size={20} color="#666" />
+                                        </TouchableOpacity>
+                                    )}
                                 </View>
                                 <Text style={styles.historyText}>{item.remark}</Text>
                             </View>

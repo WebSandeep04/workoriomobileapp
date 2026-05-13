@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const LeadFilterModal = ({ visible, onClose, filterOptions, onApply, onReset, currentFilters }) => {
+const LeadFilterModal = ({ visible, onClose, filterOptions, onApply, onReset, currentFilters, isAllData }) => {
     const [filters, setFilters] = useState(currentFilters || {});
 
     const handleChange = (name, value) => {
@@ -67,9 +67,13 @@ const LeadFilterModal = ({ visible, onClose, filterOptions, onApply, onReset, cu
                     </View>
 
                     <ScrollView style={styles.body}>
+                        {isAllData && renderDropdownSection('Sales Person', 'user_id', filterOptions.users, 'name')}
                         {renderDropdownSection('Status', 'status_id', filterOptions.statuses, 'status_name')}
-                        {renderDropdownSection('Lead Source', 'source_id', filterOptions.lead_sources, 'source_name')}
+                        {renderDropdownSection('Lead Source', 'lead_source_id', filterOptions.lead_sources, 'source_name')}
                         {renderDropdownSection('Business Type', 'business_type_id', filterOptions.business_types, 'business_name')}
+                        {renderDropdownSection('Product', 'products_id', filterOptions.products, 'product_name')}
+                        {renderDropdownSection('State', 'state_id', filterOptions.states, 'state_name')}
+                        {renderDropdownSection('City', 'city_id', filterOptions.cities, 'city_name')}
 
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Date Range</Text>

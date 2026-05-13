@@ -27,6 +27,8 @@ const LeadScreen = ({ route }) => {
     const dispatch = useDispatch();
     const { leads, pagination, loading, filterOptions, cityOptions, actionLoading } = useSelector((state) => state.lead);
 
+    const isAllData = route.name === 'alldata';
+
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -53,13 +55,15 @@ const LeadScreen = ({ route }) => {
         loadLeads(1, false, null, initialFilterType, null);
         fetchDashboardStats();
         dispatch(fetchFilterOptions());
-    }, [dispatch, route?.params?.filterType]);
+    }, [dispatch, route?.params?.filterType, route.name]);
 
     const fetchDashboardStats = async () => {
         try {
+            const statsUrl = isAllData ? '/leads/all-stats' : '/leads/stats';
+            const statusCountsUrl = isAllData ? '/leads/all-status-counts' : '/leads/status-counts';
             const [statsRes, statusRes] = await Promise.all([
-                api.get('/leads/stats'),
-                api.get('/leads/status-counts')
+                api.get(statsUrl),
+                api.get(statusCountsUrl)
             ]);
             setSummaryStats(statsRes.data.data);
             setStatusCounts(statusRes.data.data);
@@ -76,6 +80,7 @@ const LeadScreen = ({ route }) => {
         const queryParams = {
             page,
             search: searchQuery,
+            isAllData,
             ...activeFilters,
             ...(currentFilterType && { filter_type: currentFilterType }),
             ...(currentStatusId && { status_id: currentStatusId })
@@ -152,7 +157,7 @@ const LeadScreen = ({ route }) => {
         <TouchableOpacity
             activeOpacity={0.9}
             style={styles.card}
-            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id })}
+            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id, isAllData })}
         >
             <View style={styles.cardHeader}>
                 <Text style={styles.leadName}>{item.leads_name || 'No Name'}</Text>
@@ -177,6 +182,12 @@ const LeadScreen = ({ route }) => {
                     <Ionicons name="calendar-outline" size={16} color="#666" style={styles.icon} />
                     <Text style={styles.infoText}>Next Follow Up: {item.next_follow_up_date ? item.next_follow_up_date.split('T')[0].split(' ')[0] : 'N/A'}</Text>
                 </View>
+                {isAllData && item.user && (
+                    <View style={styles.row}>
+                        <Ionicons name="person-circle-outline" size={16} color="#666" style={styles.icon} />
+                        <Text style={styles.infoText}>Sales Person: {item.user.name}</Text>
+                    </View>
+                )}
 
                 {item.latest_remark && (
                     <View style={styles.remarkContainer}>
@@ -186,51 +197,122 @@ const LeadScreen = ({ route }) => {
                 )}
             </View>
 
-            <View style={styles.cardFooter}>
-                <TouchableOpacity
-                    style={styles.assignButton}
-                    onPress={(e) => {
-                        // e.stopPropagation() helps if the parent is also touchable, prevent double action
-                        setSelectedLead(item);
-                        setAssignModalVisible(true);
-                        // Prevent navigation if desired? React Native doesn't bubble onPress the same way as web, but nesting Touchables can be tricky.
-                        // Here they are siblings in my new structure (Footer outside body), so safe.
-                        // Wait, I wrapped the whole card in TouchableOpacity?
-                        // Yes, so Footer is INSIDE.
-                        // Nested Touchables in RN work: The deepest one wins.
-                    }}
-                >
-                    <Ionicons name="person-add-outline" size={16} color="#434AFA" />
-                    <Text style={styles.assignButtonText}>Assign</Text>
-                </TouchableOpacity>
-            </View>
+            {!isAllData && (
+                <View style={styles.cardFooter}>
+                    <TouchableOpacity
+                        style={styles.assignButton}
+                        onPress={(e) => {
+                            setSelectedLead(item);
+                            setAssignModalVisible(true);
+                        }}
+                    >
+                        <Ionicons name="person-add-outline" size={16} color="#434AFA" />
+                        <Text style={styles.assignButtonText}>Assign</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </TouchableOpacity>
     );
 
     const renderTableItem = ({ item }) => (
         <TouchableOpacity
             style={styles.tableRow}
-            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id })}
+            onPress={() => navigation.navigate('LeadRemark', { leadId: item.id, isAllData })}
         >
-            <Text style={[styles.tableCell, { width: 150, color: '#434AFA', fontWeight: '500' }]} numberOfLines={1}>
-                {item.leads_name || '-'}
-            </Text>
-            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>{item.contact_person || '-'}</Text>
-            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>{item.contact_number || '-'}</Text>
-            <Text style={[styles.tableCell, { width: 180 }]} numberOfLines={1}>{item.email || '-'}</Text>
-            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>{item.next_follow_up_date ? item.next_follow_up_date.split('T')[0].split(' ')[0] : '-'}</Text>
+            {/* 1. Status */}
             <View style={[styles.tableCell, { width: 120, alignItems: 'center' }]}>
                 {renderStatusBadge(item.status, true)}
             </View>
-            <TouchableOpacity
-                style={[styles.tableCell, { width: 80, alignItems: 'center' }]}
-                onPress={() => {
-                    setSelectedLead(item);
-                    setAssignModalVisible(true);
-                }}
-            >
-                <Ionicons name="person-add-outline" size={18} color="#434AFA" />
-            </TouchableOpacity>
+            
+            {/* 2. Prospect */}
+            <Text style={[styles.tableCell, { width: 150 }]} numberOfLines={1}>
+                {item.prospectus?.prospectus_name || '-'}
+            </Text>
+
+            {/* 3. Remark */}
+            <View style={[styles.tableCell, { width: 200 }]}>
+                <Text style={{ color: '#434AFA', textDecorationLine: 'underline' }} numberOfLines={1}>
+                    {item.latest_remark?.remark || '-'}
+                </Text>
+            </View>
+
+            {/* 4. Next Follow */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.next_follow_up_date ? item.next_follow_up_date.split('T')[0].split(' ')[0] : '-'}
+            </Text>
+
+            {/* 5. Lead */}
+            <Text style={[styles.tableCell, { width: 150, color: '#434AFA', fontWeight: '500' }]} numberOfLines={1}>
+                {item.leads_name || '-'}
+            </Text>
+
+            {/* 6. Contact Person */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.contact_person || '-'}
+            </Text>
+
+            {/* 7. Contact No. */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.contact_number || '-'}
+            </Text>
+
+            {/* 8. State */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.state?.state_name || item.prospectus?.state?.state_name || '-'}
+            </Text>
+
+            {/* 9. City */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.city?.city_name || item.prospectus?.city?.city_name || '-'}
+            </Text>
+
+            {/* 10. Email */}
+            <Text style={[styles.tableCell, { width: 180 }]} numberOfLines={1}>
+                {item.email || '-'}
+            </Text>
+
+            {/* 11. Business */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.business_type?.business_name || item.prospectus?.business_type?.business_name || '-'}
+            </Text>
+
+            {/* 12. Source */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.lead_source?.source_name || '-'}
+            </Text>
+
+            {/* 13. Products */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.product?.product_name || '-'}
+            </Text>
+
+            {/* 14. Ticket */}
+            <Text style={[styles.tableCell, { width: 100 }]} numberOfLines={1}>
+                {item.ticket_value || '0'}
+            </Text>
+
+            {/* 15. Owner */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.user?.name || '-'}
+            </Text>
+
+            {/* 16. Assigned By */}
+            <Text style={[styles.tableCell, { width: 120 }]} numberOfLines={1}>
+                {item.creator_log?.assigned_by?.name || '-'}
+            </Text>
+
+            {/* 17. Action */}
+            {!isAllData && (
+                <TouchableOpacity
+                    style={[styles.tableCell, { width: 80, alignItems: 'center' }]}
+                    onPress={() => {
+                        setSelectedLead(item);
+                        setAssignModalVisible(true);
+                    }}
+                >
+                    <Ionicons name="person-add-outline" size={18} color="#434AFA" />
+                </TouchableOpacity>
+            )}
         </TouchableOpacity>
     );
 
@@ -310,13 +392,23 @@ const LeadScreen = ({ route }) => {
 
     const renderTableHeader = () => (
         <View style={styles.tableHeader}>
-            <View style={{ width: 150 }}><Text style={styles.tableHeaderText}>Lead Name</Text></View>
-            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Contact</Text></View>
-            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Phone</Text></View>
-            <View style={{ width: 180 }}><Text style={styles.tableHeaderText}>Email</Text></View>
-            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Follow Up</Text></View>
             <View style={{ width: 120, alignItems: 'center' }}><Text style={styles.tableHeaderText}>Status</Text></View>
-            <View style={{ width: 80, alignItems: 'center' }}><Text style={styles.tableHeaderText}>Action</Text></View>
+            <View style={{ width: 150 }}><Text style={styles.tableHeaderText}>Prospect</Text></View>
+            <View style={{ width: 200 }}><Text style={styles.tableHeaderText}>Remark</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Next Follow</Text></View>
+            <View style={{ width: 150 }}><Text style={styles.tableHeaderText}>Lead</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Contact Person</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Contact No.</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>State</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>City</Text></View>
+            <View style={{ width: 180 }}><Text style={styles.tableHeaderText}>Email</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Business</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Source</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Products</Text></View>
+            <View style={{ width: 100 }}><Text style={styles.tableHeaderText}>Ticket</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Owner</Text></View>
+            <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Assigned By</Text></View>
+            {!isAllData && <View style={{ width: 80, alignItems: 'center' }}><Text style={styles.tableHeaderText}>Action</Text></View>}
         </View>
     );
 
@@ -385,7 +477,7 @@ const LeadScreen = ({ route }) => {
 
     return (
         <View style={styles.container}>
-            <Header title="Lead" />
+            <Header title={isAllData ? "All Data" : "Lead"} />
             {/* Search Bar & View Toggle */}
             <View style={{ flexDirection: 'row', alignItems: 'center', margin: 16 }}>
                 <View style={[styles.searchContainer, { margin: 0, flex: 1 }]}>
@@ -447,6 +539,7 @@ const LeadScreen = ({ route }) => {
                 currentFilters={filters}
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
+                isAllData={isAllData}
             />
 
             <TouchableOpacity
