@@ -86,18 +86,18 @@ export const mobileMenuConfig = [
       // { route: 'worklog-missing-summary', title: 'Missing Entries Summary', icon: 'bi bi-exclamation-triangle', permission: 'worklog.missing_summary' },
     ]
   },
-  {
-    key: 'workflow_critical_path',
-    title: 'Workflow',
-    icon: 'bi bi-diagram-3',
-    feature_flag: 'is_workflow_enabled',
-    roles: ['admin'],
-    items: [
-      { route: 'critical-path.index', title: 'Critical Path', icon: 'bi bi-diagram-2', permission: 'workflow.critical_path' },
-      { route: 'workflow-templates.index', title: 'Workflow Templates', icon: 'bi bi-journal-text', permission: 'workflow.templates' },
-      { route: 'workflow-dependencies.index', title: 'Dependencies', icon: 'bi bi-diagram-3-fill', permission: 'workflow.dependencies' },
-    ]
-  },
+  // {
+  //   key: 'workflow_critical_path',
+  //   title: 'Workflow',
+  //   icon: 'bi bi-diagram-3',
+  //   feature_flag: 'is_workflow_enabled',
+  //   roles: ['admin'],
+  //   items: [
+  //     { route: 'critical-path.index', title: 'Critical Path', icon: 'bi bi-diagram-2', permission: 'workflow.critical_path' },
+  //     { route: 'workflow-templates.index', title: 'Workflow Templates', icon: 'bi bi-journal-text', permission: 'workflow.templates' },
+  //     { route: 'workflow-dependencies.index', title: 'Dependencies', icon: 'bi bi-diagram-3-fill', permission: 'workflow.dependencies' },
+  //   ]
+  // },
   {
     key: 'calendar_section',
     title: 'Social Media Calendar',
@@ -155,17 +155,17 @@ export const mobileMenuConfig = [
       { route: 'tracking.report', title: 'Tracking Report', icon: 'bi bi-geo-alt', permission: 'tracking.view', feature_flag: 'is_tracking_enabled' },
     ]
   },
-  {
-    key: 'admin_document_management',
-    title: 'Document',
-    icon: 'bi bi-folder2-open',
-    feature_flag: 'is_document_management_enabled',
-    roles: ['admin'],
-    items: [
-      { route: 'document.index', title: 'Manage Documents', icon: 'bi bi-folder', permission: 'documents.manage' },
-      { route: 'document.user-access', title: 'My Documents', icon: 'bi bi-person-check', permission: 'documents.my_documents' },
-    ]
-  },
+  // {
+  //   key: 'admin_document_management',
+  //   title: 'Document',
+  //   icon: 'bi bi-folder2-open',
+  //   feature_flag: 'is_document_management_enabled',
+  //   roles: ['admin'],
+  //   items: [
+  //     { route: 'document.index', title: 'Manage Documents', icon: 'bi bi-folder', permission: 'documents.manage' },
+  //     { route: 'document.user-access', title: 'My Documents', icon: 'bi bi-person-check', permission: 'documents.my_documents' },
+  //   ]
+  // },
   {
     key: 'petty_cash_section',
     title: 'Petty Cash',
@@ -207,15 +207,15 @@ export const mobileMenuConfig = [
     roles: ['admin'],
     permission: 'asset_management.access'
   },
-  {
-    key: 'email_marketing',
-    title: 'Email Marketing',
-    route: 'emailmarketing.index',
-    icon: 'bi bi-envelope',
-    feature_flag: 'is_email_marketing_enable',
-    roles: ['admin'],
-    permission: 'email_marketing.view'
-  },
+  // {
+  //   key: 'email_marketing',
+  //   title: 'Email Marketing',
+  //   route: 'emailmarketing.index',
+  //   icon: 'bi bi-envelope',
+  //   feature_flag: 'is_email_marketing_enable',
+  //   roles: ['admin'],
+  //   permission: 'email_marketing.view'
+  // },
 
 ];
 
