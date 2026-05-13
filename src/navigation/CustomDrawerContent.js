@@ -14,6 +14,7 @@ const BOOTSTRAP_ICON_MAP = {
   'bi bi-person-lines-fill': 'people-outline',
   'bi bi-box-seam': 'cube-outline',
   'bi bi-envelope': 'mail-outline',
+  'bi bi-person': 'person-outline',
   'bi bi-collection': 'layers-outline',
   'bi bi-megaphone': 'megaphone-outline',
   'bi bi-lock': 'lock-closed-outline',
