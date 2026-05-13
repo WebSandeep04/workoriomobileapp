@@ -19,6 +19,7 @@ const BOOTSTRAP_ICON_MAP = {
   'bi bi-megaphone': 'megaphone-outline',
   'bi bi-lock': 'lock-closed-outline',
   'bi bi-calendar-date': 'calendar-clear-outline',
+  'bi bi-trash': 'trash-outline',
 
   // Group Headings
   'bi bi-cart': 'cart-outline',
