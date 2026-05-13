@@ -24,6 +24,7 @@ import TeamCallingScreen from '../screens/Calling/TeamCallingScreen';
 import AssignedCallingScreen from '../screens/Calling/AssignedCallingScreen';
 import ConvertedCallingScreen from '../screens/Calling/ConvertedCallingScreen';
 import MyLeadGenScreen from '../screens/LeadGen/MyLeadGenScreen';
+import PlaceholderScreen from '../screens/PlaceholderScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -106,6 +107,13 @@ export default function DrawerNavigator() {
       
       {/* Subscription & Renewals */}
       <Drawer.Screen name="subscriptions.index" component={Subscription} />
+      
+      {/* Module Placeholders (Routes from menuConfig) */}
+      <Drawer.Screen name="projects.index" component={PlaceholderScreen} />
+      <Drawer.Screen name="tracking.index" component={PlaceholderScreen} />
+      <Drawer.Screen name="petty-cash.index" component={PlaceholderScreen} />
+      <Drawer.Screen name="contactmanagement.index" component={PlaceholderScreen} />
+      <Drawer.Screen name="asset-management.index" component={PlaceholderScreen} />
       
     </Drawer.Navigator>
   );
