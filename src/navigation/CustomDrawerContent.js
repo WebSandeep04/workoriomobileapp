@@ -15,6 +15,8 @@ const BOOTSTRAP_ICON_MAP = {
   'bi bi-box-seam': 'cube-outline',
   'bi bi-envelope': 'mail-outline',
   'bi bi-collection': 'layers-outline',
+  'bi bi-megaphone': 'megaphone-outline',
+  'bi bi-lock': 'lock-closed-outline',
 
   // Group Headings
   'bi bi-cart': 'cart-outline',

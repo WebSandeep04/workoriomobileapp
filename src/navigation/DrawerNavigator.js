@@ -16,6 +16,7 @@ import IndiaMartLeadScreen from '../screens/IndiaMartLeadScreen';
 import CallingAllScreen from '../screens/Calling/CallingAllScreen';
 import CallingListScreen from '../screens/Calling/CallingListScreen';
 import CallingCampaignScreen from '../screens/Calling/CallingCampaignScreen';
+import CallingLockScreen from '../screens/Calling/CallingLockScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -85,6 +86,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="calling.all" component={CallingAllScreen} />
       <Drawer.Screen name="calling.list.index" component={CallingListScreen} />
       <Drawer.Screen name="calling" component={CallingCampaignScreen} />
+      <Drawer.Screen name="calling.lock" component={CallingLockScreen} />
       
       {/* Subscription & Renewals */}
       <Drawer.Screen name="subscriptions.index" component={Subscription} />
