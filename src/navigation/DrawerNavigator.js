@@ -18,6 +18,7 @@ import CallingListScreen from '../screens/Calling/CallingListScreen';
 import CallingCampaignScreen from '../screens/Calling/CallingCampaignScreen';
 import CallingLockScreen from '../screens/Calling/CallingLockScreen';
 import MyCallingScreen from '../screens/Calling/MyCallingScreen';
+import TodaysCallingScreen from '../screens/Calling/TodaysCallingScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -89,6 +90,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="calling" component={CallingCampaignScreen} />
       <Drawer.Screen name="calling.lock" component={CallingLockScreen} />
       <Drawer.Screen name="calling.my" component={MyCallingScreen} />
+      <Drawer.Screen name="calling.todays" component={TodaysCallingScreen} />
       
       {/* Subscription & Renewals */}
       <Drawer.Screen name="subscriptions.index" component={Subscription} />
