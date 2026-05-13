@@ -30,6 +30,7 @@ const LeadScreen = ({ route }) => {
     const isAllData = route.name === 'alldata';
     const isAssignedLeads = route.name === 'assignedleads';
     const isTeamLeads = route.name === 'teamleads';
+    const isFollowup = route.name === 'followup';
 
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -95,6 +96,7 @@ const LeadScreen = ({ route }) => {
             isAllData,
             isAssignedLeads,
             isTeamLeads,
+            isFollowup,
             ...activeFilters,
             ...(currentFilterType && { filter_type: currentFilterType }),
             ...(currentStatusId && { status_id: currentStatusId })
@@ -491,7 +493,7 @@ const LeadScreen = ({ route }) => {
 
     return (
         <View style={styles.container}>
-            <Header title={isAllData ? "All Data" : (isAssignedLeads ? "Assigned Leads" : (isTeamLeads ? "Team Leads" : "Lead"))} />
+            <Header title={isAllData ? "All Data" : (isAssignedLeads ? "Assigned Leads" : (isTeamLeads ? "Team Leads" : (isFollowup ? "Follow Up" : "Lead")))} />
             {/* Search Bar & View Toggle */}
             <View style={{ flexDirection: 'row', alignItems: 'center', margin: 16 }}>
                 <View style={[styles.searchContainer, { margin: 0, flex: 1 }]}>
