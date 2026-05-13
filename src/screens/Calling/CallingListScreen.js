@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
         zIndex: 99
     },
 
-    listContainer: { paddingHorizontal: 16, paddingBottom: 30 },
+    listContainer: { paddingHorizontal: 16, paddingBottom: 100 },
     card: { backgroundColor: '#FFF', borderRadius: 12, marginBottom: 12, elevation: 2, overflow: 'hidden' },
     cardMain: { flexDirection: 'row', padding: 16, alignItems: 'center' },
     badgeId: {

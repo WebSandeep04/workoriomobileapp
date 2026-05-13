@@ -1,5 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LoginScreen from '../screens/LoginScreen';
 import DrawerNavigator from './DrawerNavigator';
 import LeadRemarkScreen from '../screens/LeadRemark/LeadRemarkScreen';
@@ -10,18 +11,20 @@ const Stack = createStackNavigator();
 
 const StackNavigator = () => {
   return (
-    <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-      {/* Primary System Auth Hub */}
-      <Stack.Screen name="Login" component={LoginScreen} />
-      
-      {/* Primary Application Hub (Encloses all internal app logic within unified Drawer navigation) */}
-      <Stack.Screen name="MainDrawer" component={DrawerNavigator} />
-      
-      {/* Transient Detail Overlays (Requires isolated stack history without persistent drawer context) */}
-      <Stack.Screen name="LeadRemark" component={LeadRemarkScreen} />
-      <Stack.Screen name="IndiaMartRemark" component={IndiaMartRemarkScreen} />
-      <Stack.Screen name="CallingRemark" component={CallingRemarkScreen} />
-    </Stack.Navigator>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }} edges={['bottom']}>
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+        {/* Primary System Auth Hub */}
+        <Stack.Screen name="Login" component={LoginScreen} />
+        
+        {/* Primary Application Hub (Encloses all internal app logic within unified Drawer navigation) */}
+        <Stack.Screen name="MainDrawer" component={DrawerNavigator} />
+        
+        {/* Transient Detail Overlays (Requires isolated stack history without persistent drawer context) */}
+        <Stack.Screen name="LeadRemark" component={LeadRemarkScreen} />
+        <Stack.Screen name="IndiaMartRemark" component={IndiaMartRemarkScreen} />
+        <Stack.Screen name="CallingRemark" component={CallingRemarkScreen} />
+      </Stack.Navigator>
+    </SafeAreaView>
   );
 };
 
