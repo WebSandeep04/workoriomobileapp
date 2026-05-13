@@ -147,7 +147,8 @@ const TeamCallingScreen = () => {
     const triggerHistoryViewer = (item) => {
         navigation.navigate('CallingRemark', { 
             callingId: item.id, 
-            campaignId: item.calling_campaign_id 
+            campaignId: item.calling_campaign_id,
+            readOnly: true
         });
     };
 

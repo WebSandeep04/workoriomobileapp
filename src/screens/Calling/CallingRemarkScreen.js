@@ -187,7 +187,7 @@ const CallingRemarkScreen = () => {
 
     return (
         <View style={styles.container}>
-            <Header title="Timeline Tracking" showBack={true} />
+            <Header title={route.params?.readOnly ? "Inspect Trail" : "Timeline Tracking"} showBack={true} />
 
             <ScrollView contentContainerStyle={styles.content}>
                 
@@ -227,105 +227,107 @@ const CallingRemarkScreen = () => {
                     </View>
                 </View>
 
-                {/* 2. LOGGING MODULE */}
-                <View style={styles.actionPanel}>
-                    <Text style={styles.panelHeader}>Record Active Interaction</Text>
-                    
-                    <View style={styles.inputWrap}>
-                        <Text style={styles.fieldLabel}>Outcome Description *</Text>
-                        <TextInput
-                            style={styles.memoArea}
-                            placeholder="Summarize the call details, obstacles, notes..."
-                            placeholderTextColor="#94A3B8"
-                            multiline
-                            numberOfLines={4}
-                            value={remarkText}
-                            onChangeText={setRemarkText}
-                        />
-                    </View>
-
-                    {/* Combined Status and Meta */}
-                    <View style={styles.dualFieldsRow}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.fieldLabel}>Sync Lead Status</Text>
-                            <TouchableOpacity style={styles.pickerBtn} onPress={() => setStatusModalVisible(true)}>
-                                <Text style={[styles.pickerBtnTxt, !selectedTypeId && { color: '#94A3B8' }]}>
-                                    {activeStatus || 'Select Status...'}
-                                </Text>
-                                <Ionicons name="chevron-down" size={15} color="#475569" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {/* Dynamic WhatsApp Block */}
-                    {statusLower === 'sent details' && (
-                        <TouchableOpacity 
-                            style={styles.socialBannerBtn} 
-                            activeOpacity={0.8} 
-                            onPress={() => setWhatsappModalVisible(true)}
-                        >
-                            <Ionicons name="logo-whatsapp" size={18} color="#FFF" />
-                            <Text style={styles.socialBannerBtnTxt}>Transmit WhatsApp Template</Text>
-                        </TouchableOpacity>
-                    )}
-
-                    {/* Dynamic Assignee Block */}
-                    {statusLower === 'interested' && (
-                        <View style={styles.assigneeSelectionBox}>
-                            <Text style={styles.assigneeLabel}>Convert & Reassign Lead To *</Text>
-                            <TouchableOpacity style={styles.pickerBtn} onPress={() => setAssigneeModalVisible(true)}>
-                                <Text style={[styles.pickerBtnTxt, !assigneeId && { color: '#94A3B8' }]}>
-                                    {salesUsers.find(u => u.id === assigneeId)?.name || 'Pick Account Executive...'}
-                                </Text>
-                                <Ionicons name="person-add-outline" size={16} color="#434AFA" />
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {/* Date Management */}
-                    <View style={styles.datePickerBox}>
-                        <Text style={styles.fieldLabel}>Next Scheduled Action</Text>
-                        <View style={styles.dateInlineRow}>
+                {/* 2. LOGGING MODULE (Hidden if Read Only) */}
+                {!route.params?.readOnly && (
+                    <View style={styles.actionPanel}>
+                        <Text style={styles.panelHeader}>Record Active Interaction</Text>
+                        
+                        <View style={styles.inputWrap}>
+                            <Text style={styles.fieldLabel}>Outcome Description *</Text>
                             <TextInput
-                                style={styles.datePlainInput}
-                                placeholder="YYYY-MM-DD"
+                                style={styles.memoArea}
+                                placeholder="Summarize the call details, obstacles, notes..."
                                 placeholderTextColor="#94A3B8"
-                                value={nextDate}
-                                onChangeText={setNextDate}
+                                multiline
+                                numberOfLines={4}
+                                value={remarkText}
+                                onChangeText={setRemarkText}
                             />
-                            <TouchableOpacity style={styles.calCleanBtn} onPress={() => setNextDate('')}>
-                                <Ionicons name="close-circle" size={18} color="#94A3B8" />
-                            </TouchableOpacity>
                         </View>
 
-                        <View style={styles.chipsRow}>
-                            <TouchableOpacity style={styles.quickChip} onPress={() => applyQuickDate(1)}>
-                                <Text style={styles.quickChipTxt}>Tomorrow</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.quickChip} onPress={() => applyQuickDate(3)}>
-                                <Text style={styles.quickChipTxt}>+3 Days</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.quickChip} onPress={() => applyQuickDate(7)}>
-                                <Text style={styles.quickChipTxt}>1 Week</Text>
-                            </TouchableOpacity>
+                        {/* Combined Status and Meta */}
+                        <View style={styles.dualFieldsRow}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.fieldLabel}>Sync Lead Status</Text>
+                                <TouchableOpacity style={styles.pickerBtn} onPress={() => setStatusModalVisible(true)}>
+                                    <Text style={[styles.pickerBtnTxt, !selectedTypeId && { color: '#94A3B8' }]}>
+                                        {activeStatus || 'Select Status...'}
+                                    </Text>
+                                    <Ionicons name="chevron-down" size={15} color="#475569" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
 
-                    <TouchableOpacity 
-                        style={[styles.saveRecordBtn, submitting && styles.saveRecordBtnDisabled]} 
-                        onPress={submitInteractionLog}
-                        disabled={submitting}
-                    >
-                        {submitting ? (
-                            <ActivityIndicator size="small" color="#FFF" />
-                        ) : (
-                            <>
-                                <Ionicons name="checkmark-done" size={18} color="#FFF" />
-                                <Text style={styles.saveRecordBtnTxt}>Save Interaction Trail</Text>
-                            </>
+                        {/* Dynamic WhatsApp Block */}
+                        {statusLower === 'sent details' && (
+                            <TouchableOpacity 
+                                style={styles.socialBannerBtn} 
+                                activeOpacity={0.8} 
+                                onPress={() => setWhatsappModalVisible(true)}
+                            >
+                                <Ionicons name="logo-whatsapp" size={18} color="#FFF" />
+                                <Text style={styles.socialBannerBtnTxt}>Transmit WhatsApp Template</Text>
+                            </TouchableOpacity>
                         )}
-                    </TouchableOpacity>
-                </View>
+
+                        {/* Dynamic Assignee Block */}
+                        {statusLower === 'interested' && (
+                            <View style={styles.assigneeSelectionBox}>
+                                <Text style={styles.assigneeLabel}>Convert & Reassign Lead To *</Text>
+                                <TouchableOpacity style={styles.pickerBtn} onPress={() => setAssigneeModalVisible(true)}>
+                                    <Text style={[styles.pickerBtnTxt, !assigneeId && { color: '#94A3B8' }]}>
+                                        {salesUsers.find(u => u.id === assigneeId)?.name || 'Pick Account Executive...'}
+                                    </Text>
+                                    <Ionicons name="person-add-outline" size={16} color="#434AFA" />
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
+                        {/* Date Management */}
+                        <View style={styles.datePickerBox}>
+                            <Text style={styles.fieldLabel}>Next Scheduled Action</Text>
+                            <View style={styles.dateInlineRow}>
+                                <TextInput
+                                    style={styles.datePlainInput}
+                                    placeholder="YYYY-MM-DD"
+                                    placeholderTextColor="#94A3B8"
+                                    value={nextDate}
+                                    onChangeText={setNextDate}
+                                />
+                                <TouchableOpacity style={styles.calCleanBtn} onPress={() => setNextDate('')}>
+                                    <Ionicons name="close-circle" size={18} color="#94A3B8" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.chipsRow}>
+                                <TouchableOpacity style={styles.quickChip} onPress={() => applyQuickDate(1)}>
+                                    <Text style={styles.quickChipTxt}>Tomorrow</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.quickChip} onPress={() => applyQuickDate(3)}>
+                                    <Text style={styles.quickChipTxt}>+3 Days</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.quickChip} onPress={() => applyQuickDate(7)}>
+                                    <Text style={styles.quickChipTxt}>1 Week</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <TouchableOpacity 
+                            style={[styles.saveRecordBtn, submitting && styles.saveRecordBtnDisabled]} 
+                            onPress={submitInteractionLog}
+                            disabled={submitting}
+                        >
+                            {submitting ? (
+                                <ActivityIndicator size="small" color="#FFF" />
+                            ) : (
+                                <>
+                                    <Ionicons name="checkmark-done" size={18} color="#FFF" />
+                                    <Text style={styles.saveRecordBtnTxt}>Save Interaction Trail</Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                )}
 
                 {/* 3. HISTORY CHRONICLE */}
                 <Text style={styles.sectionHeader}>Contact Chronicle Logs</Text>
