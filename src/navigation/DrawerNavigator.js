@@ -12,6 +12,7 @@ import TimeSheet from '../screens/TimeSheet';
 import Task from '../screens/Task';
 import LeadScreen from '../screens/LeadScreen';
 import Subscription from '../screens/Subscription';
+import IndiaMartLeadScreen from '../screens/IndiaMartLeadScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -76,8 +77,8 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="quotation" component={LeadScreen} />
       <Drawer.Screen name="payment-followup" component={LeadScreen} />
       <Drawer.Screen name="formbuilder.index" component={LeadScreen} />
-      <Drawer.Screen name="indiamart.index" component={LeadScreen} />
-      <Drawer.Screen name="indiamart.junk.index" component={LeadScreen} />
+      <Drawer.Screen name="indiamart.index" component={IndiaMartLeadScreen} />
+      <Drawer.Screen name="indiamart.junk.index" component={IndiaMartLeadScreen} />
       
       {/* Subscription & Renewals */}
       <Drawer.Screen name="subscriptions.index" component={Subscription} />
