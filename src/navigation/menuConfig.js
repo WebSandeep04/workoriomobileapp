@@ -31,7 +31,7 @@ export const mobileMenuConfig = [
       { route: 'calling.lock', title: 'Lock Calling', icon: 'bi bi-lock', permission: 'sales.calling.lock' },
       { route: 'calling.my', title: 'My Calls', icon: 'bi bi-person', permission: 'sales.calling.my' },
       { route: 'calling.team', title: 'Team Calls', icon: 'bi bi-people', condition: 'has_subordinates', permission: 'sales.calling.team' },
-      { route: 'calling.assigned', title: 'Assigned Calls', icon: 'bi bi-person-check', condition: 'is_manager', permission: 'sales.calling.assigned' },
+      { route: 'calling.assigned', title: 'Assigned Calls', icon: 'bi bi-person-check', condition: 'has_subordinates', permission: 'sales.calling.assigned' },
       { route: 'calling.converted', title: 'Converted Calls', icon: 'bi bi-stars', permission: 'sales.calling.converted' },
       { route: 'calling.todays', title: 'Today\'s Calls', icon: 'bi bi-calendar-date', permission: 'sales.calling.todays' },
       { route: 'calling.junk', title: 'Junk Calls', icon: 'bi bi-trash', permission: 'sales.calling.junk' },
