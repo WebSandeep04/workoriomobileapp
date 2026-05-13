@@ -28,6 +28,7 @@ const LeadScreen = ({ route }) => {
     const { leads, pagination, loading, filterOptions, cityOptions, actionLoading } = useSelector((state) => state.lead);
 
     const isAllData = route.name === 'alldata';
+    const isAssignedLeads = route.name === 'assignedleads';
 
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -59,8 +60,15 @@ const LeadScreen = ({ route }) => {
 
     const fetchDashboardStats = async () => {
         try {
-            const statsUrl = isAllData ? '/leads/all-stats' : '/leads/stats';
-            const statusCountsUrl = isAllData ? '/leads/all-status-counts' : '/leads/status-counts';
+            let statsUrl = '/leads/stats';
+            let statusCountsUrl = '/leads/status-counts';
+            if (isAllData) {
+                statsUrl = '/leads/all-stats';
+                statusCountsUrl = '/leads/all-status-counts';
+            } else if (isAssignedLeads) {
+                statsUrl = '/leads/assigned-stats';
+                statusCountsUrl = '/leads/assigned-status-counts';
+            }
             const [statsRes, statusRes] = await Promise.all([
                 api.get(statsUrl),
                 api.get(statusCountsUrl)
@@ -81,6 +89,7 @@ const LeadScreen = ({ route }) => {
             page,
             search: searchQuery,
             isAllData,
+            isAssignedLeads,
             ...activeFilters,
             ...(currentFilterType && { filter_type: currentFilterType }),
             ...(currentStatusId && { status_id: currentStatusId })
@@ -197,7 +206,7 @@ const LeadScreen = ({ route }) => {
                 )}
             </View>
 
-            {!isAllData && (
+            {!isAllData && !isAssignedLeads && (
                 <View style={styles.cardFooter}>
                     <TouchableOpacity
                         style={styles.assignButton}
@@ -302,7 +311,7 @@ const LeadScreen = ({ route }) => {
             </Text>
 
             {/* 17. Action */}
-            {!isAllData && (
+            {!isAllData && !isAssignedLeads && (
                 <TouchableOpacity
                     style={[styles.tableCell, { width: 80, alignItems: 'center' }]}
                     onPress={() => {
@@ -408,7 +417,7 @@ const LeadScreen = ({ route }) => {
             <View style={{ width: 100 }}><Text style={styles.tableHeaderText}>Ticket</Text></View>
             <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Owner</Text></View>
             <View style={{ width: 120 }}><Text style={styles.tableHeaderText}>Assigned By</Text></View>
-            {!isAllData && <View style={{ width: 80, alignItems: 'center' }}><Text style={styles.tableHeaderText}>Action</Text></View>}
+            {!isAllData && !isAssignedLeads && <View style={{ width: 80, alignItems: 'center' }}><Text style={styles.tableHeaderText}>Action</Text></View>}
         </View>
     );
 
@@ -477,7 +486,7 @@ const LeadScreen = ({ route }) => {
 
     return (
         <View style={styles.container}>
-            <Header title={isAllData ? "All Data" : "Lead"} />
+            <Header title={isAllData ? "All Data" : (isAssignedLeads ? "Assigned Leads" : "Lead")} />
             {/* Search Bar & View Toggle */}
             <View style={{ flexDirection: 'row', alignItems: 'center', margin: 16 }}>
                 <View style={[styles.searchContainer, { margin: 0, flex: 1 }]}>
