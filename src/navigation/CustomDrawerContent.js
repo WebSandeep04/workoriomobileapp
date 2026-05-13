@@ -21,6 +21,7 @@ const BOOTSTRAP_ICON_MAP = {
   'bi bi-calendar-date': 'calendar-clear-outline',
   'bi bi-trash': 'trash-outline',
   'bi bi-people': 'people-outline',
+  'bi bi-stars': 'star-outline',
 
   // Group Headings
   'bi bi-cart': 'cart-outline',
