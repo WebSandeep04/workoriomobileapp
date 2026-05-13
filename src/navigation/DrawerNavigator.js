@@ -13,6 +13,7 @@ import Task from '../screens/Task';
 import LeadScreen from '../screens/LeadScreen';
 import Subscription from '../screens/Subscription';
 import IndiaMartLeadScreen from '../screens/IndiaMartLeadScreen';
+import CallingAllScreen from '../screens/Calling/CallingAllScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -79,6 +80,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="formbuilder.index" component={LeadScreen} />
       <Drawer.Screen name="indiamart.index" component={IndiaMartLeadScreen} />
       <Drawer.Screen name="indiamart.junk.index" component={IndiaMartLeadScreen} />
+      <Drawer.Screen name="calling.all" component={CallingAllScreen} />
       
       {/* Subscription & Renewals */}
       <Drawer.Screen name="subscriptions.index" component={Subscription} />

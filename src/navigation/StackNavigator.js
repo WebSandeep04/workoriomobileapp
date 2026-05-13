@@ -4,6 +4,7 @@ import LoginScreen from '../screens/LoginScreen';
 import DrawerNavigator from './DrawerNavigator';
 import LeadRemarkScreen from '../screens/LeadRemark/LeadRemarkScreen';
 import IndiaMartRemarkScreen from '../screens/LeadRemark/IndiaMartRemarkScreen';
+import CallingRemarkScreen from '../screens/Calling/CallingRemarkScreen';
 
 const Stack = createStackNavigator();
 
@@ -19,6 +20,7 @@ const StackNavigator = () => {
       {/* Transient Detail Overlays (Requires isolated stack history without persistent drawer context) */}
       <Stack.Screen name="LeadRemark" component={LeadRemarkScreen} />
       <Stack.Screen name="IndiaMartRemark" component={IndiaMartRemarkScreen} />
+      <Stack.Screen name="CallingRemark" component={CallingRemarkScreen} />
     </Stack.Navigator>
   );
 };
