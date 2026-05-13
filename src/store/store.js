@@ -8,6 +8,7 @@ import businessCardReducer from './slices/businessCardSlice';
 import leadReducer from './slices/leadSlice';
 import prospectReducer from './slices/prospectSlice';
 import locationReducer from './slices/locationSlice';
+import leadGenReducer from './slices/leadGenSlice';
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     lead: leadReducer,
     prospect: prospectReducer,
     location: locationReducer,
+    leadGen: leadGenReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

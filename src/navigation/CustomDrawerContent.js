@@ -22,6 +22,7 @@ const BOOTSTRAP_ICON_MAP = {
   'bi bi-trash': 'trash-outline',
   'bi bi-people': 'people-outline',
   'bi bi-stars': 'star-outline',
+  'bi bi-person-workspace': 'briefcase-outline',
 
   // Group Headings
   'bi bi-cart': 'cart-outline',

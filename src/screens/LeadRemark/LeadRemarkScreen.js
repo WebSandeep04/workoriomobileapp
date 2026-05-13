@@ -20,8 +20,8 @@ const LeadRemarkScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const { leadId, isAllData, isAssignedLeads, isTeamLeads } = route.params;
-    const isViewOnly = isAllData || isAssignedLeads || isTeamLeads;
+    const { leadId, isAllData, isAssignedLeads, isTeamLeads, isLeadGen } = route.params;
+    const isViewOnly = isAllData || isAssignedLeads || isTeamLeads || isLeadGen;
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
