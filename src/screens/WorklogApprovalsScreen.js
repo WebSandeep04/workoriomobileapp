@@ -23,6 +23,7 @@ const WorklogApprovalsScreen = () => {
 
     // Local interaction states
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Modal triggers
     const [approvalModalVisible, setApprovalModalVisible] = useState(false);
@@ -53,10 +54,36 @@ const WorklogApprovalsScreen = () => {
         setIsRefreshing(false);
     };
 
+    // Live Searching Logic
+    const getFilteredApprovals = () => {
+        if (!searchQuery.trim()) return pendingApprovals;
+        const q = searchQuery.toLowerCase();
+        return pendingApprovals.map(grp => {
+            const isUserMatch = (grp.user_name || '').toLowerCase().includes(q);
+            const isDateMatch = (grp.work_date || '').toLowerCase().includes(q);
+            if (isUserMatch || isDateMatch) {
+                return grp;
+            }
+            // Scan nested records inside group
+            const matchingEntries = grp.entries.filter(entry => 
+                (entry.entry_type?.name || '').toLowerCase().includes(q) ||
+                (entry.customer?.name || '').toLowerCase().includes(q) ||
+                (entry.customer_project_name || '').toLowerCase().includes(q) ||
+                (entry.description || '').toLowerCase().includes(q) ||
+                (entry.module?.name || '').toLowerCase().includes(q) ||
+                (entry.service?.name || '').toLowerCase().includes(q)
+            );
+            if (matchingEntries.length > 0) {
+                return { ...grp, entries: matchingEntries };
+            }
+            return null;
+        }).filter(x => x !== null);
+    };
+
     // Logic Handlers
     const handleOpenApproveModal = (type, data) => {
         setTargetType(type);
-        setRating('met'); // default
+        setRating('met'); // baseline expectation default
         setRemark('');
         
         if (type === 'single') {
@@ -127,7 +154,7 @@ const WorklogApprovalsScreen = () => {
         }
     };
 
-    // Render helpers
+    // Display formatting kits
     const formatTime = (h, m) => `${parseInt(h || 0)}h ${parseInt(m || 0)}m`;
     const calculateGroupTime = (entries) => {
         const totalMin = entries.reduce((tot, e) => tot + (parseInt(e.hours || 0) * 60 + parseInt(e.minutes || 0)), 0);
@@ -151,13 +178,13 @@ const WorklogApprovalsScreen = () => {
         </TouchableOpacity>
     );
 
-    // Render Component for EACH Group
+    // Renderer Component for individual Employee cards
     const renderGroupCard = ({ item }) => {
         const totalHoursDisplay = calculateGroupTime(item.entries);
         
         return (
             <View style={styles.groupCard}>
-                {/* Card Top Stripe (User & Date metadata) */}
+                {/* Metadata Head */}
                 <View style={styles.groupCardHead}>
                     <View style={{ flex: 1 }}>
                         <View style={styles.avatarRow}>
@@ -183,7 +210,7 @@ const WorklogApprovalsScreen = () => {
                     </View>
                 </View>
 
-                {/* Embedded Entries Listing */}
+                {/* Nested Task Rows */}
                 <View style={styles.entriesListWrapper}>
                     {item.entries.map((work, index) => (
                         <View key={work.id} style={[styles.nestedEntryRow, index === item.entries.length - 1 && { borderBottomWidth: 0 }]}>
@@ -208,7 +235,7 @@ const WorklogApprovalsScreen = () => {
                                 </View>
                             ) : null}
 
-                            {/* Action line for single Entry */}
+                            {/* Single Entry audit toolbar */}
                             <View style={styles.singleActionRow}>
                                 <TouchableOpacity 
                                     style={[styles.singleBtn, styles.btnAccept]}
@@ -230,7 +257,7 @@ const WorklogApprovalsScreen = () => {
                     ))}
                 </View>
 
-                {/* Group Level bulk actions footer bar */}
+                {/* Footer Date-Level bulk action button grouping */}
                 <View style={styles.groupCardFooter}>
                     <Text style={styles.footerGroupTitle}>GROUP ACTIONS FOR DATE</Text>
                     <View style={styles.footerActionBox}>
@@ -259,6 +286,26 @@ const WorklogApprovalsScreen = () => {
         <View style={styles.screenWrapper}>
             <Header title="Timesheet Approvals" />
 
+            {/* Full-Width Search Filter Bar */}
+            <View style={styles.utilityDockBar}>
+                <View style={styles.searchFormDock}>
+                    <Ionicons name="search" size={16} color="#94A3B8" style={{ marginRight: 6 }} />
+                    <TextInput
+                        style={styles.textInputControl}
+                        placeholder="Search Team Timesheets by Name, Project, Tasks..."
+                        placeholderTextColor="#94A3B8"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchQuery('')}>
+                            <Ionicons name="close-circle" size={15} color="#94A3B8" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
+
+            {/* Loaders & Group View Engine */}
             {loading && pendingApprovals.length === 0 ? (
                 <View style={styles.fullscreenLoading}>
                     <ActivityIndicator size="large" color="#434AFA" />
@@ -266,7 +313,7 @@ const WorklogApprovalsScreen = () => {
                 </View>
             ) : (
                 <FlatList
-                    data={pendingApprovals}
+                    data={getFilteredApprovals()}
                     keyExtractor={(item) => `${item.user_name}|${item.work_date}`}
                     renderItem={renderGroupCard}
                     contentContainerStyle={styles.scrollListContent}
@@ -276,8 +323,8 @@ const WorklogApprovalsScreen = () => {
                             <View style={styles.emptyCircle}>
                                 <Ionicons name="ribbon-outline" size={48} color="#A5B4FC" />
                             </View>
-                            <Text style={styles.emptyStrongTxt}>Great Job!</Text>
-                            <Text style={styles.emptyMutedTxt}>All timesheets have been processed. Clean slate!</Text>
+                            <Text style={styles.emptyStrongTxt}>All Clear!</Text>
+                            <Text style={styles.emptyMutedTxt}>No pending timesheets matching criteria.</Text>
                         </View>
                     }
                 />
@@ -363,7 +410,7 @@ const WorklogApprovalsScreen = () => {
                                 style={[styles.noteBox, { borderColor: '#FCA5A5' }]}
                                 multiline
                                 numberOfLines={4}
-                                placeholder="Describe precisely why these entries are rejected so the member can amend them..."
+                                placeholder="Describe precisely why these entries are rejected..."
                                 placeholderTextColor="#94A3B8"
                                 value={remark}
                                 onChangeText={setRemark}
@@ -404,6 +451,26 @@ const WorklogApprovalsScreen = () => {
 const styles = StyleSheet.create({
     screenWrapper: { flex: 1, backgroundColor: '#F1F5F9' },
     
+    // Pure wide toolbar design
+    utilityDockBar: { 
+        flexDirection: 'row', 
+        padding: 12, 
+        backgroundColor: '#FFF', 
+        alignItems: 'center', 
+        borderBottomWidth: 1, 
+        borderBottomColor: '#E2E8F0' 
+    },
+    searchFormDock: { 
+        flex: 1, 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#F1F5F9', 
+        paddingHorizontal: 10, 
+        paddingVertical: 10, 
+        borderRadius: 8 
+    },
+    textInputControl: { flex: 1, fontSize: 13, color: '#1E293B', padding: 0 },
+
     // Base loaders & empty
     fullscreenLoading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     loadingText: { color: '#64748B', marginTop: 12, fontWeight: '600' },
@@ -414,7 +481,7 @@ const styles = StyleSheet.create({
     emptyStrongTxt: { fontSize: 18, fontWeight: '800', color: '#312E81', marginTop: 20 },
     emptyMutedTxt: { fontSize: 13, color: '#64748B', textAlign: 'center', marginTop: 8, lineHeight: 20 },
 
-    // 1. Group Card styling
+    // Group Card styling
     groupCard: { 
         backgroundColor: '#FFF', 
         borderRadius: 12, 
@@ -442,7 +509,7 @@ const styles = StyleSheet.create({
     headStatBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 12 },
     headStatBadgeTxt: { fontSize: 10, fontWeight: '800' },
 
-    // 2. Entries list block styling
+    // Nested Entries inside Card view
     entriesListWrapper: { paddingHorizontal: 14 },
     nestedEntryRow: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
     entryMetaGrid: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
@@ -456,7 +523,7 @@ const styles = StyleSheet.create({
     descSpeechBubble: { backgroundColor: '#F8FAFC', borderRadius: 6, padding: 10, marginTop: 10, borderWidth: 1, borderColor: '#EEF2FF' },
     descTextStr: { fontSize: 12, color: '#475569', fontStyle: 'italic', lineHeight: 17 },
 
-    // 3. Individual row buttons
+    // Single row buttons
     singleActionRow: { flexDirection: 'row', gap: 10, marginTop: 12, justifyContent: 'flex-end' },
     singleBtn: { 
         flexDirection: 'row', 
@@ -470,7 +537,7 @@ const styles = StyleSheet.create({
     btnReject: { backgroundColor: '#FEF2F2' },
     singleBtnText: { fontSize: 11, fontWeight: '800' },
 
-    // 4. Group footer toolbar
+    // Group footer toolbar
     groupCardFooter: { backgroundColor: '#FAFAFA', padding: 14, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
     footerGroupTitle: { fontSize: 9, fontWeight: '800', color: '#94A3B8', letterSpacing: 0.8, marginBottom: 10 },
     footerActionBox: { flexDirection: 'row', gap: 12 },
@@ -485,7 +552,7 @@ const styles = StyleSheet.create({
     },
     bulkGroupBtnLabel: { color: '#FFF', fontWeight: '800', fontSize: 12 },
 
-    // 5. Modals Sheet popup general
+    // Modals Sheet popup general
     dialogOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
     dialogSheet: { backgroundColor: '#FFF', width: '90%', borderRadius: 12, overflow: 'hidden', elevation: 10 },
     dialogHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },

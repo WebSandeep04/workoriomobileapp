@@ -204,6 +204,44 @@ export const rejectWorklogGroup = createAsyncThunk(
     }
 );
 
+export const approveWorklogBulk = createAsyncThunk(
+    'worklog/approveBulk',
+    async ({ ids, rating, remark }, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/worklog/approve-bulk', { ids, rating, remark });
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: response.data.message || 'Selected entries approved successfully',
+            });
+            return response.data;
+        } catch (error) {
+            const msg = error.response?.data?.message || 'Bulk approval failed';
+            Toast.show({ type: 'error', text1: 'Error', text2: msg });
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const rejectWorklogBulk = createAsyncThunk(
+    'worklog/rejectBulk',
+    async ({ ids, remark }, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/worklog/reject-bulk', { ids, remark });
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: response.data.message || 'Selected entries rejected successfully',
+            });
+            return response.data;
+        } catch (error) {
+            const msg = error.response?.data?.message || 'Bulk rejection failed';
+            Toast.show({ type: 'error', text1: 'Error', text2: msg });
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
 const initialState = {
     loading: false,
     entryTypes: [],
@@ -320,7 +358,9 @@ const worklogSlice = createSlice({
                     approveWorklog.pending.type,
                     rejectWorklog.pending.type,
                     approveWorklogGroup.pending.type,
-                    rejectWorklogGroup.pending.type
+                    rejectWorklogGroup.pending.type,
+                    approveWorklogBulk.pending.type,
+                    rejectWorklogBulk.pending.type
                 ].includes(action.type),
                 (state) => {
                     state.actionLoading = true;
@@ -331,7 +371,9 @@ const worklogSlice = createSlice({
                     approveWorklog.fulfilled.type, approveWorklog.rejected.type,
                     rejectWorklog.fulfilled.type, rejectWorklog.rejected.type,
                     approveWorklogGroup.fulfilled.type, approveWorklogGroup.rejected.type,
-                    rejectWorklogGroup.fulfilled.type, rejectWorklogGroup.rejected.type
+                    rejectWorklogGroup.fulfilled.type, rejectWorklogGroup.rejected.type,
+                    approveWorklogBulk.fulfilled.type, approveWorklogBulk.rejected.type,
+                    rejectWorklogBulk.fulfilled.type, rejectWorklogBulk.rejected.type
                 ].includes(action.type),
                 (state) => {
                     state.actionLoading = false;

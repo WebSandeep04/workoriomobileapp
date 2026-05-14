@@ -28,6 +28,7 @@ import PlaceholderScreen from '../screens/PlaceholderScreen';
 import PettyCashScreen from '../screens/PettyCashScreen';
 import PettyCashApprovalsScreen from '../screens/PettyCashApprovalsScreen';
 import WorklogApprovalsScreen from '../screens/WorklogApprovalsScreen';
+import LeaveApprovalsScreen from '../screens/LeaveApprovalsScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -117,6 +118,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="petty-cash.index" component={PettyCashScreen} />
       <Drawer.Screen name="approvals.petty" component={PettyCashApprovalsScreen} />
       <Drawer.Screen name="worklog-approvals" component={WorklogApprovalsScreen} />
+      <Drawer.Screen name="leave.approvals" component={LeaveApprovalsScreen} />
       <Drawer.Screen name="contactmanagement.index" component={PlaceholderScreen} />
       <Drawer.Screen name="asset-management.index" component={PlaceholderScreen} />
       
