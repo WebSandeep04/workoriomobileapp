@@ -26,6 +26,8 @@ import ConvertedCallingScreen from '../screens/Calling/ConvertedCallingScreen';
 import MyLeadGenScreen from '../screens/LeadGen/MyLeadGenScreen';
 import PlaceholderScreen from '../screens/PlaceholderScreen';
 import PettyCashScreen from '../screens/PettyCashScreen';
+import PettyCashApprovalsScreen from '../screens/PettyCashApprovalsScreen';
+import WorklogApprovalsScreen from '../screens/WorklogApprovalsScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -113,6 +115,8 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="projects.index" component={PlaceholderScreen} />
       <Drawer.Screen name="tracking.index" component={PlaceholderScreen} />
       <Drawer.Screen name="petty-cash.index" component={PettyCashScreen} />
+      <Drawer.Screen name="approvals.petty" component={PettyCashApprovalsScreen} />
+      <Drawer.Screen name="worklog-approvals" component={WorklogApprovalsScreen} />
       <Drawer.Screen name="contactmanagement.index" component={PlaceholderScreen} />
       <Drawer.Screen name="asset-management.index" component={PlaceholderScreen} />
       

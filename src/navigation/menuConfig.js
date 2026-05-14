@@ -184,7 +184,7 @@ export const mobileMenuConfig = [
     items: [
       { route: 'approvals.petty', title: 'Petty Approval', icon: 'bi bi-cash', permission: 'approvals.petty' },
       { route: 'worklog-approvals', title: 'Timesheet Approvals', icon: 'bi bi-check2-square', permission: 'approvals.worklog', feature_flag: 'is_worklog_enabled' },
-      { route: 'attendance.approval', title: 'Attendance Approval', icon: 'bi bi-person-check', permission: 'approvals.attendance' },
+      // { route: 'attendance.approval', title: 'Attendance Approval', icon: 'bi bi-person-check', permission: 'approvals.attendance' },
       { route: 'attendance.unlock', title: 'Unlock Attendance', icon: 'bi bi-unlock', permission: 'approvals.unlock_attendance' },
       { route: 'leave.approvals', title: 'Leave Approval', icon: 'bi bi-calendar-check', permission: 'approvals.leave' },
     ]

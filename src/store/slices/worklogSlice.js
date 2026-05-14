@@ -116,6 +116,94 @@ export const deleteEntry = createAsyncThunk(
     }
 );
 
+export const fetchPendingApprovals = createAsyncThunk(
+    'worklog/fetchPendingApprovals',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/worklog/pending-approvals');
+            return response.data?.data || response.data || [];
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const approveWorklog = createAsyncThunk(
+    'worklog/approveWorklog',
+    async ({ id, rating, remark }, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`/worklog/${id}/approve`, { rating, remark });
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: response.data.message || 'Worklog approved successfully',
+            });
+            return { id, data: response.data };
+        } catch (error) {
+            const msg = error.response?.data?.message || 'Approval failed';
+            Toast.show({ type: 'error', text1: 'Error', text2: msg });
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const rejectWorklog = createAsyncThunk(
+    'worklog/rejectWorklog',
+    async ({ id, remark }, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`/worklog/${id}/reject`, { remark });
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: response.data.message || 'Worklog rejected successfully',
+            });
+            return { id, data: response.data };
+        } catch (error) {
+            const msg = error.response?.data?.message || 'Rejection failed';
+            Toast.show({ type: 'error', text1: 'Error', text2: msg });
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const approveWorklogGroup = createAsyncThunk(
+    'worklog/approveGroup',
+    async ({ user_name, work_date, rating, remark }, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/worklog/approve-group', { user_name, work_date, rating, remark });
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: response.data.message || 'Group approved successfully',
+            });
+            return { user_name, work_date, data: response.data };
+        } catch (error) {
+            const msg = error.response?.data?.message || 'Group approval failed';
+            Toast.show({ type: 'error', text1: 'Error', text2: msg });
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const rejectWorklogGroup = createAsyncThunk(
+    'worklog/rejectGroup',
+    async ({ user_name, work_date, remark }, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/worklog/reject-group', { user_name, work_date, remark });
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: response.data.message || 'Group rejected successfully',
+            });
+            return { user_name, work_date, data: response.data };
+        } catch (error) {
+            const msg = error.response?.data?.message || 'Group rejection failed';
+            Toast.show({ type: 'error', text1: 'Error', text2: msg });
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
 const initialState = {
     loading: false,
     entryTypes: [],
@@ -132,6 +220,8 @@ const initialState = {
         isValid: true,
         message: ''
     },
+    pendingApprovals: [],
+    actionLoading: false,
     error: null,
 };
 
@@ -213,7 +303,40 @@ const worklogSlice = createSlice({
             // Delete Entry
             .addCase(deleteEntry.fulfilled, (state, action) => {
                 state.history.data = state.history.data.filter(item => item.id !== action.payload);
-            });
+            })
+            // Fetch Pending Approvals
+            .addCase(fetchPendingApprovals.pending, (state) => { state.loading = true; })
+            .addCase(fetchPendingApprovals.fulfilled, (state, action) => {
+                state.loading = false;
+                state.pendingApprovals = action.payload;
+            })
+            .addCase(fetchPendingApprovals.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            // Actions pending states to avoid concurrent issues
+            .addMatcher(
+                (action) => [
+                    approveWorklog.pending.type,
+                    rejectWorklog.pending.type,
+                    approveWorklogGroup.pending.type,
+                    rejectWorklogGroup.pending.type
+                ].includes(action.type),
+                (state) => {
+                    state.actionLoading = true;
+                }
+            )
+            .addMatcher(
+                (action) => [
+                    approveWorklog.fulfilled.type, approveWorklog.rejected.type,
+                    rejectWorklog.fulfilled.type, rejectWorklog.rejected.type,
+                    approveWorklogGroup.fulfilled.type, approveWorklogGroup.rejected.type,
+                    rejectWorklogGroup.fulfilled.type, rejectWorklogGroup.rejected.type
+                ].includes(action.type),
+                (state) => {
+                    state.actionLoading = false;
+                }
+            );
     }
 });
 

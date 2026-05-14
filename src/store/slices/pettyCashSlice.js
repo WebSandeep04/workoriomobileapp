@@ -15,7 +15,9 @@ const initialState = {
     stats: {
         total_opening_balance: 0,
         total_expense: 0,
-        remaining_balance: 0
+        remaining_balance: 0,
+        total_pending_count: 0,
+        total_pending_amount: 0
     },
     loading: false,
     statsLoading: false,
@@ -110,6 +112,21 @@ export const togglePettyCashApproval = createAsyncThunk(
     }
 );
 
+export const approvePettyCashBulk = createAsyncThunk(
+    'pettyCash/approveBulk',
+    async (ids, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/petty-cash/approve-bulk', { ids });
+            if (response.data?.success) {
+                return { ids, data: response.data };
+            }
+            return rejectWithValue(response.data?.message || 'Failed to approve entries');
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to approve selected entries');
+        }
+    }
+);
+
 export const deletePettyCashEntry = createAsyncThunk(
     'pettyCash/deleteEntry',
     async (id, { rejectWithValue }) => {
@@ -198,6 +215,16 @@ const pettyCashSlice = createSlice({
                 state.successMessage = action.payload.data.message || 'Record deleted successfully';
                 state.entries = state.entries.filter(e => e.id !== action.payload.id);
             })
+            .addCase(approvePettyCashBulk.fulfilled, (state, action) => {
+                state.actionLoading = false;
+                state.successMessage = action.payload.data.message || 'Entries approved successfully';
+                // Remove or update entries in the local state if they are pending screen
+                // Or refresh logic can handle it. Let's mark them as approved in place.
+                action.payload.ids.forEach(id => {
+                    const entry = state.entries.find(e => e.id === id);
+                    if (entry) entry.is_approved = true;
+                });
+            })
 
             // Global Action State Matchers (Pending & Rejected)
             .addMatcher(
@@ -205,6 +232,7 @@ const pettyCashSlice = createSlice({
                     createPettyCashEntry.pending.type,
                     updatePettyCashEntry.pending.type,
                     togglePettyCashApproval.pending.type,
+                    approvePettyCashBulk.pending.type,
                     deletePettyCashEntry.pending.type
                 ].includes(action.type),
                 (state) => {
@@ -218,6 +246,7 @@ const pettyCashSlice = createSlice({
                     createPettyCashEntry.rejected.type,
                     updatePettyCashEntry.rejected.type,
                     togglePettyCashApproval.rejected.type,
+                    approvePettyCashBulk.rejected.type,
                     deletePettyCashEntry.rejected.type
                 ].includes(action.type),
                 (state, action) => {

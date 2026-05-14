@@ -37,6 +37,7 @@ const BOOTSTRAP_ICON_MAP = {
   'bi bi-file-earmark-bar-graph': 'stats-chart-outline',
   'bi bi-folder2-open': 'folder-open-outline',
   'bi bi-check2-circle': 'checkmark-done-outline',
+  'bi bi-check2-square': 'checkbox-outline',
 };
 
 const getIconName = (rawIcon) => {
