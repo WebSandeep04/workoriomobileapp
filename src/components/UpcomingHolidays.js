@@ -29,6 +29,7 @@ const UpcomingHolidays = ({ holidays = [] }) => {
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
+                nestedScrollEnabled={true}
                 contentContainerStyle={styles.listContainer}
             >
                 {holidays.map((item, index) => (
@@ -46,18 +47,18 @@ const UpcomingHolidays = ({ holidays = [] }) => {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 20,
-        paddingHorizontal: 16,
+        marginTop: 20
     },
     title: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 12,
-        marginLeft: 4,
+        fontSize: 17,
+        fontWeight: '800',
+        color: '#1E293B',
+        marginBottom: 14,
+        paddingHorizontal: 24
     },
     listContainer: {
-        paddingRight: 16,
+        paddingHorizontal: 24,
+        paddingBottom: 16 // Crucial buffer for elevated shadows!
     },
     card: {
         width: width * 0.42, // Approximately 40-45% of screen width

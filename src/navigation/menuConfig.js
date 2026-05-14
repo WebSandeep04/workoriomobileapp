@@ -45,13 +45,12 @@ export const mobileMenuConfig = [
   },
   {
     key: 'admin_lead_generation',
-    title: 'Lead Generation',
-    icon: 'bi bi-person-plus',
+    title: 'Lead Gen',
+    route: 'leadgen.my',
+    icon: 'bi bi-person-workspace',
     feature_flag: 'is_leadgen_enabled',
     roles: ['admin'],
-    items: [
-      { route: 'leadgen.my', title: 'My Gen Leads', icon: 'bi bi-person-workspace', permission: 'leadgen.my' },
-    ]
+    permission: 'leadgen.my'
   },
   {
     key: 'admin_projects',
@@ -106,24 +105,21 @@ export const mobileMenuConfig = [
   // },
   {
     key: 'calendar_section',
-    title: 'Social Media Calendar',
+    title: 'Calendar',
+    route: 'calendar.index',
     icon: 'bi bi-calendar3',
     feature_flag: 'is_social_media_calendar_enabled',
     roles: ['admin'],
-    items: [
-      { route: 'calendar.index', title: 'Calendar', icon: 'bi bi-calendar3', permission: 'calendar.view' },
-      // { route: 'calendar-client-event.links', title: 'Manage Calendar', icon: 'bi bi-diagram-2', permission: 'calendar.client_event_links' },
-    ]
+    permission: 'calendar.view'
   },
   {
     key: 'master_section',
-    title: 'Master',
-    icon: 'bi bi-person-badge',
+    title: 'Employees',
+    route: 'employees.index',
+    icon: 'bi bi-people',
     feature_flag: 'is_setup_enabled',
     roles: ['admin'],
-    items: [
-      { route: 'employees.index', title: 'Employees', icon: 'bi bi-people', permission: 'master.employees' },
-    ]
+    permission: 'master.employees'
   },
   {
     key: 'admin_tasks',

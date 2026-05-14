@@ -72,6 +72,7 @@ const WishThem = ({ title = "Wish Them :", wishes = [], onSeeMore }) => {
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
+                nestedScrollEnabled={true}
                 contentContainerStyle={styles.listContainer}
             >
                 {wishes.map((item, index) => (
@@ -127,18 +128,20 @@ const WishThem = ({ title = "Wish Them :", wishes = [], onSeeMore }) => {
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 16,
         marginBottom: 24,
     },
     title: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: '#000',
+        fontWeight: '800',
+        color: '#1E293B',
         marginBottom: 16,
+        paddingHorizontal: 24,
     },
     listContainer: {
         flexDirection: 'row',
         alignItems: 'flex-start',
+        paddingHorizontal: 24,
+        paddingBottom: 10 // Safety buffer for shadow depth
     },
     itemContainer: {
         alignItems: 'center',
