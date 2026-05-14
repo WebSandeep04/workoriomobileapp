@@ -30,6 +30,7 @@ const LeaveApprovalsScreen = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState('pending'); // 'pending' | 'approved' | 'rejected'
+    const [viewMode, setViewMode] = useState('card'); // 'card' | 'table'
 
     // Rejection Modal Triggers
     const [rejectionModalVisible, setRejectionModalVisible] = useState(false);
@@ -268,6 +269,128 @@ const LeaveApprovalsScreen = () => {
         );
     };
 
+    // RENDER PIECE: Horizontal scrollable table UI
+    const renderLeaveTable = () => {
+        const data = getFilteredApprovals();
+        return (
+            <View style={styles.tableWrapper}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={true} bounces={false}>
+                    <View style={{ minWidth: 780 }}>
+                        {/* Header Row */}
+                        <View style={styles.tableHeaderRow}>
+                            <Text style={[styles.tableColHead, { width: 90 }]}>APPLIED</Text>
+                            <Text style={[styles.tableColHead, { width: 140 }]}>EMPLOYEE</Text>
+                            <Text style={[styles.tableColHead, { width: 180 }]}>DATES (FROM - TO)</Text>
+                            <Text style={[styles.tableColHead, { width: 70, textAlign: 'center' }]}>DAYS</Text>
+                            <Text style={[styles.tableColHead, { width: 110 }]}>LEAVE TYPE</Text>
+                            <Text style={[styles.tableColHead, { width: 90 }]}>STATUS</Text>
+                            <Text style={[styles.tableColHead, { width: 100, textAlign: 'center' }]}>ACTIONS</Text>
+                        </View>
+
+                        {/* Body Data Rows */}
+                        {data.length === 0 ? (
+                            <View style={styles.tableNoData}>
+                                <Ionicons name="cafe-outline" size={32} color="#CBD5E1" style={{ marginBottom: 8 }} />
+                                <Text style={styles.tableNoDataTxt}>No leave requests found matching selection.</Text>
+                            </View>
+                        ) : (
+                            data.map((item, idx) => {
+                                const isEven = idx % 2 === 0;
+                                return (
+                                    <View 
+                                        key={item.id} 
+                                        style={[
+                                            styles.tableBodyRow, 
+                                            { backgroundColor: isEven ? '#FFF' : '#F8FAFC' }
+                                        ]}
+                                    >
+                                        {/* Applied Date */}
+                                        <Text style={[styles.tableColCell, { width: 90, fontSize: 11 }]} numberOfLines={1}>
+                                            {formatDate(item.created_at)}
+                                        </Text>
+
+                                        {/* Employee Avatar + Name */}
+                                        <View style={[styles.tableColCell, { width: 140, flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                                            <View style={styles.tableMiniAvatar}>
+                                                <Text style={styles.tableMiniAvatarTxt}>{item.user?.name?.charAt(0) || 'U'}</Text>
+                                            </View>
+                                            <Text style={{ fontSize: 11, fontWeight: '700', color: '#1E293B', flex: 1 }} numberOfLines={1}>
+                                                {item.user?.name || '-'}
+                                            </Text>
+                                        </View>
+
+                                        {/* Dates Span */}
+                                        <View style={[styles.tableColCell, { width: 180, paddingVertical: 4 }]}>
+                                            <Text style={{ fontSize: 11, fontWeight: '800', color: '#334155' }} numberOfLines={1}>
+                                                {formatDate(item.start_date)}
+                                            </Text>
+                                            <Text style={{ fontSize: 10, color: '#94A3B8', marginTop: 1 }} numberOfLines={1}>
+                                                ➜ {formatDate(item.end_date)}
+                                            </Text>
+                                        </View>
+
+                                        {/* Total Days */}
+                                        <View style={{ width: 70, justifyContent: 'center', alignItems: 'center' }}>
+                                            <Text style={styles.tableDaysTextCell}>{parseFloat(item.total_days || 0).toFixed(1)}</Text>
+                                        </View>
+
+                                        {/* Leave Type */}
+                                        <Text style={[styles.tableColCell, { width: 110, fontWeight: '600', color: '#4B5563' }]} numberOfLines={1}>
+                                            {item.leave_type?.name || 'N/A'}
+                                        </Text>
+
+                                        {/* Status Badge */}
+                                        <View style={[styles.tableColCell, { width: 90, justifyContent: 'center' }]}>
+                                            <View style={[
+                                                styles.tableStatusBadge,
+                                                { backgroundColor: getStatusColor(item.status) + '15' }
+                                            ]}>
+                                                <Text style={[styles.tableStatusBadgeTxt, { color: getStatusColor(item.status) }]}>
+                                                    {item.status?.toUpperCase()}
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        {/* Action Row */}
+                                        <View style={[styles.tableColCell, { width: 100, flexDirection: 'row', gap: 10, justifyContent: 'center', alignItems: 'center' }]}>
+                                            {/* Audit Eye */}
+                                            <TouchableOpacity 
+                                                onPress={() => handleViewTrail(item.user?.id || item.user_id, item.user?.name)}
+                                                style={styles.tblCircleActionBtn}
+                                            >
+                                                <Ionicons name="eye-outline" size={14} color="#434AFA" />
+                                            </TouchableOpacity>
+
+                                            {/* Action Buttons if pending */}
+                                            {item.status === 'pending' && (
+                                                <>
+                                                    <TouchableOpacity 
+                                                        onPress={() => handleApprove(item)}
+                                                        disabled={actionLoading}
+                                                        style={[styles.tblCircleActionBtn, { borderColor: '#A7F3D0', backgroundColor: '#ECFDF5' }]}
+                                                    >
+                                                        <Ionicons name="checkmark" size={14} color="#059669" />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity 
+                                                        onPress={() => handleOpenRejectModal(item)}
+                                                        disabled={actionLoading}
+                                                        style={[styles.tblCircleActionBtn, { borderColor: '#FCA5A5', backgroundColor: '#FEF2F2' }]}
+                                                    >
+                                                        <Ionicons name="close" size={14} color="#DC2626" />
+                                                    </TouchableOpacity>
+                                                </>
+                                            )}
+                                        </View>
+                                    </View>
+                                );
+                            })
+                        )}
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    };
+
     return (
         <View style={styles.screenContainer}>
             <Header title="Leave Approvals" />
@@ -304,6 +427,21 @@ const LeaveApprovalsScreen = () => {
                         </TouchableOpacity>
                     )}
                 </View>
+
+                <View style={styles.viewModeSelectBlock}>
+                    <TouchableOpacity 
+                        style={[styles.viewModeBtn, viewMode === 'card' && styles.viewModeBtnActive]} 
+                        onPress={() => setViewMode('card')}
+                    >
+                        <Ionicons name="grid-outline" size={15} color={viewMode === 'card' ? '#FFF' : '#64748B'} />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[styles.viewModeBtn, viewMode === 'table' && styles.viewModeBtnActive]} 
+                        onPress={() => setViewMode('table')}
+                    >
+                        <Ionicons name="list-outline" size={15} color={viewMode === 'table' ? '#FFF' : '#64748B'} />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Content Listing View */}
@@ -312,6 +450,13 @@ const LeaveApprovalsScreen = () => {
                     <ActivityIndicator size="large" color="#434AFA" />
                     <Text style={styles.loadingText}>Syncing team calendar requests...</Text>
                 </View>
+            ) : viewMode === 'table' ? (
+                <ScrollView 
+                    style={{ flex: 1 }}
+                    refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#434AFA']} />}
+                >
+                    {renderLeaveTable()}
+                </ScrollView>
             ) : (
                 <FlatList
                     data={getFilteredApprovals()}
@@ -771,7 +916,100 @@ const styles = StyleSheet.create({
     tableStatusVal: { fontSize: 10, fontWeight: '900' },
     
     emptyTrailContainer: { padding: 40, alignItems: 'center', gap: 8, justifyContent: 'center' },
-    emptyTrailTxt: { fontSize: 11, color: '#94A3B8', fontWeight: '600', textAlign: 'center' }
+    emptyTrailTxt: { fontSize: 11, color: '#94A3B8', fontWeight: '600', textAlign: 'center' },
+
+    // Switcher styles for Toolbar
+    viewModeSelectBlock: { 
+        flexDirection: 'row', 
+        gap: 4, 
+        backgroundColor: '#F1F5F9', 
+        padding: 3, 
+        borderRadius: 6, 
+        marginLeft: 10 
+    },
+    viewModeBtn: { padding: 6, borderRadius: 4 },
+    viewModeBtnActive: { backgroundColor: '#434AFA' },
+
+    // Main horizontal scrollable table container
+    tableWrapper: { 
+        backgroundColor: '#FFF', 
+        flex: 1,
+        marginTop: 0,
+        borderTopWidth: 1, 
+        borderTopColor: '#E2E8F0' 
+    },
+    tableHeaderRow: { 
+        flexDirection: 'row', 
+        backgroundColor: '#EEF2FF', 
+        borderBottomWidth: 1, 
+        borderBottomColor: '#C7D2FE',
+        alignItems: 'center'
+    },
+    tableColHead: { 
+        fontSize: 10, 
+        fontWeight: '900', 
+        color: '#312E81', 
+        paddingVertical: 12, 
+        paddingHorizontal: 10, 
+        letterSpacing: 0.5,
+        textTransform: 'uppercase'
+    },
+    tableBodyRow: { 
+        flexDirection: 'row', 
+        borderBottomWidth: 1, 
+        borderBottomColor: '#F1F5F9', 
+        alignItems: 'center',
+        minHeight: 56
+    },
+    tableColCell: { 
+        paddingHorizontal: 10, 
+        paddingVertical: 8,
+        fontSize: 11, 
+        color: '#475569' 
+    },
+    tableNoData: { padding: 48, alignItems: 'center', justifyContent: 'center' },
+    tableNoDataTxt: { fontStyle: 'italic', color: '#94A3B8', fontSize: 12 },
+
+    // Mini table components
+    tableMiniAvatar: { 
+        width: 24, 
+        height: 24, 
+        borderRadius: 12, 
+        backgroundColor: '#EEF2FF', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#C7D2FE'
+    },
+    tableMiniAvatarTxt: { fontSize: 10, fontWeight: '800', color: '#434AFA' },
+    tableDaysTextCell: { 
+        fontSize: 11, 
+        fontWeight: '800', 
+        color: '#334155', 
+        backgroundColor: '#F1F5F9', 
+        paddingHorizontal: 6, 
+        paddingVertical: 2, 
+        borderRadius: 4,
+        overflow: 'hidden' 
+    },
+    tableStatusBadge: { 
+        paddingHorizontal: 6, 
+        paddingVertical: 3, 
+        borderRadius: 4, 
+        alignSelf: 'flex-start' 
+    },
+    tableStatusBadgeTxt: { fontSize: 8, fontWeight: '900', textAlign: 'center' },
+    
+    tblCircleActionBtn: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#CBD5E1',
+        backgroundColor: '#FFF',
+        justifyContent: 'center',
+        alignItems: 'center'
+    }
 });
 
 export default LeaveApprovalsScreen;
