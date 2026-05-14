@@ -31,6 +31,7 @@ import WorklogApprovalsScreen from '../screens/WorklogApprovalsScreen';
 import LeaveApprovalsScreen from '../screens/LeaveApprovalsScreen';
 import AttendanceUnlockScreen from '../screens/AttendanceUnlockScreen';
 import AttendanceReportScreen from '../screens/AttendanceReportScreen';
+import WorklogReportScreen from '../screens/WorklogReportScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -123,6 +124,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="leave.approvals" component={LeaveApprovalsScreen} />
       <Drawer.Screen name="attendance.unlock" component={AttendanceUnlockScreen} />
       <Drawer.Screen name="attendance.report" component={AttendanceReportScreen} />
+      <Drawer.Screen name="reports.worklog" component={WorklogReportScreen} />
       <Drawer.Screen name="contactmanagement.index" component={PlaceholderScreen} />
       <Drawer.Screen name="asset-management.index" component={PlaceholderScreen} />
       
