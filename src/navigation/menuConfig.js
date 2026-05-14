@@ -1,5 +1,11 @@
 export const mobileMenuConfig = [
   {
+    key: 'admin_dashboard_root',
+    title: 'Dashboard',
+    icon: 'bi bi-house',
+    route: 'Home'
+  },
+  {
     key: 'admin_sales_operational',
     title: 'Sales & CRM',
     icon: 'bi bi-cart',
