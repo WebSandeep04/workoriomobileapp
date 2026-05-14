@@ -32,6 +32,7 @@ import LeaveApprovalsScreen from '../screens/LeaveApprovalsScreen';
 import AttendanceUnlockScreen from '../screens/AttendanceUnlockScreen';
 import AttendanceReportScreen from '../screens/AttendanceReportScreen';
 import WorklogReportScreen from '../screens/WorklogReportScreen';
+import TrackingReportScreen from '../screens/TrackingReportScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -118,6 +119,7 @@ export default function DrawerNavigator() {
       {/* Module Placeholders (Routes from menuConfig) */}
       <Drawer.Screen name="projects.index" component={PlaceholderScreen} />
       <Drawer.Screen name="tracking.index" component={PlaceholderScreen} />
+      <Drawer.Screen name="employees.index" component={PlaceholderScreen} />
       <Drawer.Screen name="petty-cash.index" component={PettyCashScreen} />
       <Drawer.Screen name="approvals.petty" component={PettyCashApprovalsScreen} />
       <Drawer.Screen name="worklog-approvals" component={WorklogApprovalsScreen} />
@@ -125,6 +127,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="attendance.unlock" component={AttendanceUnlockScreen} />
       <Drawer.Screen name="attendance.report" component={AttendanceReportScreen} />
       <Drawer.Screen name="reports.worklog" component={WorklogReportScreen} />
+      <Drawer.Screen name="tracking.report" component={TrackingReportScreen} />
       <Drawer.Screen name="contactmanagement.index" component={PlaceholderScreen} />
       <Drawer.Screen name="asset-management.index" component={PlaceholderScreen} />
       

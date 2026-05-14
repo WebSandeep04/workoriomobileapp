@@ -198,15 +198,15 @@ export const mobileMenuConfig = [
     roles: ['admin'],
     permission: 'contact_management.access'
   },
-  {
-    key: 'asset_management',
-    title: 'Asset Management',
-    route: 'asset-management.index',
-    icon: 'bi bi-box-seam',
-    feature_flag: 'is_asset_management_enable',
-    roles: ['admin'],
-    permission: 'asset_management.access'
-  },
+  // {
+  //   key: 'asset_management',
+  //   title: 'Asset Management',
+  //   route: 'asset-management.index',
+  //   icon: 'bi bi-box-seam',
+  //   feature_flag: 'is_asset_management_enable',
+  //   roles: ['admin'],
+  //   permission: 'asset_management.access'
+  // },
   // {
   //   key: 'email_marketing',
   //   title: 'Email Marketing',
