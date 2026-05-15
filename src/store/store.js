@@ -11,6 +11,7 @@ import locationReducer from './slices/locationSlice';
 import leadGenReducer from './slices/leadGenSlice';
 import subscriptionReducer from './slices/subscriptionSlice';
 import pettyCashReducer from './slices/pettyCashSlice';
+import projectsReducer from './slices/projectsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
     leadGen: leadGenReducer,
     subscription: subscriptionReducer,
     pettyCash: pettyCashReducer,
+    projects: projectsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

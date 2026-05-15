@@ -6,6 +6,7 @@ import DrawerNavigator from './DrawerNavigator';
 import LeadRemarkScreen from '../screens/LeadRemark/LeadRemarkScreen';
 import IndiaMartRemarkScreen from '../screens/LeadRemark/IndiaMartRemarkScreen';
 import CallingRemarkScreen from '../screens/Calling/CallingRemarkScreen';
+import ProjectDetailsScreen from '../screens/ProjectDetailsScreen';
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,7 @@ const StackNavigator = () => {
         <Stack.Screen name="LeadRemark" component={LeadRemarkScreen} />
         <Stack.Screen name="IndiaMartRemark" component={IndiaMartRemarkScreen} />
         <Stack.Screen name="CallingRemark" component={CallingRemarkScreen} />
+        <Stack.Screen name="ProjectDetails" component={ProjectDetailsScreen} />
       </Stack.Navigator>
     </SafeAreaView>
   );

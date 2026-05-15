@@ -37,6 +37,8 @@ import EmployeeScreen from '../screens/EmployeeScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import TrackingScreen from '../screens/TrackingScreen';
 
+import ProjectsListScreen from '../screens/ProjectsListScreen';
+
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
@@ -120,7 +122,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="subscriptions.index" component={Subscription} />
       
       {/* Module Placeholders (Routes from menuConfig) */}
-      <Drawer.Screen name="projects.index" component={PlaceholderScreen} />
+      <Drawer.Screen name="projects.index" component={ProjectsListScreen} />
       <Drawer.Screen name="tracking.index" component={TrackingScreen} />
       <Drawer.Screen name="employees.index" component={EmployeeScreen} />
       <Drawer.Screen name="calendar.index" component={CalendarScreen} />

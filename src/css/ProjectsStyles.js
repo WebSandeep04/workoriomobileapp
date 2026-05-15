@@ -1,0 +1,710 @@
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+export const styles = StyleSheet.create({
+    // --- Layout & Generic Containers ---
+    mainContainer: {
+        flex: 1,
+        backgroundColor: '#F8FAFC', // Ultra premium very light gray-slate
+    },
+    contentContainer: {
+        paddingHorizontal: 16,
+        paddingBottom: 100,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    // --- Filter System ---
+    filterContainer: {
+        backgroundColor: '#434AFA', // Brand Tech Indigo
+        marginHorizontal: 16,
+        marginTop: 12,
+        borderRadius: 14,
+        padding: 12,
+        shadowColor: '#434AFA',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 6,
+    },
+    filterHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    filterTitle: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#FFF',
+        letterSpacing: 1,
+        textTransform: 'uppercase',
+    },
+    rowFilters: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 10,
+    },
+    pickerWrapper: {
+        flex: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 8,
+        height: 38,
+        justifyContent: 'center',
+        paddingHorizontal: 10,
+    },
+    pickerTrigger: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        height: '100%',
+    },
+    pickerText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#1E293B',
+        maxWidth: '85%',
+    },
+
+    // --- Search & Tab Actions ---
+    actionRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginHorizontal: 16,
+        marginTop: 16,
+        gap: 8,
+    },
+    searchBox: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderColor: '#E2E8F0',
+        paddingHorizontal: 12,
+        height: 44,
+    },
+    searchInput: {
+        flex: 1,
+        marginLeft: 8,
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#1E293B',
+    },
+    subTabs: {
+        flexDirection: 'row',
+        backgroundColor: '#E2E8F0',
+        borderRadius: 10,
+        padding: 3,
+        height: 40,
+        alignSelf: 'flex-start',
+    },
+    subTabButton: {
+        paddingHorizontal: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 8,
+        flexDirection: 'row',
+        gap: 6,
+    },
+    activeSubTab: {
+        backgroundColor: '#FFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    subTabText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#64748B',
+    },
+    activeSubTabText: {
+        color: '#434AFA',
+    },
+
+    // --- Project Premium Cards ---
+    projectCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 16,
+        marginTop: 12,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 3,
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        paddingRight: 24, // space for fav star
+    },
+    favouriteBtn: {
+        position: 'absolute',
+        right: 12,
+        top: 12,
+        zIndex: 10,
+    },
+    projectName: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#0F172A',
+        lineHeight: 22,
+        flex: 1,
+    },
+    customerChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 6,
+    },
+    customerText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#475569',
+    },
+    serviceBadge: {
+        alignSelf: 'flex-start',
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+        marginTop: 8,
+    },
+    serviceText: {
+        fontSize: 10,
+        fontWeight: '800',
+        color: '#3B82F6',
+        textTransform: 'uppercase',
+    },
+    descriptionText: {
+        fontSize: 12,
+        color: '#64748B',
+        marginTop: 8,
+        lineHeight: 18,
+    },
+    cardMetaRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 12,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+    },
+    dateMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    metaText: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#94A3B8',
+    },
+    statusPill: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 20,
+    },
+    statusText: {
+        fontSize: 10,
+        fontWeight: '800',
+        textTransform: 'uppercase',
+    },
+
+    // --- Progress Visualizers ---
+    progressContainer: {
+        marginTop: 14,
+        gap: 6,
+    },
+    progressLabelRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    progressPercent: {
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#1E293B',
+    },
+    progressBarBg: {
+        height: 6,
+        backgroundColor: '#E2E8F0',
+        borderRadius: 3,
+        width: '100%',
+        overflow: 'hidden',
+    },
+    progressBarFill: {
+        height: '100%',
+        backgroundColor: '#10B981', // Success Green
+        borderRadius: 3,
+    },
+
+    // --- Detail View Info Banner ---
+    detailBanner: {
+        backgroundColor: '#FFF',
+        marginHorizontal: 16,
+        marginTop: 16,
+        borderRadius: 20,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.05,
+        shadowRadius: 15,
+        elevation: 4,
+    },
+    bannerGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        rowGap: 16,
+    },
+    bannerItem: {
+        width: '48%',
+    },
+    bannerLabel: {
+        fontSize: 10,
+        fontWeight: '800',
+        color: '#94A3B8',
+        textTransform: 'uppercase',
+        marginBottom: 4,
+    },
+    bannerValue: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#1E293B',
+    },
+    latestRemarkBlock: {
+        marginTop: 12,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+        width: '100%',
+    },
+    remarkHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    remarkTitle: {
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#434AFA',
+        textTransform: 'uppercase',
+    },
+    remarkActions: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    remarkActionLink: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#3B82F6',
+    },
+    remarkBubble: {
+        backgroundColor: '#F8FAFC',
+        padding: 10,
+        borderRadius: 10,
+        borderLeftWidth: 3,
+        borderLeftColor: '#CBD5E1',
+    },
+    remarkText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#475569',
+        lineHeight: 16,
+    },
+    remarkMeta: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 4,
+    },
+    remarkUser: {
+        fontSize: 9,
+        fontWeight: '700',
+        color: '#64748B',
+    },
+    remarkTime: {
+        fontSize: 9,
+        fontWeight: '600',
+        color: '#94A3B8',
+    },
+
+    // --- Detail Tabs Navigation ---
+    detailTabsWrap: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E2E8F0',
+        marginTop: 20,
+        marginHorizontal: 16,
+    },
+    detailTabItem: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
+    },
+    activeDetailTabItem: {
+        borderBottomColor: '#434AFA',
+    },
+    detailTabText: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#94A3B8',
+    },
+    activeDetailTabText: {
+        color: '#434AFA',
+    },
+
+    // --- Assigned Users (Actual vs Est Resources) ---
+    resourcesWrap: {
+        marginTop: 16,
+        paddingLeft: 16,
+    },
+    sectionHeader: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#64748B',
+        letterSpacing: 1,
+        textTransform: 'uppercase',
+        marginBottom: 10,
+        paddingLeft: 16,
+    },
+    resourceCard: {
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+        borderWidth: 2,
+        padding: 12,
+        marginRight: 10,
+        width: 140,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
+        elevation: 2,
+        alignItems: 'center',
+    },
+    resourceIconWrap: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    resourceName: {
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#1E293B',
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+    resourceHoursRow: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        gap: 4,
+    },
+    resHoursVal: {
+        fontSize: 13,
+        fontWeight: '900',
+    },
+    resEstVal: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#94A3B8',
+    },
+    resSubLabel: {
+        fontSize: 9,
+        fontWeight: '600',
+        color: '#64748B',
+        textTransform: 'uppercase',
+        marginTop: 2,
+    },
+
+    // --- Detail List Filter Block ---
+    listFiltersBlock: {
+        backgroundColor: '#EEF2FF',
+        padding: 12,
+        marginHorizontal: 16,
+        marginTop: 16,
+        borderRadius: 12,
+        gap: 8,
+    },
+    listFilterHeadline: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    listFilterText: {
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#6366F1',
+        textTransform: 'uppercase',
+    },
+    filterScroll: {
+        flexDirection: 'row',
+    },
+    pillFilterItem: {
+        backgroundColor: '#FFF',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 20,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        marginRight: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    activePillFilter: {
+        backgroundColor: '#434AFA',
+        borderColor: '#434AFA',
+    },
+    pillText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: '#64748B',
+    },
+    activePillText: {
+        color: '#FFF',
+    },
+
+    // --- Tasks Tab List ---
+    taskItemRow: {
+        backgroundColor: '#FFF',
+        marginHorizontal: 16,
+        marginTop: 10,
+        borderRadius: 12,
+        padding: 12,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+        elevation: 1,
+    },
+    taskMainInfo: {
+        flex: 1,
+        marginRight: 10,
+    },
+    taskMetaLine: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 4,
+    },
+    taskNameText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#1E293B',
+    },
+    taskSubDetail: {
+        fontSize: 10,
+        fontWeight: '600',
+        color: '#64748B',
+        marginTop: 4,
+    },
+    overdueText: {
+        color: '#EF4444',
+        fontWeight: '800',
+    },
+    taskSideCol: {
+        alignItems: 'flex-end',
+        gap: 6,
+    },
+    taskActionRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginTop: 6,
+    },
+    smallIconBtn: {
+        width: 28,
+        height: 28,
+        borderRadius: 6,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    // --- Worklog Tab List ---
+    worklogRow: {
+        backgroundColor: '#FFF',
+        marginHorizontal: 16,
+        marginTop: 8,
+        borderRadius: 12,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+    },
+    wlogHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    wlogUser: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#1E293B',
+    },
+    wlogTime: {
+        fontSize: 13,
+        fontWeight: '900',
+        color: '#434AFA',
+    },
+    wlogBadgesRow: {
+        flexDirection: 'row',
+        gap: 6,
+        marginBottom: 6,
+    },
+    wlogMiniBadge: {
+        backgroundColor: '#F1F5F9',
+        paddingHorizontal: 6,
+        paddingVertical: 3,
+        borderRadius: 4,
+    },
+    wlogBadgeText: {
+        fontSize: 9,
+        fontWeight: '700',
+        color: '#475569',
+    },
+    wlogDesc: {
+        fontSize: 12,
+        color: '#475569',
+        lineHeight: 16,
+    },
+    wlogDate: {
+        fontSize: 10,
+        fontWeight: '600',
+        color: '#94A3B8',
+        marginTop: 6,
+        alignSelf: 'flex-end',
+    },
+
+    // --- Status Styling Utils ---
+    bgOngoing: { backgroundColor: '#EFF6FF' },
+    textOngoing: { color: '#2563EB' },
+    bgCompleted: { backgroundColor: '#ECFDF5' },
+    textCompleted: { color: '#059669' },
+    bgClosed: { backgroundColor: '#FEF2F2' },
+    textClosed: { color: '#DC2626' },
+
+    bgHigh: { backgroundColor: '#FEF2F2' },
+    textHigh: { color: '#EF4444' },
+    bgMed: { backgroundColor: '#FFFBEB' },
+    textMed: { color: '#F59E0B' },
+    bgLow: { backgroundColor: '#F0FDF4' },
+    textLow: { color: '#10B981' },
+
+    // --- Bottom Sheet / Modals Styles ---
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    bottomSheet: {
+        backgroundColor: '#FFF',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 20,
+        maxHeight: '80%',
+    },
+    bsDragHandle: {
+        width: 40,
+        height: 4,
+        backgroundColor: '#E2E8F0',
+        borderRadius: 2,
+        alignSelf: 'center',
+        marginBottom: 16,
+    },
+    bsHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    bsTitle: {
+        fontSize: 18,
+        fontWeight: '900',
+        color: '#1E293B',
+    },
+    formGroup: {
+        marginBottom: 16,
+    },
+    formLabel: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#475569',
+        marginBottom: 8,
+        textTransform: 'uppercase',
+    },
+    formInput: {
+        backgroundColor: '#F8FAFC',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#1E293B',
+    },
+    formInputArea: {
+        height: 80,
+        textAlignVertical: 'top',
+    },
+    btnSubmit: {
+        backgroundColor: '#434AFA',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    btnSubmitText: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '800',
+    },
+    optionsList: {
+        maxHeight: 300,
+    },
+    optionItem: {
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
+    },
+    optionText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#1E293B',
+    },
+    emptyState: {
+        alignItems: 'center',
+        marginTop: 40,
+        paddingHorizontal: 30,
+    },
+    emptyText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#94A3B8',
+        textAlign: 'center',
+        marginTop: 10,
+    }
+});
