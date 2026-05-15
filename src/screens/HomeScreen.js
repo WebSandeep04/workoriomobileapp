@@ -66,7 +66,8 @@ const BOOTSTRAP_ICON_MAP = {
     'bi bi-diagram-3': 'git-network-outline',
     'bi bi-check2-circle': 'checkmark-circle-outline',
     'bi bi-check2-square': 'checkbox-outline',
-    'bi bi-calendar-check': 'calendar-outline'
+    'bi bi-calendar-check': 'calendar-outline',
+    'bi bi-camera': 'camera-outline'
 };
 
 // --- Google Pay Inspired Pastel Color Palette (Fallbacks) ---

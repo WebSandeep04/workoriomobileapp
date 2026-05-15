@@ -38,6 +38,7 @@ import CalendarScreen from '../screens/CalendarScreen';
 import TrackingScreen from '../screens/TrackingScreen';
 
 import ProjectsListScreen from '../screens/ProjectsListScreen';
+import FaceAttendanceKioskScreen from '../screens/FaceAttendance/FaceAttendanceKioskScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -55,6 +56,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="attendance" component={AttandanceScreen} />
       <Drawer.Screen name="attendance.history" component={AttandanceSummary} />
       <Drawer.Screen name="leave.index" component={ApplyLeave} />
+      <Drawer.Screen name="attendance.facekiosk" component={FaceAttendanceKioskScreen} />
       
       {/* Core App Views */}
       <Drawer.Screen name="Attandance" component={AttandanceScreen} />

@@ -143,6 +143,7 @@ export const mobileMenuConfig = [
       { route: 'attendance', title: 'Mark Attendance', icon: 'bi bi-person-check', permission: 'attendance.entry' },
       { route: 'attendance.history', title: 'Attendance History', icon: 'bi bi-journal-text', permission: 'attendance.history' },
       { route: 'leave.index', title: 'Leave', icon: 'bi bi-calendar-minus', permission: 'attendance.leave' },
+      { route: 'attendance.facekiosk', title: 'Face Kiosk Mode', icon: 'bi bi-camera', permission: 'attendance.entry' },
     ]
   },
   {
