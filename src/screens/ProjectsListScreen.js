@@ -41,6 +41,11 @@ export default function ProjectsListScreen({ navigation }) {
     const [pickerType, setPickerType] = useState(null); // 'customer' | 'service' | 'status' | null
     const [activeStatusPickerProj, setActiveStatusPickerProj] = useState(null); // Current project changing status
 
+    // Advanced Filters States
+    const [filterModalVisible, setFilterModalVisible] = useState(false);
+    const [tempCustomer, setTempCustomer] = useState({ id: '', name: 'All Customers' });
+    const [tempService, setTempService] = useState({ id: '', name: 'All Services' });
+
     // Initial Load
     useEffect(() => {
         dispatch(fetchProjectOptions());
@@ -65,6 +70,45 @@ export default function ProjectsListScreen({ navigation }) {
 
     const handleSearchSubmit = () => {
         loadProjects();
+    };
+
+    // Filter Modal Interaction Actions
+    const getAppliedFilterCount = () => {
+        let count = 0;
+        if (selectedCustomer.id) count++;
+        if (selectedService.id) count++;
+        return count;
+    };
+
+    const openFilters = () => {
+        setTempCustomer(selectedCustomer);
+        setTempService(selectedService);
+        setFilterModalVisible(true);
+    };
+
+    const handleResetFilters = () => {
+        setSelectedCustomer({ id: '', name: 'All Customers' });
+        setSelectedService({ id: '', name: 'All Services' });
+        setFilterModalVisible(false);
+    };
+
+    const handleApplyFilters = () => {
+        setSelectedCustomer(tempCustomer);
+        setSelectedService(tempService);
+        setFilterModalVisible(false);
+    };
+
+    const triggerPicker = (type) => {
+        setPickerType(type);
+        setFilterModalVisible(false); // Stagger modals to prevent overlapping overlay glitches in Android
+    };
+
+    const handleClosePicker = () => {
+        const wasFilterPicker = pickerType === 'customer' || pickerType === 'service';
+        setPickerType(null);
+        if (wasFilterPicker) {
+            setFilterModalVisible(true); // Restore parent filters sheet
+        }
     };
 
     // Semantic Color Resolvers for Akrati UI
@@ -189,15 +233,17 @@ export default function ProjectsListScreen({ navigation }) {
             title = 'Filter by Customer';
             data = [{ id: '', name: 'All Customers' }, ...options.customers];
             onSelect = (item) => {
-                setSelectedCustomer(item);
+                setTempCustomer(item);
                 setPickerType(null);
+                setFilterModalVisible(true); // Restore parent filters sheet after selection
             };
         } else if (pickerType === 'service') {
             title = 'Filter by Service';
             data = [{ id: '', name: 'All Services' }, ...options.services];
             onSelect = (item) => {
-                setSelectedService(item);
+                setTempService(item);
                 setPickerType(null);
+                setFilterModalVisible(true); // Restore parent filters sheet after selection
             };
         } else if (pickerType === 'status') {
             title = 'Update Project Status';
@@ -212,14 +258,14 @@ export default function ProjectsListScreen({ navigation }) {
                 visible={!!pickerType}
                 transparent
                 animationType="slide"
-                onRequestClose={() => setPickerType(null)}
+                onRequestClose={handleClosePicker}
             >
-                <Pressable style={styles.modalOverlay} onPress={() => setPickerType(null)}>
-                    <Pressable style={styles.bottomSheet}>
+                <Pressable style={styles.modalOverlay} onPress={handleClosePicker}>
+                    <Pressable style={styles.bottomSheet} onPress={(e) => e.stopPropagation()}>
                         <View style={styles.bsDragHandle} />
                         <View style={styles.bsHeader}>
                             <Text style={styles.bsTitle}>{title}</Text>
-                            <TouchableOpacity onPress={() => setPickerType(null)}>
+                            <TouchableOpacity onPress={handleClosePicker}>
                                 <Ionicons name="close-circle" size={24} color="#94A3B8" />
                             </TouchableOpacity>
                         </View>
@@ -241,34 +287,64 @@ export default function ProjectsListScreen({ navigation }) {
         );
     };
 
+    // Advanced Filters Main Overlay Sheet
+    const renderFilterModal = () => {
+        return (
+            <Modal
+                visible={filterModalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setFilterModalVisible(false)}
+            >
+                <Pressable style={styles.modalOverlay} onPress={() => setFilterModalVisible(false)}>
+                    <Pressable style={styles.bottomSheet} onPress={(e) => e.stopPropagation()}>
+                        <View style={styles.bsDragHandle} />
+                        <View style={styles.bsHeader}>
+                            <Text style={styles.bsTitle}>Filter Projects</Text>
+                            <TouchableOpacity onPress={() => setFilterModalVisible(false)}>
+                                <Ionicons name="close-circle" size={24} color="#94A3B8" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.formGroup}>
+                            <Text style={styles.formLabel}>Customer Linkage</Text>
+                            <TouchableOpacity 
+                                style={styles.formDropdown} 
+                                onPress={() => triggerPicker('customer')}
+                            >
+                                <Text style={styles.formDropdownText} numberOfLines={1}>{tempCustomer.name}</Text>
+                                <Ionicons name="chevron-down" size={16} color="#64748B" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.formGroup}>
+                            <Text style={styles.formLabel}>Service Category</Text>
+                            <TouchableOpacity 
+                                style={styles.formDropdown} 
+                                onPress={() => triggerPicker('service')}
+                            >
+                                <Text style={styles.formDropdownText} numberOfLines={1}>{tempService.name}</Text>
+                                <Ionicons name="chevron-down" size={16} color="#64748B" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.filterFooter}>
+                            <TouchableOpacity style={styles.btnReset} onPress={handleResetFilters}>
+                                <Text style={styles.btnResetText}>Clear All</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.btnApply} onPress={handleApplyFilters}>
+                                <Text style={styles.btnApplyText}>Apply Filters</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Pressable>
+                </Pressable>
+            </Modal>
+        );
+    };
+
     return (
         <View style={styles.mainContainer}>
             <Header title="Project Tracking" />
-
-            {/* Tech Indigo Brand Filter Panel */}
-            <View style={styles.filterContainer}>
-                <View style={styles.filterHeader}>
-                    <Text style={styles.filterTitle}>Quick Slicing Engines</Text>
-                    <Ionicons name="filter" size={16} color="#FFF" />
-                </View>
-                <View style={styles.rowFilters}>
-                    {/* Customer Picker Trigger */}
-                    <View style={styles.pickerWrapper}>
-                        <TouchableOpacity style={styles.pickerTrigger} onPress={() => setPickerType('customer')}>
-                            <Text style={styles.pickerText} numberOfLines={1}>{selectedCustomer.name}</Text>
-                            <Ionicons name="chevron-down" size={14} color="#434AFA" />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Service Picker Trigger */}
-                    <View style={styles.pickerWrapper}>
-                        <TouchableOpacity style={styles.pickerTrigger} onPress={() => setPickerType('service')}>
-                            <Text style={styles.pickerText} numberOfLines={1}>{selectedService.name}</Text>
-                            <Ionicons name="chevron-down" size={14} color="#434AFA" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
 
             {/* Multi Tab Actions System + Search Layout */}
             <View style={styles.actionRow}>
@@ -305,6 +381,26 @@ export default function ProjectsListScreen({ navigation }) {
                         </TouchableOpacity>
                     )}
                 </View>
+
+                {/* Filter Activation Trigger */}
+                <TouchableOpacity
+                    style={[
+                        styles.filterTriggerBtn,
+                        getAppliedFilterCount() > 0 && styles.filterTriggerBtnActive
+                    ]}
+                    onPress={openFilters}
+                >
+                    <Ionicons 
+                        name="filter" 
+                        size={18} 
+                        color={getAppliedFilterCount() > 0 ? '#434AFA' : '#64748B'} 
+                    />
+                    {getAppliedFilterCount() > 0 && (
+                        <View style={styles.filterBadgeCount}>
+                            <Text style={styles.filterBadgeCountText}>{getAppliedFilterCount()}</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
             </View>
 
             {/* Full FlatList Projects Deck */}
@@ -330,7 +426,8 @@ export default function ProjectsListScreen({ navigation }) {
                 />
             )}
 
-            {/* Unified Sheet Overlay Injection */}
+            {/* Unified Sheet Overlay Injections */}
+            {renderFilterModal()}
             {renderSelectorModal()}
         </View>
     );
