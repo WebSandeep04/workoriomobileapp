@@ -549,10 +549,7 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    mainContainer: {
-        flex: 1,
-        backgroundColor: '#FFFFFF'
-    },
+    mainContainer: { flex: 1, backgroundColor: '#FFFFFF' },
 
     // Hero Header
     heroSection: {

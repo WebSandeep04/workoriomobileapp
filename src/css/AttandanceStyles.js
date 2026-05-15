@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 export const COLORS = {
     primary: '#4F46E5', // Indigo
-    background: '#F3F4F6', // Cool Gray
+    background: '#FFFFFF', // Cool Gray
     cardBg: '#FFFFFF',
     textDark: '#1F2937',
     textLight: '#6B7280',

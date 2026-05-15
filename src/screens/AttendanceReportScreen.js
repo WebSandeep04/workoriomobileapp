@@ -722,7 +722,7 @@ const AttendanceReportScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    mainWrapper: { flex: 1, backgroundColor: '#F8FAFC' },
+    mainwrapper: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Tab bar Navigation Styling
     tabsBar: { 

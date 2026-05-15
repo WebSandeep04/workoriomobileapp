@@ -490,7 +490,7 @@ const JunkCallingScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    baseView: { flex: 1, backgroundColor: '#FDFDFD' },
+    baseView: { flex: 1, backgroundColor: '#FFFFFF' },
     
     topPanel: { flexDirection: 'row', paddingHorizontal: 12, marginTop: 12, gap: 8 },
     summaryCard: {

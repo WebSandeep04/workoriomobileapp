@@ -694,7 +694,7 @@ const TrackingReportScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    mainSpace: { flex: 1, backgroundColor: '#F8FAFC' },
+    mainSpace: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Tab Setup Styles
     tabRow: { flexDirection: 'row', backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },

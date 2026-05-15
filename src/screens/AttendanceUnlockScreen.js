@@ -451,7 +451,7 @@ const AttendanceUnlockScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8FAFC' },
+    container: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Toolbar layout
     utilityDock: { 

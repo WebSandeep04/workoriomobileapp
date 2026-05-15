@@ -550,7 +550,7 @@ const CallingLockScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: '#F8FAFC' },
+    root: { flex: 1, backgroundColor: '#FFFFFF' },
 
     // Hero Metrics Row
     metricsRow: { flexDirection: 'row', paddingHorizontal: 12, marginTop: 10, gap: 8 },

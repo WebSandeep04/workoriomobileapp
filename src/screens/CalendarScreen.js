@@ -541,7 +541,7 @@ export default function CalendarScreen({ navigation }) {
                         markingType={'multi-dot'}
                         enableSwipeMonths={true}
                         theme={{
-                            calendarBackground: '#FFFFFF',
+                            calendarbackground: '#FFFFFF',
                             textSectionTitleColor: '#64748B',
                             selectedDayBackgroundColor: '#434AFA',
                             selectedDayTextColor: '#FFFFFF',
@@ -688,7 +688,7 @@ export default function CalendarScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    mainContainer: { flex: 1, backgroundColor: '#F8FAFC' },
+    mainContainer: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Top View Tabs
     tabBar: { flexDirection: 'row', backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },

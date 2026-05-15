@@ -757,7 +757,7 @@ const WorklogReportScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    primeContainer: { flex: 1, backgroundColor: '#F8FAFC' },
+    primeContainer: { flex: 1, backgroundColor: '#FFFFFF' },
     bodyScroll: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
 
     // Tabs Setup

@@ -764,7 +764,7 @@ const IndiaMartLeadScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F7F8FA' },
+    container: { flex: 1, backgroundColor: '#FFFFFF' },
     statsScroll: { marginVertical: 10, flexGrow: 0, height: 80 },
     statsCard: {
         backgroundColor: '#FFF', borderRadius: 12, padding: 12, marginRight: 10,

@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 export const COLORS = {
     primary: '#434AFA', // Indigo/Blue from existing theme
     secondary: '#D02090', // Pink/Magenta from existing theme
-    background: '#F9FAFB',
+    background: '#FFFFFF',
     card: '#FFFFFF',
     text: '#1F2937',
     textLight: '#6B7280',

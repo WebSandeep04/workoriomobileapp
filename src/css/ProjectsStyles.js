@@ -5,8 +5,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export const styles = StyleSheet.create({
     // --- Layout & Generic Containers ---
     mainContainer: {
-        flex: 1,
-        backgroundColor: '#F8FAFC', // Ultra premium very light gray-slate
+        flex: 1, backgroundColor: '#FFFFFF', // Ultra premium very light gray-slate
     },
     contentContainer: {
         paddingHorizontal: 16,
@@ -51,7 +50,7 @@ export const styles = StyleSheet.create({
     },
     pickerWrapper: {
         flex: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: '#FFFFFF',
         borderRadius: 8,
         height: 38,
         justifyContent: 'center',

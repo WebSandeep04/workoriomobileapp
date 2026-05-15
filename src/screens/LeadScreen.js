@@ -570,8 +570,7 @@ const LeadScreen = ({ route }) => {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#F7F8FA',
+        flex: 1, backgroundColor: '#FFFFFF',
     },
     searchContainer: {
         flexDirection: 'row',

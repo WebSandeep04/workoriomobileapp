@@ -551,7 +551,7 @@ const CallingCampaignScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8FAFC' },
+    container: { flex: 1, backgroundColor: '#FFFFFF' },
     
     metricsRow: { 
         flexDirection: 'row', paddingHorizontal: 16, marginVertical: 12, gap: 12, flexShrink: 0

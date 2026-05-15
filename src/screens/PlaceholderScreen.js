@@ -15,7 +15,7 @@ const PlaceholderScreen = ({ route }) => {
     else if (screenName.includes('asset-management')) displayTitle = 'Asset Management';
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+        <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
             <Header title={displayTitle} />
             <View style={styles.container}>
                 <View style={styles.circle}>

@@ -896,7 +896,7 @@ const PettyCashApprovalsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    screenWrapper: { flex: 1, backgroundColor: '#F8FAFC' },
+    screenwrapper: { flex: 1, backgroundColor: '#FFFFFF' },
 
     // 1. Analytics strip styling
     kpiSectionContainer: {

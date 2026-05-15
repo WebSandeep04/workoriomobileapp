@@ -470,7 +470,7 @@ const CallingRemarkScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8FAFC' },
+    container: { flex: 1, backgroundColor: '#FFFFFF' },
     content: { padding: 16, paddingBottom: 50 },
     centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
     loadingText: { marginTop: 12, color: '#64748B', fontSize: 13 },

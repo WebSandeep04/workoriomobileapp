@@ -6,7 +6,7 @@ export const COLORS = {
     textDark: '#1E293B',
     textGray: '#64748B',
     border: '#F1F5F9',
-    background: '#F8FAFC',
+    background: '#FFFFFF',
     headerBg: '#F1F5F9',
     headerText: '#475569',
     rowEven: '#FFFFFF',

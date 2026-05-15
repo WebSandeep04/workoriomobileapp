@@ -9,8 +9,7 @@ export const styles = StyleSheet.create({
         zIndex: 10,
     },
     container: {
-        flex: 1,
-        backgroundColor: '#ffffff',
+        flex: 1, backgroundColor: '#FFFFFF',
     },
     backgroundGradient: {
         position: 'absolute',

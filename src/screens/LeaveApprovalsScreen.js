@@ -595,7 +595,7 @@ const LeaveApprovalsScreen = () => {
 
                         <View style={styles.dialogFooter}>
                             <TouchableOpacity 
-                                style={[styles.cancelBtn, { flex: 1, backgroundColor: '#F1F5F9' }]} 
+                                style={[styles.cancelBtn, { flex: 1, backgroundColor: '#FFFFFF' }]} 
                                 onPress={() => setTrailModalVisible(false)}
                             >
                                 <Text style={[styles.cancelBtnText, { color: '#475569' }]}>Close Trail View</Text>
@@ -662,7 +662,7 @@ const LeaveApprovalsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    screenContainer: { flex: 1, backgroundColor: '#F1F5F9' },
+    screenContainer: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Tab Navigation Row
     tabContainer: { 

@@ -988,7 +988,7 @@ const EmployeeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    mainContainer: { flex: 1, backgroundColor: '#F8FAFC' },
+    mainContainer: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Action bar
     filterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, alignItems: 'center', gap: 8, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },

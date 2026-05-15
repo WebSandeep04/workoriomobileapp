@@ -433,7 +433,7 @@ const CallingAllScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F7F8FC' },
+    container: { flex: 1, backgroundColor: '#FFFFFF' },
     
     statsWrapper: {
         flexDirection: 'row', justifyContent: 'space-between',

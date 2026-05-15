@@ -1124,7 +1124,7 @@ const Subscription = () => {
 export default Subscription;
 
 const styles = StyleSheet.create({
-    wrapper: { flex: 1, backgroundColor: '#F8FAFC' },
+    wrapper: { flex: 1, backgroundColor: '#FFFFFF' },
     scrollContainer: { padding: 16, paddingBottom: 100 },
     
     // Top Statistics
@@ -1353,7 +1353,7 @@ const styles = StyleSheet.create({
     historyDotWrap: { alignItems: 'center', marginRight: 12 },
     historyDot: { width: 10, height: 10, borderRadius: 5, marginTop: 6 },
     historyLine: { flex: 1, width: 2, backgroundColor: '#E2E8F0', marginVertical: 4 },
-    historyInfo: { flex: 1, backgroundColor: '#F8FAFC', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' },
+    historyInfo: { flex: 1, backgroundColor: '#FFFFFF', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' },
     rowBetween: { flexDirection: 'row', justifyContent: 'space-between' },
     historyPeriod: { fontSize: 12, fontWeight: 'bold', color: '#1E293B' },
     historyStatus: { fontSize: 10, fontWeight: 'bold' },

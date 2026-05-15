@@ -590,10 +590,7 @@ export default function TrackingScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F8FAFC'
-    },
+    container: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Loading & Empty states
     loadingWrapper: {

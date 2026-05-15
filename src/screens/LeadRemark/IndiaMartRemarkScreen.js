@@ -154,7 +154,7 @@ const IndiaMartRemarkScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F3F4F6' },
+    container: { flex: 1, backgroundColor: '#FFFFFF' },
     content: { padding: 16, paddingBottom: 40 },
     
     bannerCard: { backgroundColor: '#FFF', borderRadius: 12, padding: 16, marginBottom: 16, elevation: 1 },

@@ -1106,7 +1106,7 @@ const MyLeadGenScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    screenBase: { flex: 1, backgroundColor: '#F8FAFC' },
+    screenBase: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Web-style Scrolling metric cards
     cardScrollWrapper: { paddingHorizontal: 12, paddingTop: 12, gap: 10, flexDirection: 'row' },

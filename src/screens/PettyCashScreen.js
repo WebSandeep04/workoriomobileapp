@@ -882,7 +882,7 @@ const PettyCashScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    mainWrapper: { flex: 1, backgroundColor: '#F8FAFC' },
+    mainwrapper: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // 1. Metrics Strip styling
     metricsRibbon: { 
