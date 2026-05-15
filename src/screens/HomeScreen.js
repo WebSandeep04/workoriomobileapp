@@ -257,19 +257,12 @@ export default function HomeScreen({ navigation }) {
                 activeOpacity={0.75}
                 onPress={() => navigation.navigate(route)}
             >
-                {/* Crisp Concentric Outer Halo Ring with Soft Pastel Lagoon */}
+                {/* Solid Static Bright Colored Circle Icon Block */}
                 <View style={[
                     styles.gpayOuterRing,
-                    { borderColor: color + '2E', backgroundColor: color + '0C' }
+                    { backgroundColor: color }
                 ]}>
-
-                    {/* Solid Pure White Inner Disc containing Vivid Icon */}
-                    <View style={[
-                        styles.gpayInnerCircle,
-
-                    ]}>
-                        <Ionicons name={getIcon(iconRaw)} size={21} color={color} />
-                    </View>
+                    <Ionicons name={getIcon(iconRaw)} size={22} color="#FFFFFF" />
                 </View>
 
                 {/* Fixed-Height Label Wrapper to ensure perfect row-baseline grids */}
@@ -548,7 +541,7 @@ const styles = StyleSheet.create({
     gpaySectionHeading: {
         fontSize: 12,
         fontWeight: '800',
-        color: '#5F6368',
+        color: '#000000',
         letterSpacing: 1,
         marginBottom: 16,
         textTransform: 'uppercase'
@@ -566,17 +559,9 @@ const styles = StyleSheet.create({
         width: 58,
         height: 58,
         borderRadius: 29,
-        borderWidth: 1.5,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 8,
-    },
-    gpayInnerCircle: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     labelWrapper: {
         width: '100%',
