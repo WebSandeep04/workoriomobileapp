@@ -722,7 +722,7 @@ const AttendanceReportScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    mainwrapper: { flex: 1, backgroundColor: '#FFFFFF' },
+    mainWrapper: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Tab bar Navigation Styling
     tabsBar: { 
@@ -781,18 +781,19 @@ const styles = StyleSheet.create({
     actionBtnTxt: { color: '#FFF', fontWeight: '800', fontSize: 14 },
 
     // Stat scroller mini tokens
-    statScroller: { paddingHorizontal: 16, gap: 12, paddingVertical: 14 },
+    statScroller: { paddingHorizontal: 16, gap: 12, paddingVertical: 14, flexDirection: 'row', alignItems: 'center' },
     statMiniCard: { 
         backgroundColor: '#FFF', 
         borderWidth: 1, 
         borderColor: '#E2E8F0', 
         borderRadius: 10, 
-        paddingHorizontal: 12, 
+        paddingHorizontal: 14, 
         paddingVertical: 10,
         flexDirection: 'row', 
         alignItems: 'center', 
         gap: 10,
-        minWidth: 130
+        minWidth: 140,
+        flexShrink: 0
     },
     statIconCirc: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
     statSub: { fontSize: 10, color: '#94A3B8', fontWeight: '700', textTransform: 'uppercase' },
@@ -817,16 +818,17 @@ const styles = StyleSheet.create({
     },
     userLogCardHead: { 
         flexDirection: 'row', 
-        padding: 14, 
+        padding: 16, 
         justifyContent: 'space-between', 
-        alignItems: 'center' 
+        alignItems: 'center',
+        minHeight: 72
     },
-    logDateTxt: { fontSize: 14, color: '#1E293B', fontWeight: '800' },
-    statusLabelPill: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+    logDateTxt: { fontSize: 15, color: '#1E293B', fontWeight: '800' },
+    statusLabelPill: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginTop: 6 },
     statusLabelTxt: { fontSize: 10, fontWeight: '800' },
     wfhPill: { backgroundColor: '#64748B', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
     wfhPillTxt: { color: '#FFF', fontSize: 9, fontWeight: '800' },
-    logDurationTxt: { fontSize: 14, fontWeight: '800', color: '#434AFA' },
+    logDurationTxt: { fontSize: 15, fontWeight: '800', color: '#434AFA' },
 
     expandedLogsBody: { 
         backgroundColor: '#F8FAFC', 

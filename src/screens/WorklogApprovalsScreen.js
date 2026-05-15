@@ -449,7 +449,7 @@ const WorklogApprovalsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    screenwrapper: { flex: 1, backgroundColor: '#FFFFFF' },
+    screenWrapper: { flex: 1, backgroundColor: '#FFFFFF' },
     
     // Pure wide toolbar design
     utilityDockBar: { 
