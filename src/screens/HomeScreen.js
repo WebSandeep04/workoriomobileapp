@@ -117,6 +117,59 @@ const getIcon = (raw) => {
     return BOOTSTRAP_ICON_MAP[raw] || 'cube-outline';
 };
 
+// --- Dynamic Showcase Metadata for Dashboard Sections ---
+const SECTION_SPOTLIGHT_METADATA = {
+    'admin_sales_operational': {
+        tag: 'Sales Workbench',
+        desc: 'Track conversions, lead pipelines, and manage outreach channels.',
+        icon: 'trending-up-outline',
+        color: '#8B5CF6'
+    },
+    'admin_tele_calling': {
+        tag: 'Active Campaigns',
+        desc: 'Execute outbound calls, verify outcomes, and track conversions.',
+        icon: 'call-outline',
+        color: '#06B6D4'
+    },
+    'admin_worklog_operational': {
+        tag: 'Timesheet Console',
+        desc: 'Maintain transparent worklogs and review weekly productivity records.',
+        icon: 'time-outline',
+        color: '#F59E0B'
+    },
+    'admin_tasks': {
+        tag: 'Priority Hub',
+        desc: 'Manage assigned assignments, timelines, and urgent notifications.',
+        icon: 'checkmark-done-circle-outline',
+        color: '#EF4444'
+    },
+    'admin_attendance_operational': {
+        tag: 'Attendance Log',
+        desc: 'Monitor clock-in states, track shift metrics, and manage leave balances.',
+        icon: 'calendar-outline',
+        color: '#10B981'
+    },
+    'admin_reports': {
+        tag: 'Business Analytics',
+        desc: 'Generate insightful data visualisations and team report cards.',
+        icon: 'stats-chart-outline',
+        color: '#3B82F6'
+    },
+    'approvals_section': {
+        tag: 'Authority Desk',
+        desc: 'Approve vouchers, attendance overrides, and critical request queues.',
+        icon: 'shield-checkmark-outline',
+        color: '#059669'
+    }
+};
+
+const DEFAULT_SPOTLIGHT = {
+    tag: 'Operations Console',
+    desc: 'Access all underlying modules, tools and operations controls.',
+    icon: 'cube-outline',
+    color: '#6366F1'
+};
+
 
 export default function HomeScreen({ navigation }) {
     const dispatch = useDispatch();
@@ -246,6 +299,32 @@ export default function HomeScreen({ navigation }) {
     }, [dynamicDashboard]);
 
 
+    // --- PREMIUM MODERN SPOTLIGHT CARDS INJECTOR ---
+    const renderSectionBanner = (section) => {
+        const meta = SECTION_SPOTLIGHT_METADATA[section.key] || DEFAULT_SPOTLIGHT;
+        
+        return (
+            <View style={[
+                styles.spotlightCard, 
+                { backgroundColor: `${meta.color}0A`, borderLeftColor: meta.color }
+            ]}>
+                <View style={styles.spotlightContent}>
+                    <View style={[styles.spotlightTag, { backgroundColor: `${meta.color}1A` }]}>
+                        <Text style={[styles.spotlightTagText, { color: meta.color }]}>{meta.tag}</Text>
+                    </View>
+                    <Text style={styles.spotlightDesc} numberOfLines={2}>
+                        {meta.desc}
+                    </Text>
+                </View>
+                
+                {/* Faded oversized icon abstract bg accent */}
+                <View style={styles.spotlightGraphic}>
+                    <Ionicons name={meta.icon} size={54} color={`${meta.color}20`} />
+                </View>
+            </View>
+        );
+    };
+
     // --- GOOGLE PAY STYLE CONCENTRIC CIRCLE SHORTCUT RENDERER ---
     const renderModuleCircle = (title, route, iconRaw, index) => {
         const color = getItemColor(title, route, index);
@@ -331,6 +410,7 @@ export default function HomeScreen({ navigation }) {
                             {dynamicDashboard.resolvedSections.map((sec) => (
                                 <View key={sec.key} style={styles.gpaySectionBlock}>
                                     <Text style={styles.gpaySectionHeading}>{sec.title}</Text>
+                                    {renderSectionBanner(sec)}
                                     <View style={styles.gpayCirclesGrid}>
                                         {(sec.items || []).map((child, childIdx) =>
                                             renderModuleCircle(child.title, child.route, child.icon, childIdx)
@@ -749,5 +829,47 @@ const styles = StyleSheet.create({
         backgroundColor: '#F1F5F9',
         marginHorizontal: 24,
         marginVertical: 14
+    },
+    // --- Spotlight Section Spotlight Cards ---
+    spotlightCard: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderRadius: 14,
+        borderLeftWidth: 4,
+        padding: 14,
+        marginBottom: 18,
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    spotlightContent: {
+        flex: 1,
+        paddingRight: 24, // Safe buffer from oversized absolute graphic
+        zIndex: 2,
+    },
+    spotlightTag: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+        marginBottom: 6,
+    },
+    spotlightTagText: {
+        fontSize: 10,
+        fontWeight: '800',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    spotlightDesc: {
+        fontSize: 11,
+        color: '#475569',
+        fontWeight: '600',
+        lineHeight: 16,
+    },
+    spotlightGraphic: {
+        position: 'absolute',
+        right: -6,
+        bottom: -12,
+        zIndex: 1,
     }
 });
