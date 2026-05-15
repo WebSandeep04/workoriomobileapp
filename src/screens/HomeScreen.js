@@ -397,6 +397,16 @@ export default function HomeScreen({ navigation }) {
                             {/* A. Multiple Non-Dropdown Standalone Apps grouped in same Row */}
                             {dynamicDashboard.standaloneItems.length > 0 && (
                                 <View style={styles.gpaySectionBlock}>
+                                    {/* Faint Background Vector Watermark */}
+                                    <View style={styles.sectionWatermarkBox} pointerEvents="none">
+                                        <Ionicons 
+                                            name="apps-outline" 
+                                            size={140} 
+                                            color="#434AFA" 
+                                            style={{ opacity: 0.04, transform: [{ rotate: '-12deg' }] }} 
+                                        />
+                                    </View>
+
                                     <Text style={styles.gpaySectionHeading}>CORE ACTIONS</Text>
                                     <View style={styles.gpayCirclesGrid}>
                                         {dynamicDashboard.standaloneItems.map((item, index) =>
@@ -407,17 +417,33 @@ export default function HomeScreen({ navigation }) {
                             )}
 
                             {/* B. Dropdown Groups */}
-                            {dynamicDashboard.resolvedSections.map((sec) => (
-                                <View key={sec.key} style={styles.gpaySectionBlock}>
-                                    <Text style={styles.gpaySectionHeading}>{sec.title}</Text>
-                                    {renderSectionBanner(sec)}
-                                    <View style={styles.gpayCirclesGrid}>
-                                        {(sec.items || []).map((child, childIdx) =>
-                                            renderModuleCircle(child.title, child.route, child.icon, childIdx)
-                                        )}
+                            {dynamicDashboard.resolvedSections.map((sec) => {
+                                const sectionColor = SECTION_SPOTLIGHT_METADATA[sec.key]?.color || '#6366F1';
+                                const sectionIcon = SECTION_SPOTLIGHT_METADATA[sec.key]?.icon || getIcon(sec.icon);
+
+                                return (
+                                    <View key={sec.key} style={styles.gpaySectionBlock}>
+                                        
+                                        {/* Soft Category Watermark Accent */}
+                                        <View style={styles.sectionWatermarkBox} pointerEvents="none">
+                                            <Ionicons 
+                                                name={sectionIcon} 
+                                                size={140} 
+                                                color={sectionColor} 
+                                                style={{ opacity: 0.04, transform: [{ rotate: '-12deg' }] }} 
+                                            />
+                                        </View>
+
+                                        <Text style={styles.gpaySectionHeading}>{sec.title}</Text>
+                                        {renderSectionBanner(sec)}
+                                        <View style={styles.gpayCirclesGrid}>
+                                            {(sec.items || []).map((child, childIdx) =>
+                                                renderModuleCircle(child.title, child.route, child.icon, childIdx)
+                                            )}
+                                        </View>
                                     </View>
-                                </View>
-                            ))}
+                                );
+                            })}
                         </>
                     )}
                 </View>
@@ -441,7 +467,7 @@ export default function HomeScreen({ navigation }) {
                         {/* Unified Hub Header */}
                         <View style={styles.hubHeader}>
                             <View>
-                                <Text style={styles.hubMainTitle}>Notice Board</Text>
+                                <Text style={styles.hubMainTitle}>Occasions Hub</Text>
                                 <Text style={styles.hubSubtitle}>Today's highlights & alerts</Text>
                             </View>
                             
@@ -616,7 +642,15 @@ const styles = StyleSheet.create({
     },
     // --- Google Pay UI Style Section ---
     gpaySectionBlock: {
-        marginBottom: 28
+        marginBottom: 28,
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    sectionWatermarkBox: {
+        position: 'absolute',
+        bottom: -25,
+        right: -25,
+        zIndex: 0,
     },
     gpaySectionHeading: {
         fontSize: 12,
@@ -774,10 +808,10 @@ const styles = StyleSheet.create({
         paddingTop: 12,
         paddingBottom: 16, // Safe padding from bottom screen edge
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: -12 },
-        shadowOpacity: 0.15,
-        shadowRadius: 24,
-        elevation: 24,
+        shadowOffset: { width: 0, height: -8 },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+        elevation: 12,
         zIndex: 999999 // Highest active visual stack layer
     },
     dragHandle: {

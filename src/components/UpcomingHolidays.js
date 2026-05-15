@@ -4,8 +4,6 @@ import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 const { width } = Dimensions.get('window');
 
 const HolidayItem = ({ name, date, day }) => {
-    // Determine the background color based on the date logic or random/alternating if desired?
-    // For now, I'll match the blue reference image provided by the user.
     return (
         <View style={styles.card}>
             <View style={styles.contentContainer}>
@@ -13,14 +11,13 @@ const HolidayItem = ({ name, date, day }) => {
                 <Text style={styles.holidayDate}>{date}</Text>
                 <Text style={styles.holidayDay}>{day}</Text>
             </View>
-            <View style={styles.decorationCircle} />
         </View>
     );
 };
 
 const UpcomingHolidays = ({ holidays = [] }) => {
     if (!holidays || holidays.length === 0) {
-        return null; // Or render an empty state if preferred
+        return null;
     }
 
     return (
@@ -47,63 +44,50 @@ const UpcomingHolidays = ({ holidays = [] }) => {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 20
+        marginTop: 16
     },
     title: {
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '800',
         color: '#1E293B',
-        marginBottom: 14,
-        paddingHorizontal: 24
+        marginBottom: 12,
+        paddingHorizontal: 24,
+        letterSpacing: -0.2
     },
     listContainer: {
         paddingHorizontal: 24,
-        paddingBottom: 16 // Crucial buffer for elevated shadows!
+        paddingBottom: 8
     },
     card: {
-        width: width * 0.42, // Approximately 40-45% of screen width
-        height: 100,
-        backgroundColor: '#434AFA', // Primary blue color
+        width: width * 0.38, // Slightly narrower for elegant layout
+        height: 82,
+        backgroundColor: '#F8FAFC', // Clean neutral base
         borderRadius: 12,
         padding: 12,
         marginRight: 12,
         justifyContent: 'center',
-        overflow: 'hidden',
-        position: 'relative',
-        shadowColor: '#434AFA',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
+        borderWidth: 1,
+        borderColor: '#F1F5F9', // Delicate flat border
     },
     contentContainer: {
-        zIndex: 2,
+        justifyContent: 'center',
     },
     holidayName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
+        fontSize: 13,
+        fontWeight: '800',
+        color: '#1E293B',
         marginBottom: 4,
     },
     holidayDate: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#E0E7FF',
-        marginBottom: 2,
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#434AFA', // Crisp contrast brand highlight
+        marginBottom: 1,
     },
     holidayDay: {
-        fontSize: 12,
-        color: '#C7D2FE',
-    },
-    decorationCircle: {
-        position: 'absolute',
-        bottom: -20,
-        right: -20,
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        zIndex: 1,
+        fontSize: 10,
+        fontWeight: '600',
+        color: '#94A3B8',
     }
 });
 
