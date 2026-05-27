@@ -4,6 +4,8 @@ import api, { setApiToken, setTenantId } from '../../api/client';
 
 const REQUIRED_VERSION = '1.0';
 
+// testing for version
+
 const initialState = {
   user: null,
   token: null,
@@ -66,13 +68,12 @@ export const initAuth = createAsyncThunk('auth/initAuth', async () => {
 
     if (storedVersion && storedVersion !== REQUIRED_VERSION) {
       console.log(`Version mismatch: Stored ${storedVersion} vs Required ${REQUIRED_VERSION}`);
-      // Do not log out, just flag the mismatch
-      // await AsyncStorage.removeItem('auth_token');
-      // await AsyncStorage.removeItem('user_data');
-      // await AsyncStorage.removeItem('app_version');
-      // setApiToken(null);
-      // setTenantId(null);
-      // return { token: null, user: null, versionMismatch: true };
+      await AsyncStorage.removeItem('auth_token');
+      await AsyncStorage.removeItem('user_data');
+      await AsyncStorage.removeItem('app_version');
+      setApiToken(null);
+      setTenantId(null);
+      return { token: null, user: null, versionMismatch: true };
     }
 
     if (token && userData) {
