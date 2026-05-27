@@ -142,35 +142,51 @@ const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
         <SafeAreaView edges={['top']} style={styles.safeArea}>
             <View style={styles.container}>
                 
-                {/* Left Section: Avatar/Back + Left-Aligned Typography */}
-                <View style={styles.leftSection}>
-                    {showBack ? (
-                        <TouchableOpacity 
-                            style={styles.backButton} 
-                            activeOpacity={0.7}
-                            onPress={() => navigation.goBack()}
-                        >
-                            <Ionicons name="chevron-back-outline" size={22} color="#1E293B" />
-                        </TouchableOpacity>
-                    ) : (
-                        <TouchableOpacity 
-                            style={styles.avatarCircle} 
-                            activeOpacity={0.8}
-                            onPress={() => navigation.navigate('Profile')}
-                        >
-                            <Text style={styles.avatarText}>
-                                {getInitials(user?.name || user?.username)}
-                            </Text>
-                        </TouchableOpacity>
-                    )}
+               {/* Left Section: Avatar/Back + Left-Aligned Typography */}
+<View style={styles.leftSection}>
+    {showBack ? (
+        <TouchableOpacity
+            style={styles.backButton}
+            activeOpacity={0.7}
+            onPress={() => navigation.goBack()}
+        >
+            <Ionicons name="chevron-back-outline" size={22} color="#1E293B" />
+        </TouchableOpacity>
+    ) : (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            
+            {/* Hamburger Toggle */}
+            <TouchableOpacity
+                style={styles.menuButton}
+                activeOpacity={0.7}
+                onPress={() => navigation.openDrawer()}
+            >
+                <Ionicons name="menu-outline" size={26} color="#1E293B" />
+            </TouchableOpacity>
 
-                    <View style={styles.titleArea}>
-                        <Text style={styles.titleText} numberOfLines={1}>{title}</Text>
-                        <Text style={styles.subtitleText} numberOfLines={1}>
-                            {subtitle || getDateString()}
-                        </Text>
-                    </View>
-                </View>
+            {/* Avatar */}
+            <TouchableOpacity
+                style={styles.avatarCircle}
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('Profile')}
+            >
+                <Text style={styles.avatarText}>
+                    {getInitials(user?.name || user?.username)}
+                </Text>
+            </TouchableOpacity>
+        </View>
+    )}
+
+    <View style={styles.titleArea}>
+        <Text style={styles.titleText} numberOfLines={1}>
+            {title}
+        </Text>
+
+        <Text style={styles.subtitleText} numberOfLines={1}>
+            {subtitle || getDateString()}
+        </Text>
+    </View>
+</View>
 
                 {/* Right Section: Action Bell with Unread Indicator */}
                 <View style={styles.rightSection}>
@@ -217,6 +233,14 @@ const styles = StyleSheet.create({
         flex: 1,
         marginRight: 12,
     },
+
+    menuButton: {
+        marginRight: 10,
+        padding: 6,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     backButton: {
         width: 38,
         height: 38,
