@@ -4,6 +4,8 @@ import api, { setApiToken, setTenantId } from '../../api/client';
 
 const REQUIRED_VERSION = '1.1';
 
+// testing for version
+
 const initialState = {
   user: null,
   token: null,
