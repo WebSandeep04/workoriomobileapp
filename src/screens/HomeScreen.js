@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
         color: '#434AFA',
         letterSpacing: 1,
         marginTop: 4,
-        textTransform: 'uppercase'
+        textTransform: 'capitalize'
     },
     statBubble: {
         backgroundColor: '#EEF2FF',
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
         fontSize: 8,
         fontWeight: '700',
         color: '#6366F1',
-        textTransform: 'uppercase'
+        textTransform: 'capitalize'
     },
 
     // Search Block
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
         color: '#000000',
         letterSpacing: 1,
         marginBottom: 16,
-        textTransform: 'uppercase'
+        textTransform: 'capitalize'
     },
     gpayCirclesGrid: {
         flexDirection: 'row',
@@ -889,7 +889,7 @@ const styles = StyleSheet.create({
     spotlightTagText: {
         fontSize: 10,
         fontWeight: '800',
-        textTransform: 'uppercase',
+        textTransform: 'capitalize',
         letterSpacing: 0.5,
     },
     spotlightDesc: {
