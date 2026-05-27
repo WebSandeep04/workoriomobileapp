@@ -923,7 +923,7 @@ const styles = StyleSheet.create({
         fontSize: 10, 
         fontWeight: '700', 
         color: '#94A3B8', 
-        textTransform: 'uppercase' 
+        textTransform: 'capitalize' 
     },
 
     // 2. Top Action Search Row styling
@@ -1099,7 +1099,7 @@ const styles = StyleSheet.create({
         color: '#312E81', 
         padding: 10, 
         textAlign: 'left', 
-        textTransform: 'uppercase' 
+        textTransform: 'capitalize' 
     },
     tableRowBody: { 
         flexDirection: 'row', 
