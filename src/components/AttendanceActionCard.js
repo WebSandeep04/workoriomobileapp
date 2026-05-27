@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         marginTop: 4,
-        textTransform: 'uppercase',
+        textTransform: 'capitalize',
         letterSpacing: 0.8,
     },
     secondaryRow: {

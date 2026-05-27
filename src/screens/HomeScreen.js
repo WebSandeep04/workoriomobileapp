@@ -408,7 +408,7 @@ export default function HomeScreen({ navigation }) {
                                         />
                                     </View>
 
-                                    <Text style={styles.gpaySectionHeading}>CORE ACTIONS</Text>
+                                    <Text style={styles.gpaySectionHeading}>Core Actions</Text>
                                     <View style={styles.gpayCirclesGrid}>
                                         {dynamicDashboard.standaloneItems.map((item, index) =>
                                             renderModuleCircle(item.title, item.route, item.icon, index)

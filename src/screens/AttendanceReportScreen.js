@@ -482,7 +482,7 @@ const AttendanceReportScreen = () => {
                                         </View>
                                         <View style={[styles.statusLabelPill, { backgroundColor: styleCfg.bg }]}>
                                             <Text style={[styles.statusLabelTxt, { color: styleCfg.txt }]}>
-                                                {styleCfg.label.toUpperCase()}
+                                                {styleCfg.label}
                                                 {item.holiday_name ? `: ${item.holiday_name}` : ''}
                                             </Text>
                                         </View>
@@ -502,7 +502,7 @@ const AttendanceReportScreen = () => {
                                         <View style={styles.breakdownList}>
                                             {item.movements.map((m, idx) => {
                                                 const actIn = String(m.movement_action || m.action).toLowerCase() === 'in' || String(m.movement_action || m.action).toLowerCase() === 'start';
-                                                const mType = String(m.movement_type || m.type).toUpperCase();
+                                                const mType = String(m.movement_type || m.type);
                                                 return (
                                                     <View key={idx} style={styles.movementItemRow}>
                                                         <View style={[styles.lineIndicator, actIn ? styles.indicatorIn : styles.indicatorOut]} />
@@ -578,7 +578,7 @@ const AttendanceReportScreen = () => {
                                         <Text style={styles.matrixUserName} numberOfLines={1}>{row.user?.name}</Text>
                                     </View>
                                     {row.daily_statuses?.map((ds, sIdx) => {
-                                        const code = String(ds.code || '-').toUpperCase();
+                                        const code = String(ds.code || '-');
                                         const cfg = getStatusColorConfig(code);
                                         return (
                                             <View key={sIdx} style={[styles.matrixCell, { width: cellWidth }]}>
@@ -629,7 +629,7 @@ const AttendanceReportScreen = () => {
                                         <Text style={styles.empName} numberOfLines={1}>{item.user?.name}</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
                                             <View style={[styles.statusPillMini, { backgroundColor: cfg.bg }]}>
-                                                <Text style={[styles.statusPillMiniTxt, { color: cfg.txt }]}>{cfg.label.toUpperCase()}</Text>
+                                                <Text style={[styles.statusPillMiniTxt, { color: cfg.txt }]}>{cfg.label}</Text>
                                             </View>
                                             {!!item.is_wfh && <Text style={styles.wfhSmallTag}>WFH</Text>}
                                         </View>
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
         gap: 10
     },
     fieldGroup: { },
-    fieldLabel: { fontSize: 11, color: '#64748B', fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
+    fieldLabel: { fontSize: 11, color: '#64748B', fontWeight: '700', textTransform: 'capitalize', marginBottom: 4 },
     customTrigger: { 
         height: 44, 
         borderRadius: 8, 
@@ -796,7 +796,7 @@ const styles = StyleSheet.create({
         flexShrink: 0
     },
     statIconCirc: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-    statSub: { fontSize: 10, color: '#94A3B8', fontWeight: '700', textTransform: 'uppercase' },
+    statSub: { fontSize: 10, color: '#94A3B8', fontWeight: '700', textTransform: 'capitalize' },
     statVal: { fontSize: 16, fontWeight: '800' },
 
     // Common Blank Box setup
@@ -888,7 +888,7 @@ const styles = StyleSheet.create({
     },
     matrixColHeaderTxt: { fontSize: 9, color: '#64748B', fontWeight: '800', textAlign: 'center' },
     dateDigit: { fontSize: 12, fontWeight: '800', color: '#1E293B' },
-    dateDayName: { fontSize: 8, color: '#94A3B8', textTransform: 'uppercase' },
+    dateDayName: { fontSize: 8, color: '#94A3B8', textTransform: 'capitalize' },
     matrixUserName: { fontSize: 11, color: '#1E293B', fontWeight: '700' },
     codeMarker: { width: 22, height: 22, borderRadius: 4, justifyContent: 'center', alignItems: 'center' },
     codeMarkerTxt: { fontSize: 10, fontWeight: '800' },
