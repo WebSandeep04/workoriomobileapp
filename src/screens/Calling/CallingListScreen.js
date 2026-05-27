@@ -14,7 +14,7 @@ import {
     Platform
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import DocumentPicker, { types } from 'react-native-document-picker';
+import * as DocumentPicker from '@react-native-documents/picker';
 import api from '../../api/client';
 import Header from '../../components/Header';
 
@@ -72,29 +72,26 @@ const CallingListScreen = () => {
     };
 
     const handlePickFile = async () => {
-        // Safety check for missing native modules if user hasn't rebuilt the binary
-        if (!DocumentPicker || typeof DocumentPicker.pickSingle !== 'function') {
-            Alert.alert(
-                'Native Module Pending',
-                'Document Picker requires a native rebuild. Please terminate Metro and run "npm run android" to compile the new assets!'
-            );
-            return;
-        }
+    try {
+        const [res] = await DocumentPicker.pick({
+            allowMultiSelection: false,
+            type: [DocumentPicker.types.allFiles],
+        });
 
-        try {
-            const res = await DocumentPicker.pickSingle({
-                type: [types.allFiles], // Allows picking CSV / TXT safely across iOS & Android
-            });
-            setPickedFile(res);
-        } catch (err) {
-            if (DocumentPicker.isCancel(err)) {
-                console.log('User cancelled file selection');
-            } else {
-                console.log('Error picking document:', err);
-                Alert.alert('Error', 'Failed to open document selection interface.');
-            }
+        console.log('Picked File:', res);
+
+        setPickedFile(res);
+    } catch (err) {
+        console.log('Document Picker Error:', err);
+
+        if (!DocumentPicker.isCancel(err)) {
+            Alert.alert(
+                'Error',
+                'Failed to open document selection interface.'
+            );
         }
-    };
+    }
+};
 
     const handleUploadSubmit = async () => {
         if (!importName.trim()) {
