@@ -24,9 +24,9 @@ const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
         if (!name) return 'U';
         const parts = name.trim().split(/\s+/);
         if (parts.length >= 2) {
-            return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+            return `${parts[0][0]}${parts[1][0]}`;
         }
-        return name.substring(0, 2).toUpperCase();
+        return name.substring(0, 2);
     };
 
     // Context-Aware Premium System Notifications 
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
         fontSize: 9,
         fontWeight: '700',
         color: '#94A3B8',
-        textTransform: 'uppercase',
+        textTransform: 'capitalize',
         letterSpacing: 0.8,
         marginTop: 1,
     },
