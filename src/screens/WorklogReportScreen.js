@@ -18,6 +18,9 @@ import Toast from 'react-native-toast-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../api/client';
 
+
+const isSmallDevice = Dimensions.get('window').width < 380;
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const WorklogReportScreen = () => {
@@ -472,30 +475,54 @@ const WorklogReportScreen = () => {
 
                 {/* Bottom Control Strip: Group By & Submit Button */}
                 <View style={styles.actionStrip}>
-                    {activeTab === 'timesheet' ? (
-                        <View style={styles.groupCtrl}>
-                            <Switch
-                                value={groupByUser}
-                                onValueChange={setGroupByUser}
-                                trackColor={{ false: "#CBD5E1", true: "#C7D2FE" }}
-                                thumbColor={groupByUser ? "#434AFA" : "#94A3B8"}
-                                ios_backgroundColor="#E2E8F0"
-                            />
-                            <Text style={styles.groupCtrlLabel}>Group By Employee</Text>
-                        </View>
-                    ) : <View />}
+    {activeTab === 'timesheet' ? (
+        <View style={styles.groupCtrl}>
+            <Switch
+                value={groupByUser}
+                onValueChange={setGroupByUser}
+                trackColor={{ false: "#CBD5E1", true: "#C7D2FE" }}
+                thumbColor={groupByUser ? "#434AFA" : "#94A3B8"}
+                ios_backgroundColor="#E2E8F0"
+            />
 
-                    <TouchableOpacity style={styles.queryBtn} onPress={runReportQuery} disabled={loading}>
-                        {loading ? (
-                            <ActivityIndicator size="small" color="#FFF" />
-                        ) : (
-                            <>
-                                <Ionicons name="play-circle" size={18} color="#FFF" style={{ marginRight: 6 }} />
-                                <Text style={styles.queryBtnTxt}>Load Analysis</Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
-                </View>
+            <Text
+                style={styles.groupCtrlLabel}
+                numberOfLines={2}
+            >
+                Group By Employee
+            </Text>
+        </View>
+    ) : (
+        <View />
+    )}
+
+    <TouchableOpacity
+        style={styles.queryBtn}
+        onPress={runReportQuery}
+        disabled={loading}
+        activeOpacity={0.8}
+    >
+        {loading ? (
+            <ActivityIndicator size="small" color="#FFF" />
+        ) : (
+            <>
+                <Ionicons
+                    name="play-circle"
+                    size={18}
+                    color="#FFF"
+                    style={{ marginRight: 6 }}
+                />
+
+                <Text
+                    style={styles.queryBtnTxt}
+                    numberOfLines={1}
+                >
+                    Load Analysis
+                </Text>
+            </>
+        )}
+    </TouchableOpacity>
+</View>
             </View>
         );
     };
@@ -786,9 +813,48 @@ const styles = StyleSheet.create({
     triggerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     triggerTxt: { fontSize: 12, color: '#64748B', flex: 1 },
 
-    actionStrip: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
-    groupCtrl: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    groupCtrlLabel: { fontSize: 12, fontWeight: '700', color: '#475569' },
+    actionStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+    gap: 12,
+    flexWrap: 'wrap',
+},
+
+groupCtrl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 140,
+    paddingRight: 8,
+},
+
+groupCtrlLabel: {
+    marginLeft: 8,
+    fontSize: 15,
+    color: '#475569',
+    fontWeight: '600',
+    flexShrink: 1,
+},
+
+queryBtn: {
+    backgroundColor: '#434AFA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: isSmallDevice ? 12 : 14,
+    paddingHorizontal: isSmallDevice ? 12 : 18,
+    borderRadius: 14,
+    minWidth: isSmallDevice ? 140 : 170,
+    flexShrink: 1,
+},
+
+queryBtnTxt: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
+},
     
     queryBtn: { height: 38, backgroundColor: '#434AFA', borderRadius: 8, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 },
     queryBtnTxt: { color: '#FFF', fontWeight: '800', fontSize: 13 },
