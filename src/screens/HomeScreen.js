@@ -185,7 +185,7 @@ export default function HomeScreen({ navigation }) {
     const [searchQuery, setSearchQuery] = useState('');
 
     // Toggle Slide-up Unified Special Events Hub Modal (Wishes + Holidays)
-    const [showEventsHub, setShowEventsHub] = useState(false);
+    // const [showEventsHub, setShowEventsHub] = useState(false);
 
     // Dynamic Greetings
     const greeting = useMemo(() => {
@@ -449,62 +449,47 @@ export default function HomeScreen({ navigation }) {
                     )}
                 </View>
 
+                <View style={styles.eventsContent}>
+
+    {wishes.length > 0 && (
+        <>
+            <Text style={styles.eventsSubHeading}>
+                Birthdays
+            </Text>
+
+            <View style={styles.eventsInnerCard}>
+                <WishThem
+                    wishes={wishes}
+                    title=""
+                />
+            </View>
+        </>
+    )}
+
+    {holidays?.length > 0 && (
+        <>
+            <Text
+                style={[
+                    styles.eventsSubHeading,
+                    { marginTop: 12 }
+                ]}
+            >
+                Upcoming Holidays
+            </Text>
+
+            <View style={styles.eventsInnerCard}>
+                <UpcomingHolidays
+                    holidays={holidays}
+                />
+            </View>
+        </>
+    )}
+
+</View>
+
             </ScrollView>
-
-            {/* Unified Special Occasions & Holidays Custom Slide-Up Overlay (Bulletproof Decoupled JS Stack) */}
-            {showEventsHub && (
-                <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-                    {/* 1. Backdrop Layer (Separate Sibling: Clicking dismisses, covers whole screen behind drawer) */}
-                    <Pressable 
-                        style={styles.absoluteBackdrop} 
-                        onPress={() => setShowEventsHub(false)}
-                    />
-
-                    {/* 2. Drawer Body (Pure static View: Guaranteed 100% direct swipe events to carousels!) */}
-                    <View style={styles.absoluteDrawerContainer}>
-                        {/* Native-standard pill drag indicator */}
-                        <View style={styles.dragHandle} />
-
-                        {/* Unified Hub Header */}
-                        <View style={styles.hubHeader}>
-                            <View>
-                                <Text style={styles.hubMainTitle}>Occasions Hub</Text>
-                                <Text style={styles.hubSubtitle}>Today's highlights & alerts</Text>
-                            </View>
-                            
-                            <TouchableOpacity 
-                                style={styles.hubCloseCircle}
-                                activeOpacity={0.7} 
-                                onPress={() => setShowEventsHub(false)}
-                            >
-                                <Ionicons name="close" size={22} color="#475569" />
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Drawer Content Body (Flat View prevents vertical conflicts) */}
-                        <View style={styles.hubBodyWrap}>
-                            {/* A. Corporate Calendar Holidays */}
-                            {holidays && holidays.length > 0 && (
-                                <View style={styles.hubSectionBox}>
-                                    <UpcomingHolidays holidays={holidays} />
-                                </View>
-                            )}
-
-                            {/* Seamless Separator Divider */}
-                            {wishes.length > 0 && holidays && holidays.length > 0 && (
-                                <View style={styles.hubDivider} />
-                            )}
-
-                            {/* B. Birthdays / Occasions Section */}
-                            {wishes.length > 0 && (
-                                <View style={styles.hubSectionBox}>
-                                    <WishThem wishes={wishes} title="Happy Occasions! 🎉" />
-                                </View>
-                            )}
-                        </View>
-                    </View>
-                </View>
-            )}
+                    
+            
 
             {/* Application Version Lock Overlay */}
             <Modal
@@ -532,7 +517,7 @@ export default function HomeScreen({ navigation }) {
 
             {/* Single Unified Floating Special Events Hub Pill (Left-Edge) */}
             {/* Placed AT THE ABSOLUTE END of JSX tree to guarantee physical topmost stacking layer in native renderers */}
-            {(wishes.length > 0 || (holidays && holidays.length > 0)) && (
+            {/* {(wishes.length > 0 || (holidays && holidays.length > 0)) && (
                 <TouchableOpacity
                     style={styles.floatingHubBtn}
                     activeOpacity={0.75}
@@ -544,13 +529,58 @@ export default function HomeScreen({ navigation }) {
                 >
                     <Ionicons name="sparkles-outline" size={20} color="#FFFFFF" />
                 </TouchableOpacity>
-            )}
+            )} */}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     mainContainer: { flex: 1, backgroundColor: '#FFFFFF' },
+
+    eventsSection: {
+    marginTop: 8,
+    paddingHorizontal: 16,
+    marginBottom: 24,
+},
+
+eventsTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 12,
+},
+
+eventsCard: {
+    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginTop: -20,
+    padding: 0,
+},
+
+eventsContent: {
+    marginTop: 4,
+},
+
+eventsSubHeading: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#000',
+    letterSpacing: 1,
+    textTransform: 'capitalize',
+    marginBottom: 10,
+    marginLeft: 16,
+},
+
+eventsInnerCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    paddingVertical: 12,
+    marginBottom: 4,
+},
 
     // Hero Header
     heroSection: {
