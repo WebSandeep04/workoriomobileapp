@@ -30,7 +30,7 @@ const UpcomingHolidays = ({ holidays = [] }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Upcoming Holidays :</Text>
+            
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -101,12 +101,14 @@ const styles = StyleSheet.create({
     color: '#0F172A',
 
     minHeight: 34,
-},idayDate: {
+},
+    holidayDate: {
         fontSize: 11,
         fontWeight: '700',
         color: '#8B5CF6', // Crisp contrast brand highlight
         marginBottom: 1,
     },
+
     holidayDay: {
     fontSize: 10,
     fontWeight: '700',

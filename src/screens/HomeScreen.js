@@ -561,6 +561,7 @@ eventsCard: {
 
 eventsContent: {
     marginTop: 4,
+    margin: 12,
 },
 
 eventsSubHeading: {
