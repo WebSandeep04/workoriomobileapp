@@ -136,7 +136,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="attendance.report" component={AttendanceReportScreen} />
       <Drawer.Screen name="reports.worklog" component={WorklogReportScreen} />
       <Drawer.Screen name="tracking.report" component={TrackingReportScreen} />
-      <Drawer.Screen name="contactmanagement.index" component={PlaceholderScreen} />
+      <Drawer.Screen name="contactmanagement.index" component={Scanner} />
       <Drawer.Screen name="asset-management.index" component={PlaceholderScreen} />
       
     </Drawer.Navigator>
