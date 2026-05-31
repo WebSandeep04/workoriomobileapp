@@ -236,7 +236,7 @@ const AttendanceCard = () => {
 
             {/* User Profile Row */}
             <View style={styles.profileRow}>
-                {/* Avatar */}
+                {/* Avatar fix */}
                 <View style={styles.avatarContainer}>
                     {user?.image ? (
                         <Image
