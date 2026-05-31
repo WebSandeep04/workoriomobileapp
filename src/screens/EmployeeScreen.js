@@ -61,6 +61,7 @@ const EmployeeScreen = () => {
     const [placesPickerVisible, setPlacesPickerVisible] = useState(false);
     const [placesSearchQuery, setPlacesSearchQuery] = useState('');
 
+
     function getDefaultForm(emp = null) {
         if (emp) {
             return {
@@ -113,10 +114,18 @@ const EmployeeScreen = () => {
         };
     }
 
+    // LOAD ON FIRST TIME
     useEffect(() => {
         loadEmployees();
         loadFormOptions();
     }, []);
+
+
+    // LOAD WHEN STATUS CHANGES
+    useEffect(() => {
+        loadEmployees();
+    }, [activeStatus]);
+
 
     const loadEmployees = async (showRefreshing = false) => {
         if (showRefreshing) {
@@ -129,7 +138,12 @@ const EmployeeScreen = () => {
             const response = await api.get('/employees', {
                 params: {
                     search: searchQuery,
-                    status: activeStatus
+                    is_active:
+                        activeStatus === 'active'
+                            ? 1
+                            : activeStatus === 'inactive'
+                            ? 0
+                            : ''
                 }
             });
 
@@ -302,6 +316,7 @@ const EmployeeScreen = () => {
             { id: 'active', label: 'Active', count: stats.active, color: '#10B981', icon: 'checkmark-circle' },
             { id: 'inactive', label: 'Inactive', count: stats.inactive, color: '#EF4444', icon: 'close-circle' },
         ];
+        
 
         return (
             <View style={styles.counterRow}>
@@ -313,7 +328,6 @@ const EmployeeScreen = () => {
                             activeOpacity={0.8}
                             onPress={() => {
                                 setActiveStatus(c.id);
-                                setTimeout(() => loadEmployees(), 50);
                             }}
                             style={[
                                 styles.counterCard, 
@@ -400,7 +414,7 @@ const EmployeeScreen = () => {
                             <View style={[styles.matrixCell, { width: 90 }]}><Text style={styles.matrixColHeaderTxt}>STATUS</Text></View>
                         </View>
 
-                        {employees.map((emp, idx) => {
+                        {filteredEmployees.map((emp, idx) => {
                             const isEven = idx % 2 === 0;
                             const bgCol = isEven ? '#FFF' : '#F8FAFC';
                             const isActive = emp.status?.toLowerCase() === 'active';
@@ -827,6 +841,18 @@ const EmployeeScreen = () => {
         );
     };
 
+    const filteredEmployees = employees.filter(emp => {
+    if (activeStatus === 'active') {
+        return emp.status?.toLowerCase() === 'active';
+    }
+
+    if (activeStatus === 'inactive') {
+        return emp.status?.toLowerCase() === 'inactive';
+    }
+
+    return true;
+});
+
     // Dynamic Places Modal Multi-Select Selector
     const renderPlacesPickerModal = () => {
         const placesOptions = options.places || [];
@@ -935,7 +961,7 @@ const EmployeeScreen = () => {
 
             {viewMode === 'card' ? (
                 <FlatList
-                    data={employees}
+                    data={filteredEmployees}
                     keyExtractor={(item) => item.id?.toString()}
                     renderItem={renderEmployeeCard}
                     contentContainerStyle={styles.listContent}

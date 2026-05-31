@@ -569,7 +569,9 @@ const ApplyLeave = ({ navigation }) => {
 
                     {/* Reason Input */}
                     <View style={styles.formGroup}>
-                        <Text style={styles.label}>Reason</Text>
+                        <Text style={styles.label}>
+                            Reason <Text style={styles.required}>*</Text>
+                        </Text>
                         <TextInput
                             style={[styles.input, styles.textArea]}
                             placeholder="Enter reason for leave..."
