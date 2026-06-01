@@ -451,41 +451,103 @@ export default function HomeScreen({ navigation }) {
 
                 <View style={styles.eventsContent}>
 
-    {wishes.length > 0 && (
-        <>
-            <Text style={styles.eventsSubHeading}>
-                Birthdays
-            </Text>
+                    <View style={styles.sectionWatermarkBox} pointerEvents="none">
+                            <Ionicons
+                                name="sparkles-outline"
+                                size={120}
+                                color="#EC4899"
+                                style={{
+                                    opacity: 0.035,
+                                    transform: [{ rotate: '-12deg' }]
+                                }}
+                            />
+                        </View>
 
-            <View style={styles.eventsInnerCard}>
-                <WishThem
-                    wishes={wishes}
-                    title=""
-                />
-            </View>
-        </>
-    )}
+                        <Text style={styles.gpaySectionHeading}>
+                            Occasions Hub
+                        </Text>
 
-    {holidays?.length > 0 && (
-        <>
-            <Text
-                style={[
-                    styles.eventsSubHeading,
-                    { marginTop: 12 }
-                ]}
-            >
-                Upcoming Holidays
-            </Text>
+                        <View
+                            style={[
+                                styles.spotlightCard,
+                                {
+                                    backgroundColor: '#EC489908',
+                                    borderLeftColor: '#EC4899',
+                                    marginBottom: 12,
+                                }
+                            ]}
+                        >
+                            <View style={styles.spotlightContent}>
+                                <View
+                                    style={[
+                                        styles.spotlightTag,
+                                        {
+                                            backgroundColor: '#EC489915',
+                                            marginBottom: 4,
+                                        }
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.spotlightTagText,
+                                            { color: '#EC4899' }
+                                        ]}
+                                    >
+                                        Celebrations & Holidays
+                                    </Text>
+                                </View>
 
-            <View style={styles.eventsInnerCard}>
-                <UpcomingHolidays
-                    holidays={holidays}
-                />
-            </View>
-        </>
-    )}
+                                <Text
+                                    style={[
+                                        styles.spotlightDesc,
+                                        {
+                                            fontSize: 10.5,
+                                            lineHeight: 15,
+                                        }
+                                    ]}
+                                >
+                                    Employee birthdays and upcoming holidays in one place.
+                                </Text>
+                            </View>
 
-</View>
+                            <View style={styles.spotlightGraphic}>
+                                <Ionicons
+                                    name="gift-outline"
+                                    size={48}
+                                    color="#EC489920"
+                                />
+                            </View>
+                        </View>
+
+                        {wishes.length > 0 && (
+                            <View style={{ marginBottom: holidays?.length ? 4 : 0 }}>
+                                <WishThem
+                                    wishes={wishes}
+                                    title=""
+                                />
+                            </View>
+                        )}
+
+                    {holidays?.length > 0 && (
+                        <>
+                            <Text
+                                style={[
+                                    styles.eventsSubHeading,
+                                    { marginTop: 12 }
+                                ]}
+                            >
+                                Upcoming Holidays
+                            </Text>
+
+                            <View style={styles.eventsInnerCard}>
+                                <UpcomingHolidays
+                                    holidays={holidays}
+                                />
+                            </View>
+                        </>
+                    )}
+
+                </View>
 
             </ScrollView>
                     
@@ -543,6 +605,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
 },
 
+container: {
+    marginBottom: 0,
+},
+
 eventsTitle: {
     fontSize: 16,
     fontWeight: '800',
@@ -551,11 +617,10 @@ eventsTitle: {
 },
 
 eventsCard: {
-    marginBottom: 10,
+    marginBottom: 2,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     overflow: 'hidden',
-    marginTop: -20,
     padding: 0,
 },
 
@@ -686,7 +751,7 @@ eventsInnerCard: {
         fontWeight: '800',
         color: '#000000',
         letterSpacing: 1,
-        marginBottom: 16,
+        marginBottom: 10,
         textTransform: 'capitalize'
     },
     gpayCirclesGrid: {
