@@ -1,9 +1,10 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, ScrollView, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from '../navigation/AuthContext';
+
 
 const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
     const navigation = useNavigation();
@@ -170,9 +171,18 @@ const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
                 activeOpacity={0.8}
                 onPress={() => navigation.navigate('Profile')}
             >
-                <Text style={styles.avatarText}>
-                    {getInitials(user?.name || user?.username)}
-                </Text>
+                {user?.image ? (
+                    <Image
+                        source={{ uri: user.image }}
+                        style={styles.profileImage}
+                    />
+                ) : (
+                    <Ionicons
+                        name="person"
+                        size={22}
+                        color="#FFFFFF"
+                    />
+                )}
             </TouchableOpacity>
         </View>
     )}
@@ -219,6 +229,13 @@ const styles = StyleSheet.create({
         borderBottomColor: '#F1F5F9',
         zIndex: 100,
     },
+
+    profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 999,
+},
+
     container: {
         height: 64,
         flexDirection: 'row',
