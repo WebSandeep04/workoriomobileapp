@@ -360,7 +360,7 @@ const Subscription = () => {
                     </View>
                     <View style={[styles.badge, { backgroundColor: statusBg }]}>
                         <Text style={[styles.badgeText, { color: statusText }]}>
-                            {(item.status || 'pending').toUpperCase()}
+                            {(item.status || 'pending')}
                         </Text>
                     </View>
                 </View>
@@ -368,11 +368,11 @@ const Subscription = () => {
                 <View style={styles.cardBody}>
                     <View style={styles.metaGrid}>
                         <View style={styles.metaCol}>
-                            <Text style={styles.metaLabel}>PRODUCT</Text>
+                            <Text style={styles.metaLabel}>Product</Text>
                             <Text style={styles.metaVal}>{item.product?.product_name || 'Default Service'}</Text>
                         </View>
                         <View style={styles.metaCol}>
-                            <Text style={styles.metaLabel}>RENEWAL TYPE</Text>
+                            <Text style={styles.metaLabel}>Renewal Type</Text>
                             <Text style={styles.metaVal}>
                                 {item.is_recurring ? `Recurring (${item.recurrence_type})` : 'One-time'}
                             </Text>
@@ -381,11 +381,11 @@ const Subscription = () => {
 
                     <View style={styles.metaGrid}>
                         <View style={styles.metaCol}>
-                            <Text style={styles.metaLabel}>AMOUNT</Text>
+                            <Text style={styles.metaLabel}>Amount</Text>
                             <Text style={[styles.metaVal, { color: '#1E293B', fontWeight: 'bold' }]}>₹{item.amount || 0}</Text>
                         </View>
                         <View style={styles.metaCol}>
-                            <Text style={styles.metaLabel}>NEXT DUE</Text>
+                            <Text style={styles.metaLabel}>Next Due</Text>
                             <Text style={styles.metaVal}>{item.latest_history?.due_date || item.start_date || 'N/A'}</Text>
                         </View>
                     </View>
@@ -413,7 +413,7 @@ const Subscription = () => {
     };
 
     const renderGroupedCardItem = ({ item }) => {
-        const initial = (item.name || 'C').charAt(0).toUpperCase();
+        const initial = (item.name || 'C').charAt(0);
         return (
             <View style={styles.groupedCard}>
                 <View style={styles.groupTop}>
@@ -484,7 +484,7 @@ const Subscription = () => {
                 <View style={{ width: 100 }}>
                     <View style={[styles.badge, { backgroundColor: statusBg, paddingVertical: 2, alignSelf: 'flex-start' }]}>
                         <Text style={[styles.badgeText, { color: statusText, fontSize: 8 }]}>
-                            {(item.status || 'pending').toUpperCase()}
+                            {(item.status || 'pending')}
                         </Text>
                     </View>
                 </View>
@@ -723,14 +723,14 @@ const Subscription = () => {
             {/* Secondary Action tabs bar - Keep it static */}
             <View style={styles.tabSectionSticky}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabRow}>
-                    {['all', 'active', 'recurring', 'non-recurring'].map((tab) => (
+                    {['All', 'Active', 'Recurring', 'non-recurring'].map((tab) => (
                         <TouchableOpacity
                             key={tab}
                             style={[styles.tabItem, activeTab === tab && styles.tabItemActive]}
                             onPress={() => setActiveTab(tab)}
                         >
                             <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                                {tab === 'non-recurring' ? 'One-Time' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                {tab === 'non-recurring' ? 'One-Time' : tab.charAt(0) + tab.slice(1)}
                             </Text>
                         </TouchableOpacity>
                     ))}
@@ -1136,7 +1136,7 @@ const styles = StyleSheet.create({
     },
     statIconBox: { width: 30, height: 30, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
     statCount: { fontSize: 14, fontWeight: 'bold', color: '#1E293B' },
-    statName: { fontSize: 8, color: '#64748B', fontWeight: '700', textTransform: 'uppercase' },
+    statName: { fontSize: 8, color: '#64748B', fontWeight: '700', textTransform: 'capitalize' },
 
     // ===========================================================
     // COMPONENT 1: SEARCH & TOGGLE TOOLBAR (MATCHES SALES UI)

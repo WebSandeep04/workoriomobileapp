@@ -97,10 +97,10 @@ const AttendanceTimeline = () => {
                         ]}
                     >
                         <Text style={[styles.cellText, { flex: 1.2 }]}>{item.formattedTime}</Text>
-                        <Text style={[styles.cellText, { flex: 1, color: '#64748B', fontWeight: '600' }]}>{(item.movement_type || '').toUpperCase()}</Text>
+                        <Text style={[styles.cellText, { flex: 1, color: '#64748B', fontWeight: '600' }]}>{(item.movement_type || '')}</Text>
                         <View style={{ flex: 1 }}>
                             <Text style={getActionStyle(item.movement_action)}>
-                                {item.movement_action.charAt(0).toUpperCase() + item.movement_action.slice(1)}
+                                {item.movement_action.charAt(0)+ item.movement_action.slice(1)}
                             </Text>
                         </View>
                         <Text style={[styles.cellText, { flex: 0.8, textAlign: 'center', color: '#4F46E5', fontWeight: '700' }]}>

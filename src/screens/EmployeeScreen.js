@@ -1090,13 +1090,13 @@ const styles = StyleSheet.create({
     fieldGrid: { gap: 8, paddingBottom: 20 },
     detFieldRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 8, padding: 10, borderWidth: 1, borderColor: '#F1F5F9' },
     detIconWrap: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
-    detLabel: { fontSize: 9, color: '#94A3B8', fontWeight: '800', textTransform: 'uppercase' },
+    detLabel: { fontSize: 9, color: '#94A3B8', fontWeight: '800', textTransform: 'capitalize' },
     detValue: { fontSize: 12, color: '#1E293B', fontWeight: '700', marginTop: 1 },
 
     // Forms Controls
     formScrollBody: { flex: 1, paddingHorizontal: 16, paddingTop: 10 },
     formSectionHeader: { marginTop: 16, marginBottom: 8, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', paddingBottom: 4 },
-    formSectionTitle: { fontSize: 12, fontWeight: '800', color: '#434AFA', textTransform: 'uppercase', letterSpacing: 0.5 },
+    formSectionTitle: { fontSize: 12, fontWeight: '800', color: '#434AFA', textTransform: 'capitalize', letterSpacing: 0.5 },
     formGroup: { marginBottom: 12 },
     formLabel: { fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 4 },
     formTextInput: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, paddingHorizontal: 10, height: 38, fontSize: 13, color: '#1E293B' },

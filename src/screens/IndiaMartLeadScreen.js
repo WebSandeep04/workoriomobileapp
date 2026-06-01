@@ -275,7 +275,7 @@ const IndiaMartLeadScreen = ({ route }) => {
 
         return (
             <View style={[styles.badge, { backgroundColor: color }]}>
-                <Text style={styles.badgeText}>{key.toUpperCase()}</Text>
+                <Text style={styles.badgeText}>{key}</Text>
             </View>
         );
     };

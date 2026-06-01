@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#64748B',
         marginTop: 2,
-        textTransform: 'uppercase',
+        textTransform: 'capitalize',
         letterSpacing: 0.3,
     },
     cardValue: {

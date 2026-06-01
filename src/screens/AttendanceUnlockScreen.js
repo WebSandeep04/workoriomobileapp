@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     unlockedDateBadgeTxt: { color: '#EF4444', fontSize: 11, fontWeight: '800' },
     logTimestamp: { color: '#94A3B8', fontSize: 10 },
     logCardBody: { padding: 12 },
-    logLabel: { fontSize: 10, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', marginBottom: 2 },
+    logLabel: { fontSize: 10, fontWeight: '800', color: '#94A3B8', textTransform: 'capitalize', marginBottom: 2 },
     logReason: { fontSize: 12, color: '#334155', lineHeight: 18, fontWeight: '500' },
     logFooterDivider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 10 },
     logMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

@@ -162,7 +162,7 @@ const TodaysCallingScreen = () => {
 
         return (
             <View style={[styles.badgeFill, { backgroundColor: hue + '12' }]}>
-                <Text style={[styles.badgeTxt, { color: hue }]}>{statusName.toUpperCase()}</Text>
+                <Text style={[styles.badgeTxt, { color: hue }]}>{statusName}</Text>
             </View>
         );
     };
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     itemCard: { backgroundColor: '#FFF', borderRadius: 10, padding: 14, marginBottom: 10, elevation: 1 },
     itemCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', borderBottomWidth: 1, borderBottomColor: '#F1F5F9', paddingBottom: 10 },
     leadNameTxt: { fontSize: 15, fontWeight: '700', color: '#1E293B' },
-    campaignLabelText: { fontSize: 10, color: '#64748B', fontWeight: '600', marginTop: 2, textTransform: 'uppercase' },
+    campaignLabelText: { fontSize: 10, color: '#64748B', fontWeight: '600', marginTop: 2, textTransform: 'capitalize' },
     
     badgeFill: { paddingVertical: 3, paddingHorizontal: 8, borderRadius: 4 },
     badgeTxt: { fontSize: 9, fontWeight: '800' },

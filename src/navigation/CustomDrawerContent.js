@@ -80,13 +80,13 @@ export function CustomDrawerContent(props) {
       <View style={styles.profileSection}>
         <View style={styles.avatarWrapper}>
           <Text style={styles.avatarText}>
-            {user?.name ? user.name.substring(0, 1).toUpperCase() : 'U'}
+            {user?.name ? user.name.substring(0, 1) : 'U'}
           </Text>
         </View>
         <View style={styles.profileDetails}>
           <Text style={styles.userName}>{user?.name || 'User'}</Text>
           <Text style={styles.userRole}>
-            {user?.role_name ? user.role_name.toUpperCase() : 'EMPLOYEE'}
+            {user?.role_name ? user.role_name : 'EMPLOYEE'}
           </Text>
           {user?.email ? <Text style={styles.userEmail}>{user.email}</Text> : null}
         </View>
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#64748b',
     letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    textTransform: 'capitalize',
     marginTop: 2,
   },
   userEmail: {

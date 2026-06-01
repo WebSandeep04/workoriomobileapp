@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     entryTypeName: { fontSize: 13, fontWeight: '800', color: '#1E293B' },
     entryContextStr: { fontSize: 11, color: '#64748B', marginTop: 2 },
     entryDurationVal: { fontSize: 13, fontWeight: '800', color: '#1E293B' },
-    entryModuleTxt: { fontSize: 10, fontWeight: '700', color: '#4F46E5', marginTop: 2, textTransform: 'uppercase' },
+    entryModuleTxt: { fontSize: 10, fontWeight: '700', color: '#4F46E5', marginTop: 2, textTransform: 'capitalize' },
     
     descSpeechBubble: { backgroundColor: '#F8FAFC', borderRadius: 6, padding: 10, marginTop: 10, borderWidth: 1, borderColor: '#EEF2FF' },
     descTextStr: { fontSize: 12, color: '#475569', fontStyle: 'italic', lineHeight: 17 },

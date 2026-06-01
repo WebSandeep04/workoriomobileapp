@@ -517,12 +517,12 @@ export default function ProjectDetailsScreen({ navigation, route }) {
                     <View style={styles.taskMetaLine}>
                         <View style={[styles.wlogMiniBadge, { backgroundColor: item.task_type === 'qc' ? '#FEE2E2' : '#E0E7FF' }]}>
                             <Text style={[styles.wlogBadgeText, { color: item.task_type === 'qc' ? '#EF4444' : '#434AFA' }]}>
-                                {(item.task_type || 'TASK').toUpperCase()}
+                                {(item.task_type || 'TASK')}
                             </Text>
                         </View>
                         {item.priority && (
                             <View style={[styles.wlogMiniBadge, pStyle.bg]}>
-                                <Text style={[styles.wlogBadgeText, pStyle.text]}>{(item.priority.name || '').toUpperCase()}</Text>
+                                <Text style={[styles.wlogBadgeText, pStyle.text]}>{(item.priority.name || '')}</Text>
                             </View>
                         )}
                     </View>
@@ -699,7 +699,7 @@ export default function ProjectDetailsScreen({ navigation, route }) {
                                                                         style={[localStyles.freqBtn, recurType === item && localStyles.freqBtnActive]}
                                                                         onPress={() => setRecurType(item)}
                                                                     >
-                                                                        <Text style={[localStyles.freqBtnTxt, recurType === item && localStyles.freqBtnTxtActive]}>{item.toUpperCase()}</Text>
+                                                                        <Text style={[localStyles.freqBtnTxt, recurType === item && localStyles.freqBtnTxtActive]}>{item}</Text>
                                                                     </TouchableOpacity>
                                                                 )}
                                                             />
@@ -743,7 +743,7 @@ export default function ProjectDetailsScreen({ navigation, route }) {
                                                                         style={[localStyles.dayPill, sel && localStyles.dayPillActive]} 
                                                                         onPress={() => toggleWeeklyDay(day)}
                                                                     >
-                                                                        <Text style={[localStyles.dayPillTxt, sel && localStyles.dayPillTxtActive]}>{day.toUpperCase()}</Text>
+                                                                        <Text style={[localStyles.dayPillTxt, sel && localStyles.dayPillTxtActive]}>{day}</Text>
                                                                     </TouchableOpacity>
                                                                 );
                                                             })}
@@ -1114,7 +1114,7 @@ const localStyles = StyleSheet.create({
         fontSize: 10,
         fontWeight: '800',
         color: '#475569',
-        textTransform: 'uppercase',
+        textTransform: 'capitalize',
         marginBottom: 4,
     },
     miniInput: {
@@ -1253,7 +1253,7 @@ const localStyles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '800',
         color: '#475569',
-        textTransform: 'uppercase',
+        textTransform: 'capitalize',
     },
 
     // Calendar Specific Local styles

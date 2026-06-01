@@ -220,7 +220,7 @@ const AttendanceCard = () => {
     };
 
     const shift = user?.employee_details?.shift;
-    const shiftName = shift?.name ? shift.name.toUpperCase() : "GENERAL";
+    const shiftName = shift?.name ? shift.name: "GENERAL";
     const shiftTiming = shift?.start_time && shift?.end_time
         ? `( ${formatTime(shift.start_time)} - ${formatTime(shift.end_time)} )`
         : "( 10:00 AM - 6:35 PM )";

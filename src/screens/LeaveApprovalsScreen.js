@@ -404,7 +404,7 @@ const LeaveApprovalsScreen = () => {
                         onPress={() => setActiveTab(tab)}
                     >
                         <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            {tab.charAt(0) + tab.slice(1)}
                         </Text>
                     </TouchableOpacity>
                 ))}
@@ -895,7 +895,7 @@ const styles = StyleSheet.create({
     poolTypeName: { fontSize: 10, fontWeight: '800', color: '#1E293B', flex: 1 },
     poolMetricGrid: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginBottom: 8 },
     poolMetricBigNum: { fontSize: 18, fontWeight: '800', color: '#1E293B' },
-    poolMetricSub: { fontSize: 8, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginTop: 1 },
+    poolMetricSub: { fontSize: 8, fontWeight: '700', color: '#94A3B8', textTransform: 'capitalize', marginTop: 1 },
     poolDivider: { width: 1, height: 20, backgroundColor: '#E2E8F0' },
     poolDeductionFooter: { borderTopWidth: 0.5, borderTopColor: '#F1F5F9', paddingTop: 6 },
     poolDeductionFooterTxt: { fontSize: 8, fontWeight: '700', color: '#64748B' },
@@ -912,7 +912,7 @@ const styles = StyleSheet.create({
     tableSpanArrow: { fontSize: 10, color: '#94A3B8', marginTop: 1 },
     tableDaysText: { fontSize: 12, fontWeight: '800', color: '#334155', backgroundColor: '#F1F5F9', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' },
     tableTypeName: { fontSize: 11, fontWeight: '700', color: '#334155' },
-    tableSubLabel: { fontSize: 8, fontWeight: '800', color: '#D97706', textTransform: 'uppercase', marginTop: 2 },
+    tableSubLabel: { fontSize: 8, fontWeight: '800', color: '#D97706', textTransform: 'capitalize', marginTop: 2 },
     tableStatusVal: { fontSize: 10, fontWeight: '900' },
     
     emptyTrailContainer: { padding: 40, alignItems: 'center', gap: 8, justifyContent: 'center' },
@@ -952,7 +952,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12, 
         paddingHorizontal: 10, 
         letterSpacing: 0.5,
-        textTransform: 'uppercase'
+        textTransform: 'capitalize'
     },
     tableBodyRow: { 
         flexDirection: 'row', 
