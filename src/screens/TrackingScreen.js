@@ -293,7 +293,7 @@ export default function TrackingScreen({ navigation }) {
             <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
                 <View style={[styles.statusDot, { backgroundColor: color }]} />
                 <Text style={[styles.statusText, { color: color === '#94A3B8' ? '#64748B' : color }]}>
-                    {label.toUpperCase()}
+                    {label}
                 </Text>
             </View>
         );
@@ -301,7 +301,7 @@ export default function TrackingScreen({ navigation }) {
 
     const renderEmployeeCard = ({ item }) => {
         const initials = item.name
-            ? item.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
+            ? item.name.split(' ').map(n => n[0]).slice(0, 2).join('')
             : 'EM';
 
         return (
@@ -487,7 +487,7 @@ export default function TrackingScreen({ navigation }) {
     // B. DETAILED TIMELINE LAYOUT
     const renderDetailLayout = () => {
         const initials = selectedEmployee.name
-            ? selectedEmployee.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
+            ? selectedEmployee.name.split(' ').map(n => n[0]).slice(0, 2).join('')
             : 'EM';
         
         const info = allStatusMap[selectedEmployee.id];

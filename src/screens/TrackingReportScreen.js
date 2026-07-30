@@ -463,7 +463,7 @@ const TrackingReportScreen = () => {
         return (
             <View style={styles.tableUnit}>
                 <View style={styles.tableHeadLine}>
-                    <View style={styles.avatarShell}><Text style={styles.avatarTxt}>{item.user?.name?.charAt(0).toUpperCase() || 'U'}</Text></View>
+                    <View style={styles.avatarShell}><Text style={styles.avatarTxt}>{item.user?.name?.charAt(0) || 'U'}</Text></View>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.tableEmpName}>{item.user?.name}</Text>
                         <Text style={styles.tableSubLine}>Active Participation: {activePercent}%</Text>
@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
     // Filter Styles
     filterPanel: { backgroundColor: '#FFF', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 16 },
     inputGrp: { width: '100%' },
-    inputLabel: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', color: '#64748B', marginBottom: 6 },
+    inputLabel: { fontSize: 10, fontWeight: '800', textTransform: 'capitalize', color: '#64748B', marginBottom: 6 },
     controlBtn: { height: 42, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12 },
     controlLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     controlTxt: { fontSize: 12, color: '#64748B', flex: 1 },
@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
     metricCell: { width: (SCREEN_WIDTH - 42) / 2, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', padding: 12, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
     metricIconCirc: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
     metricCellVal: { fontSize: 14, fontWeight: '800', color: '#1E293B' },
-    metricCellTitle: { fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginTop: 2 },
+    metricCellTitle: { fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'capitalize', marginTop: 2 },
 
     // Section Headers
     listHeadLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 12 },
@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
     statBadgeTxt: { fontSize: 9, fontWeight: '800' },
     statSplitRow: { flexDirection: 'row', gap: 8 },
     statSplitCell: { flex: 1 },
-    statValCap: { fontSize: 8, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase' },
+    statValCap: { fontSize: 8, fontWeight: '800', color: '#94A3B8', textTransform: 'capitalize' },
     statInlineFlex: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
     statValData: { fontSize: 12, fontWeight: '700', color: '#334155' },
 
@@ -746,11 +746,11 @@ const styles = StyleSheet.create({
     tableEmpName: { fontSize: 14, fontWeight: '800', color: '#1E293B' },
     tableSubLine: { fontSize: 11, color: '#94A3B8', marginTop: 2, fontWeight: '600' },
     tableEffortKm: { fontSize: 14, fontWeight: '800', color: '#434AFA' },
-    tableEffortCap: { fontSize: 9, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginTop: 2 },
+    tableEffortCap: { fontSize: 9, fontWeight: '700', color: '#94A3B8', textTransform: 'capitalize', marginTop: 2 },
     attendanceStamps: { flexDirection: 'row' },
     stampCell: { flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#F1F5F9' },
     stampVal: { fontSize: 14, fontWeight: '800', color: '#1E293B' },
-    stampCap: { fontSize: 9, color: '#94A3B8', fontWeight: '800', textTransform: 'uppercase', marginTop: 2 },
+    stampCap: { fontSize: 9, color: '#94A3B8', fontWeight: '800', textTransform: 'capitalize', marginTop: 2 },
 
     // Card: Tab 3 Daily Split
     dateLogCard: { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, padding: 12, marginBottom: 10 },
@@ -826,7 +826,7 @@ const styles = StyleSheet.create({
     },
     matrixColHeaderTxt: { fontSize: 9, color: '#64748B', fontWeight: '800', textAlign: 'center' },
     dateDigit: { fontSize: 12, fontWeight: '800', color: '#1E293B' },
-    dateDayName: { fontSize: 8, color: '#94A3B8', textTransform: 'uppercase' },
+    dateDayName: { fontSize: 8, color: '#94A3B8', textTransform: 'capitalize' },
     matrixUserName: { fontSize: 11, color: '#1E293B', fontWeight: '700' },
     matrixSummaryNum: { fontSize: 12, fontWeight: '800', color: '#64748B', textAlign: 'center' }
 });

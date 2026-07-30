@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
     inlineIcon: { marginRight: 6, width: 14 },
     inlineText: { fontSize: 12.5, color: '#475569', flex: 1 },
     remarkBoxContainer: { marginTop: 6, backgroundColor: '#FFF5F5', padding: 8, borderRadius: 6, borderLeftWidth: 2, borderLeftColor: '#FCA5A5' },
-    remarkHeaderLabel: { fontSize: 9.5, color: '#DC2626', fontWeight: '800', marginBottom: 1, textTransform: 'uppercase' },
+    remarkHeaderLabel: { fontSize: 9.5, color: '#DC2626', fontWeight: '800', marginBottom: 1, textTransform: 'capitalize' },
     remarkContentBody: { fontSize: 11.5, color: '#7F1D1D', fontStyle: 'italic', lineHeight: 15 },
 
     itemCardFooter: {

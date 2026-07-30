@@ -935,7 +935,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     kpiCoreVal: { fontSize: 15, fontWeight: '800', color: '#1E293B' },
-    kpiCoreLabel: { fontSize: 9, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginTop: 1 },
+    kpiCoreLabel: { fontSize: 9, fontWeight: '700', color: '#94A3B8', textTransform: 'capitalize', marginTop: 1 },
 
     // 2. Utility Search Strip styling
     utilityDockBar: {
@@ -1076,7 +1076,7 @@ const styles = StyleSheet.create({
     // 6. Table Layout components
     tableContainer: { backgroundColor: '#FFF', marginTop: 12, borderTopWidth: 1, borderTopColor: '#E2E8F0' },
     headerRowStyle: { flexDirection: 'row', backgroundColor: '#EEF2FF', borderBottomWidth: 1, borderBottomColor: '#C7D2FE' },
-    columnHeadTitle: { fontSize: 10, fontWeight: '800', color: '#312E81', padding: 10, textTransform: 'uppercase' },
+    columnHeadTitle: { fontSize: 10, fontWeight: '800', color: '#312E81', padding: 10, textTransform: 'capitalize' },
     bodyRowStyle: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E2E8F0', alignItems: 'center' },
     columnBodyCell: { padding: 10, fontSize: 11, color: '#475569' },
     noDataTableCell: { padding: 32, alignItems: 'center' },

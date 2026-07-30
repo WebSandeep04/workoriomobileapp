@@ -99,6 +99,7 @@ const WishThem = ({ title = "Wish Them :", wishes = [] }) => {
 const styles = StyleSheet.create({
     container: {
         marginBottom: 20,
+        marginTop: -20,
     },
     title: {
         fontSize: 16,
@@ -120,9 +121,9 @@ const styles = StyleSheet.create({
         width: 60,
     },
     avatarWrapper: {
-        width: 54,
-        height: 54,
-        borderRadius: 27,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
         backgroundColor: '#FFF',
         borderWidth: 1.5,
         borderColor: '#FCE7F3', // Clean soft pink birthday boundary accent

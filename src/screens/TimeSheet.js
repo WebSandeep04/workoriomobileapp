@@ -574,7 +574,7 @@ const TimeSheet = ({ route }) => {
                                 color: item.status === 'approved' ? '#03543F' :
                                     item.status === 'rejected' ? '#9B1C1C' : '#92400E'
                             }]}>
-                                {item.status.toUpperCase()}
+                                {item.status}
                             </Text>
                         </View>
                     </View>

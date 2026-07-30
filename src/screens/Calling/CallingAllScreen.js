@@ -156,7 +156,7 @@ const CallingAllScreen = () => {
 
         return (
             <View style={[styles.badge, { backgroundColor: color + '15' }]}>
-                <Text style={[styles.badgeText, { color: color }]}>{statusText.toUpperCase()}</Text>
+                <Text style={[styles.badgeText, { color: color }]}>{statusText}</Text>
             </View>
         );
     };

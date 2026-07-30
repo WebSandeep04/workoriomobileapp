@@ -208,7 +208,7 @@ const AssignedCallingScreen = () => {
 
         return (
             <View style={[styles.badgeFill, { backgroundColor: hue + '12' }]}>
-                <Text style={[styles.badgeTxt, { color: hue }]}>{statusName.toUpperCase()}</Text>
+                <Text style={[styles.badgeTxt, { color: hue }]}>{statusName}</Text>
             </View>
         );
     };

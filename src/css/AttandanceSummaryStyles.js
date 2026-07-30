@@ -62,7 +62,7 @@ export const styles = StyleSheet.create({
         fontSize: 11,
         textAlign: 'center',
         paddingHorizontal: 4,
-        textTransform: 'uppercase',
+        textTransform: 'capitalize',
         letterSpacing: 0.5,
     },
     tableRow: {

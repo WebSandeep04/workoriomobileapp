@@ -410,7 +410,7 @@ const MyLeadGenScreen = () => {
                         </Text>
                     </View>
                     <View style={[styles.statusBadge, { backgroundColor: isSuccess ? '#DCFCE7' : '#EEF2FF' }]}>
-                        <Text style={[styles.statusLabel, { color: isSuccess ? '#16A34A' : '#6366F1' }]}>{statusName.toUpperCase()}</Text>
+                        <Text style={[styles.statusLabel, { color: isSuccess ? '#16A34A' : '#6366F1' }]}>{statusName}</Text>
                     </View>
                 </View>
 

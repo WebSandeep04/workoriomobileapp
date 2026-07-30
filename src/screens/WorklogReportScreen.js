@@ -675,7 +675,7 @@ const WorklogReportScreen = () => {
                 <TouchableOpacity style={styles.groupHead} onPress={() => toggleAccordion(id)} activeOpacity={0.8}>
                     <View style={styles.groupHeadLeft}>
                         <View style={styles.avatarBox}>
-                            <Text style={styles.avatarTxt}>{grp.user_name?.charAt(0).toUpperCase() || 'U'}</Text>
+                            <Text style={styles.avatarTxt}>{grp.user_name?.charAt(0) || 'U'}</Text>
                         </View>
                         <View>
                             <Text style={styles.groupUserTitle}>{grp.user_name}</Text>
@@ -798,7 +798,7 @@ const styles = StyleSheet.create({
     filterBoard: { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, padding: 14, marginBottom: 16 },
     rowFilter: { flexDirection: 'row', gap: 10 },
     ctrlGrp: { flex: 1 },
-    ctrlLabel: { fontSize: 11, fontWeight: '800', color: '#64748B', textTransform: 'uppercase', marginBottom: 6 },
+    ctrlLabel: { fontSize: 11, fontWeight: '800', color: '#64748B', textTransform: 'capitalize', marginBottom: 6 },
     triggerBtn: { 
         height: 40, 
         borderWidth: 1, 
@@ -880,7 +880,7 @@ queryBtnTxt: {
     },
     statIcon: { width: 36, height: 36, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
     statCellNum: { fontSize: 14, fontWeight: '800', color: '#1E293B' },
-    statCellLabel: { fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginTop: 2 },
+    statCellLabel: { fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'capitalize', marginTop: 2 },
 
     // Section Header Divider
     listDivider: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 12 },
@@ -910,7 +910,7 @@ queryBtnTxt: {
 
     cardDetailBlock: { flexDirection: 'row', gap: 10 },
     detailItem: { flex: 1 },
-    dLabel: { fontSize: 9, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase' },
+    dLabel: { fontSize: 9, fontWeight: '800', color: '#94A3B8', textTransform: 'capitalize' },
     dVal: { fontSize: 12, fontWeight: '700', color: '#334155', marginTop: 2 },
     
     cardDescBox: { marginTop: 10, padding: 8, backgroundColor: '#F8FAFC', borderRadius: 6, borderLeftWidth: 3, borderLeftColor: '#CBD5E1' },
