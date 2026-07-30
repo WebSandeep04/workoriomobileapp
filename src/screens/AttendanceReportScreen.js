@@ -163,7 +163,7 @@ const AttendanceReportScreen = () => {
             return { bg: '#ECFDF5', txt: '#10B981', label: status };
         } else if (token.includes('halfday') || token.includes('half day') || token === 'hd') {
             return { bg: '#FFFBEB', txt: '#D97706', label: status };
-        } else if (token.includes('absent') || token === 'a') {
+        } else if (token.includes('absent') || token === 'a' || token === 'lwp') {
             return { bg: '#FEF2F2', txt: '#EF4444', label: status };
         } else if (token.includes('sunday') || token.includes('weekly off') || token === 's') {
             return { bg: '#F8FAFC', txt: '#64748B', label: status };
@@ -541,7 +541,7 @@ const AttendanceReportScreen = () => {
         // Table sizing
         const userColWidth = 120;
         const cellWidth = 34;
-        const summaryColWidth = 65;
+        const summaryColWidth = 85;
 
         return (
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 60 }}>
@@ -563,10 +563,19 @@ const AttendanceReportScreen = () => {
                                     <Text style={[styles.dateDayName, d.is_sunday && { color: '#EF4444' }]}>{d.day_name}</Text>
                                 </View>
                             ))}
-                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>DAYS</Text></View>
-                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>PRES</Text></View>
-                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>ABS</Text></View>
-                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>LV</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Work Days</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Total Present</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Full Day</Text></View>
+                            <View style={[styles.matrixCell, { width: 50 }]}><Text style={styles.matrixColHeaderTxt}>HD</Text></View>
+                            <View style={[styles.matrixCell, { width: 50 }]}><Text style={styles.matrixColHeaderTxt}>SL</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Sunday Work</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Holiday Work</Text></View>
+                            <View style={[styles.matrixCell, { width: 60 }]}><Text style={styles.matrixColHeaderTxt}>Leave</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Unpaid Leave</Text></View>
+                            <View style={[styles.matrixCell, { width: 70 }]}><Text style={styles.matrixColHeaderTxt}>Absent</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Less Shift Hr</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>More Shift Hr</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Late Count</Text></View>
                         </View>
 
                         {/* Body Rows */}
@@ -593,9 +602,18 @@ const AttendanceReportScreen = () => {
                                         );
                                     })}
                                     <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixSummaryNum}>{row.summary?.total_working_days || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#10B981' }]}>{row.summary?.total_present_combined || 0}</Text></View>
                                     <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#10B981' }]}>{row.summary?.total_present || 0}</Text></View>
-                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#EF4444' }]}>{row.summary?.days_absent || 0}</Text></View>
-                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#4F46E5' }]}>{row.summary?.days_on_leave || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: 50 }]}><Text style={[styles.matrixSummaryNum, { color: '#F59E0B' }]}>{row.summary?.total_halfday || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: 50 }]}><Text style={[styles.matrixSummaryNum, { color: '#06B6D4' }]}>{row.summary?.total_short_leaves || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#8B5CF6' }]}>{row.summary?.total_sundays_worked || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#8B5CF6' }]}>{row.summary?.total_holidays_worked || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: 60 }]}><Text style={[styles.matrixSummaryNum, { color: '#4F46E5' }]}>{row.summary?.days_on_leave || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#4F46E5' }]}>{row.summary?.total_unpaid_leaves || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: 70 }]}><Text style={[styles.matrixSummaryNum, { color: '#EF4444' }]}>{row.summary?.days_absent || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixSummaryNum}>{row.summary?.total_less_8_30 || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixSummaryNum}>{row.summary?.total_more_8_30 || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#F97316' }]}>{row.summary?.late_count || 0}</Text></View>
                                 </View>
                             );
                         })}
