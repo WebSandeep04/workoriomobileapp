@@ -55,17 +55,28 @@ const AttandanceSummary = () => {
 
     const formattedMonthYear = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
+    const formatDuration = (val) => {
+        if (!val || val === 0 || val === '0h 0m' || val === '-') return '-';
+        if (typeof val === 'string' && (val.includes('h') || val.includes('m'))) return val;
+        const hrs = Math.floor(val);
+        const mins = Math.round((val - hrs) * 60);
+        return `${hrs}h ${mins}m`;
+    };
+
     const renderHeader = () => (
         <View style={styles.tableHeader}>
-            <Text style={[styles.columnHeader, { width: 140 }]}>Date</Text>
-            <Text style={[styles.columnHeader, { width: 140 }]}>Status</Text>
-            <Text style={[styles.columnHeader, { width: 90 }]}>Punch In</Text>
-            <Text style={[styles.columnHeader, { width: 90 }]}>Punch Out</Text>
-            <Text style={[styles.columnHeader, { width: 90 }]}>Field In</Text>
-            <Text style={[styles.columnHeader, { width: 90 }]}>Field Out</Text>
-            <Text style={[styles.columnHeader, { width: 100 }]}>Office Total</Text>
-            <Text style={[styles.columnHeader, { width: 100 }]}>Field Total</Text>
-            <Text style={[styles.columnHeader, { width: 100 }]}>Total Working</Text>
+            <Text style={[styles.columnHeader, { width: 120 }]}>Date</Text>
+            <Text style={[styles.columnHeader, { width: 120 }]}>Status</Text>
+            <Text style={[styles.columnHeader, { width: 160 }]}>Status Reason</Text>
+            <Text style={[styles.columnHeader, { width: 90 }]}>First In</Text>
+            <Text style={[styles.columnHeader, { width: 90 }]}>Last Out</Text>
+            <Text style={[styles.columnHeader, { width: 100 }]}>Total Hours</Text>
+            <Text style={[styles.columnHeader, { width: 100 }]}>Office</Text>
+            <Text style={[styles.columnHeader, { width: 100 }]}>Field</Text>
+            <Text style={[styles.columnHeader, { width: 90 }]}>Break</Text>
+            <Text style={[styles.columnHeader, { width: 90 }]}>Late By</Text>
+            <Text style={[styles.columnHeader, { width: 90 }]}>Grace Bal</Text>
+            <Text style={[styles.columnHeader, { width: 140 }]}>Late Reason</Text>
         </View>
     );
 
@@ -74,28 +85,39 @@ const AttandanceSummary = () => {
         const rowBg = isEven ? COLORS.rowEven : COLORS.rowOdd;
         const statusColor = getStatusColor(item.status);
 
-        const officeTime = item.formatted_hours?.office || item.formattedHours?.office || item.total_office_time || '-';
-        const fieldTime = item.formatted_hours?.field || item.formattedHours?.field || item.total_field_time || '-';
-        const totalTime = item.formatted_hours?.total || item.formattedHours?.total || item.total_working_hours || item.total_hours || '-';
+        const officeTime = item.formatted_hours?.office || item.formattedHours?.office || formatDuration(item.office_hours || item.officeHours) || '-';
+        const fieldTime = item.formatted_hours?.field || item.formattedHours?.field || formatDuration(item.field_hours || item.fieldHours) || '-';
+        const totalTime = item.formatted_hours?.total || item.formattedHours?.total || formatDuration(item.hours) || '-';
+        const firstIn = item.first_in || item.firstIn || item.punch_in || '-';
+        const lastOut = item.last_out || item.lastOut || item.punch_out || '-';
+        
+        const statusReason = item.status_reason || item.statusReason || '-';
+        const breakTime = item.break_time || item.breakTime || 0;
+        const lateBy = item.late_by || item.lateBy || '-';
+        const graceBalance = item.grace_balance || item.graceBalance || '-';
+        const lateReason = item.late_reason || item.lateReason || '-';
 
         return (
             <View style={[styles.tableRow, { backgroundColor: rowBg }]}>
-                <Text style={[styles.cell, { width: 140, fontSize: 12, fontWeight: '600', textAlign: 'left', paddingLeft: 12, color: '#1E293B' }]}>{item.display_date || item.date}</Text>
-                <View style={{ width: 140 }}>
+                <Text style={[styles.cell, { width: 120, fontSize: 12, fontWeight: '600', textAlign: 'left', paddingLeft: 12, color: '#1E293B' }]}>{item.display_date || item.date}</Text>
+                <View style={{ width: 120 }}>
                     <View style={[styles.statusBadge, { backgroundColor: `${statusColor}15`, width: '90%' }]}>
                         <Text style={[styles.statusText, { color: statusColor }]}>{item.status || 'N/A'}</Text>
                     </View>
                 </View>
+                <Text style={[styles.cell, { width: 160, fontSize: 11, fontStyle: 'italic', color: '#64748B' }]}>{statusReason}</Text>
 
-                <Text style={[styles.cell, { width: 90 }]}>{item.punch_in || '-'}</Text>
-                <Text style={[styles.cell, { width: 90 }]}>{item.punch_out || '-'}</Text>
-
-                <Text style={[styles.cell, { width: 90 }]}>{item.field_in || '-'}</Text>
-                <Text style={[styles.cell, { width: 90 }]}>{item.field_out || '-'}</Text>
-
+                <Text style={[styles.cell, { width: 90 }]}>{firstIn}</Text>
+                <Text style={[styles.cell, { width: 90 }]}>{lastOut}</Text>
+                
+                <Text style={[styles.cell, { width: 100, color: COLORS.primary, fontWeight: '700' }]}>{totalTime}</Text>
                 <Text style={[styles.cell, { width: 100, fontWeight: '600' }]}>{officeTime}</Text>
                 <Text style={[styles.cell, { width: 100, fontWeight: '600' }]}>{fieldTime}</Text>
-                <Text style={[styles.cell, { width: 100, color: COLORS.primary, fontWeight: '700' }]}>{totalTime}</Text>
+                
+                <Text style={[styles.cell, { width: 90 }]}>{formatDuration(breakTime)}</Text>
+                <Text style={[styles.cell, { width: 90, color: '#F59E0B' }]}>{lateBy !== '-' ? lateBy : '-'}</Text>
+                <Text style={[styles.cell, { width: 90, color: '#10B981' }]}>{graceBalance !== '-' ? graceBalance : '-'}</Text>
+                <Text style={[styles.cell, { width: 140, fontSize: 11, color: '#EF4444' }]} numberOfLines={2}>{lateReason !== '-' ? lateReason : '-'}</Text>
             </View>
         );
     };
