@@ -137,9 +137,16 @@ const ApplyLeave = ({ navigation }) => {
                 const chosen = new Date(startDate);
                 chosen.setHours(0, 0, 0, 0);
                 
-                if (chosen < tomorrow) {
-                    newErrors.startDate = 'Leave can only be applied starting from Tomorrow.';
-                    valid = false;
+                if (selectedType?.is_short_leave == 1 || selectedType?.is_short_leave === true) {
+                    if (chosen < today) {
+                        newErrors.startDate = 'Short Leave can be applied for Today or later.';
+                        valid = false;
+                    }
+                } else {
+                    if (chosen < tomorrow) {
+                        newErrors.startDate = 'Leave can only be applied starting from Tomorrow.';
+                        valid = false;
+                    }
                 }
             }
 
@@ -283,8 +290,9 @@ const ApplyLeave = ({ navigation }) => {
                             const cellDate = new Date(dayDate);
                             cellDate.setHours(0, 0, 0, 0);
 
-                            // Disable logic: Start from today + 1
-                            const isDisabled = cellDate < tomorrow;
+                            // Disable logic: Start from today + 1 (unless it is a short leave)
+                            const isShortLeave = selectedType?.is_short_leave == 1 || selectedType?.is_short_leave === true;
+                            const isDisabled = isShortLeave ? cellDate < today : cellDate < tomorrow;
                             const isToday = today.toDateString() === cellDate.toDateString();
 
                             return (
@@ -395,7 +403,21 @@ const ApplyLeave = ({ navigation }) => {
                 onPress={() => {
                     setSelectedType(item);
                     setModalVisible(false);
-                    setLocalErrors((prev) => ({ ...prev, type: null }));
+                    setLocalErrors((prev) => ({ ...prev, type: null, startDate: null, endDate: null }));
+                    
+                    // Auto-fill dates based on leave type
+                    const today = new Date();
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    
+                    const isShortLeave = item.is_short_leave == 1 || item.is_short_leave === true;
+                    const defaultDateObj = isShortLeave ? today : tomorrow;
+                    
+                    const dateStr = `${defaultDateObj.getFullYear()}-${String(defaultDateObj.getMonth() + 1).padStart(2, '0')}-${String(defaultDateObj.getDate()).padStart(2, '0')}`;
+                    
+                    setStartDate(dateStr);
+                    setEndDate(dateStr);
+
                     // Auto-reset extra fields when type flips
                     setIsHalfDay(false);
                     setSelectedRh(null);
@@ -502,7 +524,7 @@ const ApplyLeave = ({ navigation }) => {
                             </View>
 
                             {/* Half Day Switch (Only visible if allowed by Type) */}
-                            {selectedType?.allow_half_day === 1 && (
+                            {(selectedType?.allow_half_day == 1 || selectedType?.allow_half_day === true) && (
                                 <View style={{ marginBottom: 16, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
                                     <TouchableOpacity
                                         style={{ flexDirection: 'row', alignItems: 'center' }}

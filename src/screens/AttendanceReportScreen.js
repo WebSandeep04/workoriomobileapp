@@ -160,21 +160,21 @@ const AttendanceReportScreen = () => {
     const getStatusColorConfig = (status) => {
         const token = String(status).toLowerCase();
         if (token.includes('present') || token === 'p' || token === 'full day') {
-            return { bg: '#ECFDF5', txt: '#10B981', label: 'Present' };
+            return { bg: '#ECFDF5', txt: '#10B981', label: status };
         } else if (token.includes('halfday') || token.includes('half day') || token === 'hd') {
-            return { bg: '#FFFBEB', txt: '#D97706', label: 'Half Day' };
-        } else if (token.includes('absent') || token === 'a') {
-            return { bg: '#FEF2F2', txt: '#EF4444', label: 'Absent' };
+            return { bg: '#FFFBEB', txt: '#D97706', label: status };
+        } else if (token.includes('absent') || token === 'a' || token === 'lwp') {
+            return { bg: '#FEF2F2', txt: '#EF4444', label: status };
         } else if (token.includes('sunday') || token.includes('weekly off') || token === 's') {
-            return { bg: '#F8FAFC', txt: '#64748B', label: 'Weekly Off' };
+            return { bg: '#F8FAFC', txt: '#64748B', label: status };
         } else if (token.includes('holiday') || token === 'h') {
-            return { bg: '#F5F3FF', txt: '#8B5CF6', label: 'Holiday' };
+            return { bg: '#F5F3FF', txt: '#8B5CF6', label: status };
         } else if (token.includes('leave') || token === 'l') {
-            return { bg: '#EEF2FF', txt: '#4F46E5', label: 'Leave' };
+            return { bg: '#EEF2FF', txt: '#4F46E5', label: status };
         } else if (token === 'rh') {
-            return { bg: '#EFF6FF', txt: '#3B82F6', label: 'Restricted Hol' };
+            return { bg: '#EFF6FF', txt: '#3B82F6', label: status };
         } else if (token === 'sl') {
-            return { bg: '#ECFEFF', txt: '#06B6D4', label: 'Short Leave' };
+            return { bg: '#ECFEFF', txt: '#06B6D4', label: status };
         }
         return { bg: '#F1F5F9', txt: '#475569', label: status || '-' };
     };
@@ -541,7 +541,7 @@ const AttendanceReportScreen = () => {
         // Table sizing
         const userColWidth = 120;
         const cellWidth = 34;
-        const summaryColWidth = 65;
+        const summaryColWidth = 85;
 
         return (
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 60 }}>
@@ -563,10 +563,19 @@ const AttendanceReportScreen = () => {
                                     <Text style={[styles.dateDayName, d.is_sunday && { color: '#EF4444' }]}>{d.day_name}</Text>
                                 </View>
                             ))}
-                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>DAYS</Text></View>
-                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>PRES</Text></View>
-                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>ABS</Text></View>
-                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>LV</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Work Days</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Total Present</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Full Day</Text></View>
+                            <View style={[styles.matrixCell, { width: 50 }]}><Text style={styles.matrixColHeaderTxt}>HD</Text></View>
+                            <View style={[styles.matrixCell, { width: 50 }]}><Text style={styles.matrixColHeaderTxt}>SL</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Sunday Work</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Holiday Work</Text></View>
+                            <View style={[styles.matrixCell, { width: 60 }]}><Text style={styles.matrixColHeaderTxt}>Leave</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Unpaid Leave</Text></View>
+                            <View style={[styles.matrixCell, { width: 70 }]}><Text style={styles.matrixColHeaderTxt}>Absent</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Less Shift Hr</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>More Shift Hr</Text></View>
+                            <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixColHeaderTxt}>Late Count</Text></View>
                         </View>
 
                         {/* Body Rows */}
@@ -593,9 +602,18 @@ const AttendanceReportScreen = () => {
                                         );
                                     })}
                                     <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixSummaryNum}>{row.summary?.total_working_days || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#10B981' }]}>{row.summary?.total_present_combined || 0}</Text></View>
                                     <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#10B981' }]}>{row.summary?.total_present || 0}</Text></View>
-                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#EF4444' }]}>{row.summary?.days_absent || 0}</Text></View>
-                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#4F46E5' }]}>{row.summary?.days_on_leave || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: 50 }]}><Text style={[styles.matrixSummaryNum, { color: '#F59E0B' }]}>{row.summary?.total_halfday || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: 50 }]}><Text style={[styles.matrixSummaryNum, { color: '#06B6D4' }]}>{row.summary?.total_short_leaves || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#8B5CF6' }]}>{row.summary?.total_sundays_worked || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#8B5CF6' }]}>{row.summary?.total_holidays_worked || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: 60 }]}><Text style={[styles.matrixSummaryNum, { color: '#4F46E5' }]}>{row.summary?.days_on_leave || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#4F46E5' }]}>{row.summary?.total_unpaid_leaves || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: 70 }]}><Text style={[styles.matrixSummaryNum, { color: '#EF4444' }]}>{row.summary?.days_absent || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixSummaryNum}>{row.summary?.total_less_8_30 || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={styles.matrixSummaryNum}>{row.summary?.total_more_8_30 || 0}</Text></View>
+                                    <View style={[styles.matrixCell, { width: summaryColWidth }]}><Text style={[styles.matrixSummaryNum, { color: '#F97316' }]}>{row.summary?.late_count || 0}</Text></View>
                                 </View>
                             );
                         })}
@@ -633,27 +651,71 @@ const AttendanceReportScreen = () => {
                                             </View>
                                             {!!item.is_wfh && <Text style={styles.wfhSmallTag}>WFH</Text>}
                                         </View>
+                                        {(item.status_reason && item.status_reason !== '-') && (
+                                            <Text style={{ fontSize: 11, color: '#64748B', marginTop: 4, fontStyle: 'italic' }}>
+                                                {item.status_reason}
+                                            </Text>
+                                        )}
                                     </View>
                                 </View>
 
                                 <View style={styles.dateWiseDivider} />
 
                                 <View style={styles.dateWiseRight}>
-                                    <View style={styles.gridMetric}>
-                                        <Ionicons name="log-in" size={12} color="#10B981" />
-                                        <Text style={styles.gridMetricLabel}>IN:</Text>
-                                        <Text style={styles.gridMetricVal}>{item.first_in || '-'}</Text>
+                                    <View style={{ flexDirection: 'row', gap: 16 }}>
+                                        <View style={styles.gridMetric}>
+                                            <Ionicons name="log-in" size={12} color="#10B981" />
+                                            <Text style={styles.gridMetricLabel}>IN:</Text>
+                                            <Text style={styles.gridMetricVal}>{item.first_in || '-'}</Text>
+                                        </View>
+                                        <View style={styles.gridMetric}>
+                                            <Ionicons name="log-out" size={12} color="#EF4444" />
+                                            <Text style={styles.gridMetricLabel}>OUT:</Text>
+                                            <Text style={styles.gridMetricVal}>{item.last_out || '-'}</Text>
+                                        </View>
+                                        <View style={styles.gridMetric}>
+                                            <Ionicons name="hourglass" size={12} color="#434AFA" />
+                                            <Text style={styles.gridMetricLabel}>HRS:</Text>
+                                            <Text style={[styles.gridMetricVal, { fontWeight: 'bold', color: '#1E293B' }]}>{formatDuration(item.hours)}</Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.gridMetric}>
-                                        <Ionicons name="log-out" size={12} color="#EF4444" />
-                                        <Text style={styles.gridMetricLabel}>OUT:</Text>
-                                        <Text style={styles.gridMetricVal}>{item.last_out || '-'}</Text>
+                                    
+                                    <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
+                                        <View style={styles.gridMetric}>
+                                            <Ionicons name="business" size={12} color="#64748B" />
+                                            <Text style={styles.gridMetricLabel}>OFFICE:</Text>
+                                            <Text style={styles.gridMetricVal}>{formatDuration(item.office_hours)}</Text>
+                                        </View>
+                                        <View style={styles.gridMetric}>
+                                            <Ionicons name="map" size={12} color="#64748B" />
+                                            <Text style={styles.gridMetricLabel}>FIELD:</Text>
+                                            <Text style={styles.gridMetricVal}>{formatDuration(item.field_hours)}</Text>
+                                        </View>
+                                        <View style={styles.gridMetric}>
+                                            <Ionicons name="cafe" size={12} color="#8B5CF6" />
+                                            <Text style={styles.gridMetricLabel}>BREAK:</Text>
+                                            <Text style={styles.gridMetricVal}>{formatDuration(item.break_time)}</Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.gridMetric}>
-                                        <Ionicons name="hourglass" size={12} color="#434AFA" />
-                                        <Text style={styles.gridMetricLabel}>HRS:</Text>
-                                        <Text style={[styles.gridMetricVal, { fontWeight: 'bold', color: '#1E293B' }]}>{formatDuration(item.hours)}</Text>
+
+                                    <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
+                                        <View style={styles.gridMetric}>
+                                            <Ionicons name="time" size={12} color="#F59E0B" />
+                                            <Text style={styles.gridMetricLabel}>LATE BY:</Text>
+                                            <Text style={styles.gridMetricVal}>{item.late_by !== '-' ? item.late_by : '-'}</Text>
+                                        </View>
+                                        <View style={styles.gridMetric}>
+                                            <Ionicons name="shield-checkmark" size={12} color="#10B981" />
+                                            <Text style={styles.gridMetricLabel}>GRACE BAL:</Text>
+                                            <Text style={styles.gridMetricVal}>{item.grace_balance !== '-' ? item.grace_balance : '-'}</Text>
+                                        </View>
                                     </View>
+
+                                    {(item.late_reason && item.late_reason !== '-') && (
+                                        <View style={{ marginTop: 8 }}>
+                                            <Text style={{ fontSize: 10, color: '#EF4444', fontStyle: 'italic' }}>Late Reason: {item.late_reason}</Text>
+                                        </View>
+                                    )}
                                 </View>
                             </View>
                         );

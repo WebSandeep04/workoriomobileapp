@@ -249,4 +249,51 @@ export const styles = StyleSheet.create({
         color: '#4f46e5',
         fontWeight: 'bold',
     },
+    // Modal update UI
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    updateModal: {
+        width: '85%',
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 24,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 10
+    },
+    updateTitle: {
+        fontSize: 18,
+        fontWeight: '800',
+        marginTop: 16,
+        color: '#1e293b'
+    },
+    updateMsg: {
+        fontSize: 13,
+        color: '#64748b',
+        textAlign: 'center',
+        marginTop: 8,
+        marginBottom: 24,
+        lineHeight: 18,
+        fontWeight: '500'
+    },
+    updateBtn: {
+        backgroundColor: '#434AFA',
+        paddingVertical: 12,
+        paddingHorizontal: 32,
+        borderRadius: 12,
+        width: '100%',
+        alignItems: 'center'
+    },
+    updateBtnTxt: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 14
+    },
 });

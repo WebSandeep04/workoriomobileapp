@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api, { setApiToken, setTenantId } from '../../api/client';
 
-const REQUIRED_VERSION = '1.1';
+const REQUIRED_VERSION = '1.4';
 
 // testing for version
 
@@ -25,6 +25,11 @@ export const loginUser = createAsyncThunk(
 
       if (!data?.token) {
         return rejectWithValue('Authentication failed: Token not found');
+      }
+
+      if (data.version && data.version !== REQUIRED_VERSION) {
+        console.log(`Login Version mismatch: Received ${data.version} vs Required ${REQUIRED_VERSION}`);
+        return rejectWithValue({ isVersionMismatch: true, message: 'Please update your app to continue.' });
       }
 
       await AsyncStorage.setItem('auth_token', data.token);
@@ -62,12 +67,19 @@ export const logoutUser = createAsyncThunk(
 
 export const initAuth = createAsyncThunk('auth/initAuth', async () => {
   try {
-    const token = await AsyncStorage.getItem('auth_token');
-    const userData = await AsyncStorage.getItem('user_data');
-    const storedVersion = await AsyncStorage.getItem('app_version');
+    // Fetch the latest required version from backend
+    let latestRequiredVersion = REQUIRED_VERSION;
+    try {
+      const versionResponse = await api.get('/app-version');
+      if (versionResponse.data && versionResponse.data.required_version) {
+        latestRequiredVersion = versionResponse.data.required_version;
+      }
+    } catch (err) {
+      console.log('Failed to fetch app-version, falling back to local check', err);
+    }
 
-    if (storedVersion && storedVersion !== REQUIRED_VERSION) {
-      console.log(`Version mismatch: Stored ${storedVersion} vs Required ${REQUIRED_VERSION}`);
+    if (REQUIRED_VERSION !== latestRequiredVersion) {
+      console.log(`Version mismatch: Local ${REQUIRED_VERSION} vs Required ${latestRequiredVersion}`);
       await AsyncStorage.removeItem('auth_token');
       await AsyncStorage.removeItem('user_data');
       await AsyncStorage.removeItem('app_version');
@@ -75,6 +87,9 @@ export const initAuth = createAsyncThunk('auth/initAuth', async () => {
       setTenantId(null);
       return { token: null, user: null, versionMismatch: true };
     }
+
+    const token = await AsyncStorage.getItem('auth_token');
+    const userData = await AsyncStorage.getItem('user_data');
 
     if (token && userData) {
       const parsedUser = JSON.parse(userData);
@@ -85,7 +100,7 @@ export const initAuth = createAsyncThunk('auth/initAuth', async () => {
       return {
         token,
         user: parsedUser,
-        versionMismatch: storedVersion !== REQUIRED_VERSION
+        versionMismatch: false
       };
     }
   } catch (e) {
@@ -120,7 +135,12 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        if (action.payload && action.payload.isVersionMismatch) {
+          state.versionMismatch = true;
+          state.error = action.payload.message;
+        } else {
+          state.error = action.payload;
+        }
       })
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {
