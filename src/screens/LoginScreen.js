@@ -13,7 +13,10 @@ import {
   Animated,
   ScrollView,
   Image,
+  Modal,
+  Linking,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import Logo from '../assets/logo.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -30,7 +33,7 @@ const LoginScreen = ({ navigation }) => {
 
   // Redux hooks
   const dispatch = useAppDispatch();
-  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated, versionMismatch } = useAppSelector((state) => state.auth);
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -73,11 +76,15 @@ const LoginScreen = ({ navigation }) => {
 
   // Show error alert when there's an error
   useEffect(() => {
-    if (error) {
+    if (error && !versionMismatch) {
       Alert.alert('Error', error);
       dispatch(clearError());
     }
-  }, [error, dispatch]);
+  }, [error, versionMismatch, dispatch]);
+
+  const handleUpdate = () => {
+    Linking.openURL('https://app.workorio.com/download');
+  };
 
   const handleLogin = () => {
     if (!email || !password) {
@@ -231,6 +238,30 @@ const LoginScreen = ({ navigation }) => {
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Application Version Lock Overlay */}
+      <Modal
+          transparent={true}
+          animationType="fade"
+          visible={!!versionMismatch}
+      >
+          <View style={styles.modalOverlay}>
+              <View style={styles.updateModal}>
+                  <Ionicons name="cloud-download-outline" size={48} color="#4f46e5" />
+                  <Text style={styles.updateTitle}>Upgrade Recommended</Text>
+                  <Text style={styles.updateMsg}>
+                      A vital system performance patch is available. Please update to the latest client revision.
+                  </Text>
+                  <TouchableOpacity
+                      style={styles.updateBtn}
+                      activeOpacity={0.85}
+                      onPress={handleUpdate}
+                  >
+                      <Text style={styles.updateBtnTxt}>Download Revision</Text>
+                  </TouchableOpacity>
+              </View>
+          </View>
+      </Modal>
     </SafeAreaView>
   );
 };
