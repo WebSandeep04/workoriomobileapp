@@ -86,7 +86,7 @@ const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
             >
                 <Pressable style={styles.trayOverlay} onPress={() => setTrayVisible(false)}>
                     <Pressable style={styles.trayContent} onPress={(e) => e.stopPropagation()}>
-                        
+
                         {/* Grab Handle bar for native feel */}
                         <View style={styles.dragHandle} />
 
@@ -96,7 +96,7 @@ const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
                                 <Text style={styles.trayTitle}>Alerts Hub</Text>
                                 <Text style={styles.traySubtitle}>{unreadCount} pending system notices</Text>
                             </View>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={styles.clearAllBtn}
                                 onPress={() => setTrayVisible(false)}
                             >
@@ -105,8 +105,8 @@ const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
                         </View>
 
                         {/* Scrollable Feed Body */}
-                        <ScrollView 
-                            style={styles.alertsList} 
+                        <ScrollView
+                            style={styles.alertsList}
                             showsVerticalScrollIndicator={false}
                             contentContainerStyle={{ paddingBottom: 20 }}
                         >
@@ -141,68 +141,69 @@ const Header = ({ title = "Dashboard", subtitle, showBack = false }) => {
     return (
         <SafeAreaView edges={['top']} style={styles.safeArea}>
             <View style={styles.container}>
-                
-               {/* Left Section: Avatar/Back + Left-Aligned Typography */}
-<View style={styles.leftSection}>
-    {showBack ? (
-        <TouchableOpacity
-            style={styles.backButton}
-            activeOpacity={0.7}
-            onPress={() => navigation.goBack()}
-        >
-            <Ionicons name="chevron-back-outline" size={22} color="#1E293B" />
-        </TouchableOpacity>
-    ) : (
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            
-            {/* Hamburger Toggle */}
-            <TouchableOpacity
-                style={styles.menuButton}
-                activeOpacity={0.7}
-                onPress={() => navigation.openDrawer()}
-            >
-                <Ionicons name="menu-outline" size={26} color="#1E293B" />
-            </TouchableOpacity>
 
-            {/* Avatar */}
-            <TouchableOpacity
-                style={styles.avatarCircle}
-                activeOpacity={0.8}
-                onPress={() => navigation.navigate('Profile')}
-            >
-                <Text style={styles.avatarText}>
-                    {getInitials(user?.name || user?.username)}
-                </Text>
-            </TouchableOpacity>
-        </View>
-    )}
+                {/* Left Section: Avatar/Back + Left-Aligned Typography */}
+                <View style={styles.leftSection}>
+                    {showBack ? (
+                        <TouchableOpacity
+                            style={styles.backButton}
+                            activeOpacity={0.7}
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Ionicons name="chevron-back-outline" size={22} color="#1E293B" />
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
 
-    <View style={styles.titleArea}>
-        <Text style={styles.titleText} numberOfLines={1}>
-            {title}
-        </Text>
+                            {/* Hamburger Toggle */}
+                            <TouchableOpacity
+                                style={styles.menuButton}
+                                activeOpacity={0.7}
+                                onPress={() => navigation.openDrawer()}
+                            >
+                                <Ionicons name="menu-outline" size={26} color="#1E293B" />
+                            </TouchableOpacity>
 
-        <Text style={styles.subtitleText} numberOfLines={1}>
-            {subtitle || getDateString()}
-        </Text>
-    </View>
-</View>
+                            {/* Avatar */}
+                            <TouchableOpacity
+                                style={styles.avatarCircle}
+                                activeOpacity={0.8}
+                                onPress={() => navigation.navigate('Profile')}
+                            >
+                                <Text style={styles.avatarText}>
+                                    {getInitials(user?.name || user?.username)}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    <View style={styles.titleArea}>
+                        <Text style={styles.titleText} numberOfLines={1}>
+                            {title}
+                        </Text>
+
+                        <Text style={styles.subtitleText} numberOfLines={1}>
+                            {subtitle || getDateString()}
+                        </Text>
+                    </View>
+                </View>
 
                 {/* Right Section: Action Bell with Unread Indicator */}
+                {/* 
                 <View style={styles.rightSection}>
-                    <TouchableOpacity 
-                        style={styles.actionBtn} 
+                    <TouchableOpacity
+                        style={styles.actionBtn}
                         activeOpacity={0.75}
                         onPress={() => setTrayVisible(true)}
                     >
                         <Ionicons name="notifications-outline" size={21} color="#1E293B" />
-                        
-                        {/* Floating indicator only renders when notifications actually require attention */}
+
                         {unreadCount > 0 && (
                             <View style={styles.notificationDot} />
                         )}
                     </TouchableOpacity>
-                </View>
+                </View> 
+                */}
 
             </View>
 
