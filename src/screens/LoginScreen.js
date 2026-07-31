@@ -41,26 +41,32 @@ const LoginScreen = ({ navigation }) => {
   const logoScale = useRef(new Animated.Value(0.8)).current;
 
   React.useEffect(() => {
-    // Start animations when component mounts
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.spring(logoScale, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+    if (!showSplash) {
+      fadeAnim.setValue(0);
+      slideAnim.setValue(50);
+      logoScale.setValue(0.8);
+      
+      // Start animations when login form is shown
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.spring(logoScale, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [showSplash, fadeAnim, slideAnim, logoScale]);
 
   // Handle Authentication Success & Splash
   useEffect(() => {
@@ -71,6 +77,8 @@ const LoginScreen = ({ navigation }) => {
         navigation.replace('MainDrawer');
       }, 3000); // 3 seconds splash
       return () => clearTimeout(timer);
+    } else {
+      setShowSplash(false);
     }
   }, [isAuthenticated, navigation]);
 
