@@ -381,9 +381,11 @@ export default function HomeScreen({ navigation }) {
                 </View>
 
                 {/* 3. Primary Action Widget */}
-                <View style={styles.attendanceWidgetWrap}>
-                    <AttendanceCard />
-                </View>
+                {user?.is_attendace === 1 && (
+                    <View style={styles.attendanceWidgetWrap}>
+                        <AttendanceCard />
+                    </View>
+                )}
 
                 {/* 4. Google Pay Themed Dynamic Circle Grid */}
                 <View style={styles.shortcutsWrap}>
