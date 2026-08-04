@@ -240,7 +240,7 @@ const AttendanceActionCard = () => {
                     '#4F46E5'
                 )}
 
-                {renderActionBtn(
+                {user?.is_field_attendance_enable === 1 && renderActionBtn(
                     fieldStatus.can_start ? "Field In" : (fieldStatus.can_end ? "Field Out" : "Done"),
                     "Client Side",
                     fieldStatus.can_end, // Active state
