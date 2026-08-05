@@ -13,14 +13,14 @@ const AttendanceActionCard = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const isFocused = useIsFocused();
-    const { status, actionLoading, validationError, successMessage, error, isLocked } = useSelector(state => state.attendance);
+    const { status, loading, actionLoading, validationError, successMessage, error, isLocked } = useSelector(state => state.attendance);
     const { user } = useSelector(state => state.auth);
 
     // Status selectors
     const officeStatus = status?.office || {};
     const fieldStatus = status?.field || {};
     const breakStatus = status?.break || {};
-    const isOnBreak = breakStatus.can_end; 
+    const isOnBreak = breakStatus.can_end;
 
     // Local State
     const [lateModalVisible, setLateModalVisible] = useState(false);
@@ -80,7 +80,7 @@ const AttendanceActionCard = () => {
     // --- Handlers ---
     const requestLocationPermission = async () => {
         if (Platform.OS === 'ios') return true; // Standard practice to assume configured via info.plist
-        
+
         if (Platform.OS === 'android') {
             const granted = await PermissionsAndroid.request(
                 PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
@@ -107,7 +107,7 @@ const AttendanceActionCard = () => {
     const performAction = async (type, actionCategory) => {
         if (isLocked) return;
         setLoadingAction(type);
-        
+
         const hasPermission = await requestLocationPermission();
         if (!hasPermission) {
             Toast.show({ type: 'info', text1: 'Permission Needed', text2: 'Enable location in your settings to proceed.' });
@@ -124,7 +124,7 @@ const AttendanceActionCard = () => {
                 dispatch(punchOut({ type, latitude: coords.latitude, longitude: coords.longitude }));
             } else {
                 // punch-in
-                setPendingAction({ type, isEmergency: type==='emergency', isWFH: type==='wfh' });
+                setPendingAction({ type, isEmergency: type === 'emergency', isWFH: type === 'wfh' });
                 dispatch(punchIn({
                     type: (type === 'emergency' || type === 'wfh') ? 'office' : type,
                     latitude: coords.latitude,
@@ -143,11 +143,11 @@ const AttendanceActionCard = () => {
         if (!lateReason.trim()) return;
         const dispatchType = pendingAction?.type || 'office';
         setLoadingAction(dispatchType);
-        
+
         let coords = null;
         try {
             coords = await getCurrentLocation();
-        } catch (e) {}
+        } catch (e) { }
 
         dispatch(punchIn({
             type: (dispatchType === 'emergency' || dispatchType === 'wfh') ? 'office' : dispatchType,
@@ -166,7 +166,7 @@ const AttendanceActionCard = () => {
             const d = new Date();
             d.setHours(parseInt(hours, 10), parseInt(minutes, 10));
             return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        } catch(e) { return timeString; }
+        } catch (e) { return timeString; }
     };
 
     // Component Builders
@@ -178,9 +178,9 @@ const AttendanceActionCard = () => {
         const borderColor = isDisabled ? '#E2E8F0' : themeColor;
 
         return (
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={[
-                    styles.btnLayout, 
+                    styles.btnLayout,
                     { backgroundColor: buttonBg, borderColor: borderColor, borderWidth: isActive ? 0 : 1.5 }
                 ]}
                 onPress={onPress}
@@ -212,13 +212,13 @@ const AttendanceActionCard = () => {
                     </View>
                     <View>
                         <Text style={styles.welcomeText}>Hi, {user?.name?.split(' ')[0] || 'Member'}</Text>
-                        <Text style={styles.subDateText}>{new Date().toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}</Text>
+                        <Text style={styles.subDateText}>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</Text>
                     </View>
                 </View>
 
                 {isLocked ? (
                     <View style={[styles.chip, styles.chipLocked]}>
-                        <Ionicons name="lock-closed" size={12} color="#FFF" style={{marginRight:4}} />
+                        <Ionicons name="lock-closed" size={12} color="#FFF" style={{ marginRight: 4 }} />
                         <Text style={styles.chipTextLocked}>LOCKED</Text>
                     </View>
                 ) : (
@@ -231,20 +231,20 @@ const AttendanceActionCard = () => {
             {/* Primary Interactive Button List */}
             <View style={styles.btnStack}>
                 {renderActionBtn(
-                    officeStatus.can_start ? "Punch In" : (officeStatus.can_end ? "Punch Out" : "Completed"),
+                    loading ? "Loading..." : (officeStatus.can_start ? "Punch In" : (officeStatus.can_end ? "Punch Out" : "Please Relogin...")),
                     "Office Space",
-                    officeStatus.can_end, // Active state
-                    (isLocked || isOnBreak || (!officeStatus.can_start && !officeStatus.can_end)),
+                    !loading && officeStatus.can_end, // Active state
+                    (loading || isLocked || isOnBreak || (!officeStatus.can_start && !officeStatus.can_end)),
                     (loadingAction === 'office' && actionLoading),
                     () => performAction('office', officeStatus.can_end ? 'punch-out' : 'punch-in'),
                     '#4F46E5'
                 )}
 
                 {user?.is_field_attendance_enable === 1 && renderActionBtn(
-                    fieldStatus.can_start ? "Field In" : (fieldStatus.can_end ? "Field Out" : "Done"),
+                    loading ? "Loading..." : (fieldStatus.can_start ? "Field In" : (fieldStatus.can_end ? "Field Out" : "Please Relogin...")),
                     "Client Side",
-                    fieldStatus.can_end, // Active state
-                    (isLocked || isOnBreak || (!fieldStatus.can_start && !fieldStatus.can_end)),
+                    !loading && fieldStatus.can_end, // Active state
+                    (loading || isLocked || isOnBreak || (!fieldStatus.can_start && !fieldStatus.can_end)),
                     (loadingAction === 'field' && actionLoading),
                     () => performAction('field', fieldStatus.can_end ? 'punch-out' : 'punch-in'),
                     '#0891B2'
@@ -253,9 +253,9 @@ const AttendanceActionCard = () => {
 
             {/* Break & Auxiliary Section */}
             <View style={styles.secondaryRow}>
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={[
-                        styles.breakButton, 
+                        styles.breakButton,
                         isOnBreak && styles.breakButtonActive,
                         isLocked && styles.disabledBtnFade
                     ]}
@@ -266,7 +266,7 @@ const AttendanceActionCard = () => {
                     {loadingAction === 'break' && actionLoading ? (
                         <ActivityIndicator color={isOnBreak ? "#FFF" : "#D97706"} size="small" />
                     ) : (
-                        <Text style={[styles.breakBtnText, isOnBreak && {color:'#FFF'}]}>{isOnBreak ? 'End Current Break' : 'Take a Break'}</Text>
+                        <Text style={[styles.breakBtnText, isOnBreak && { color: '#FFF' }]}>{isOnBreak ? 'End Current Break' : 'Take a Break'}</Text>
                     )}
                 </TouchableOpacity>
             </View>
@@ -299,8 +299,8 @@ const AttendanceActionCard = () => {
                         <ScrollView style={styles.modalScroll} bounces={false}>
                             {lateReasonOptions.length > 0 ? (
                                 lateReasonOptions.map(item => (
-                                    <TouchableOpacity 
-                                        key={item.id} 
+                                    <TouchableOpacity
+                                        key={item.id}
                                         style={[styles.optionRow, lateReason === item.reason && styles.optionRowSelected]}
                                         onPress={() => setLateReason(item.reason)}
                                     >
@@ -325,9 +325,9 @@ const AttendanceActionCard = () => {
                             <TouchableOpacity style={styles.fBtnCancel} onPress={cleanupLocals}>
                                 <Text style={styles.fBtnCancelText}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
-                                style={[styles.fBtnSubmit, !lateReason.trim() && {opacity:0.6}]} 
-                                onPress={submitLateReason} 
+                            <TouchableOpacity
+                                style={[styles.fBtnSubmit, !lateReason.trim() && { opacity: 0.6 }]}
+                                onPress={submitLateReason}
                                 disabled={!lateReason.trim() || actionLoading}
                             >
                                 {actionLoading ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.fBtnSubmitText}>Confirm Punch In</Text>}

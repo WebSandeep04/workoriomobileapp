@@ -24,7 +24,7 @@ const AttendanceCard = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const isFocused = useIsFocused();
-    const { status, actionLoading, validationError, successMessage, error } = useSelector(state => state.attendance);
+    const { status, loading, actionLoading, validationError, successMessage, error } = useSelector(state => state.attendance);
     const { user } = useSelector(state => state.auth);
     const officeStatus = status?.office || {};
 
@@ -202,12 +202,13 @@ const AttendanceCard = () => {
     };
 
     const getButtonLabel = () => {
+        if (loading) return "Loading...";
         if (officeStatus.can_start) return "Punch In";
         if (officeStatus.can_end) return "Punch Out";
-        return "Completed";
+        return "Please Relogin...";
     };
 
-    const isActionable = officeStatus.can_start || officeStatus.can_end;
+    const isActionable = !loading && (officeStatus.can_start || officeStatus.can_end);
     const workingHours = officeStatus.last_action_time ? ` | ${officeStatus.working_hours || '0hr 0min'}` : '';
 
     const formatTime = (timeString) => {
