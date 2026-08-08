@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api, { setApiToken, setTenantId } from '../../api/client';
 
-const REQUIRED_VERSION = '1.4';
+const REQUIRED_VERSION = '1.6';
 
 // testing for version
 

@@ -179,20 +179,19 @@ const LoginScreen = ({ navigation }) => {
               <Text style={styles.subtitleText}>Sign in to continue your journey</Text>
             </View>
 
-            {/* Email Input */}
+            {/* Email/Username Input */}
             <View style={styles.inputContainer}>
               <View style={styles.inputLabelContainer}>
-                <Text style={styles.inputLabel}>Email Address</Text>
+                <Text style={styles.inputLabel}>Email Address or Username</Text>
               </View>
               <View style={styles.inputWrapper}>
                 <Text style={styles.inputIcon}>📧</Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="Enter your email"
+                  placeholder="Enter your email or username"
                   placeholderTextColor="#9ca3af"
                   value={email}
                   onChangeText={setEmail}
-                  keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
