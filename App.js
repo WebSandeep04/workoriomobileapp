@@ -3,12 +3,16 @@ import Toast from 'react-native-toast-message';
 import { Provider } from 'react-redux';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { store } from './src/store/store';
+import { setupInterceptors } from './src/api/client';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AuthProvider } from './src/navigation/AuthContext';
 import { initAuth } from './src/store/slices/authSlice';
 
 import LocationTracker from './src/components/LocationTracker/LocationTracker';
 import NoInternetWarning from './src/components/NoInternetWarning';
+
+// Initialize global API interceptors (e.g., for automatic 401 logouts)
+setupInterceptors(store);
 
 function App() {
   const netInfo = useNetInfo();

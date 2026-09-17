@@ -1,8 +1,10 @@
 import axios from 'axios';
+import Toast from 'react-native-toast-message';
+import { logoutUser } from '../store/slices/authSlice';
 
 // Create axios instance
 const api = axios.create({
-    baseURL: 'https://app.workorio.com/api',
+    baseURL: 'http://192.168.1.9:8000/api',
     headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -37,11 +39,23 @@ api.interceptors.request.use(request => {
 });
 
 // Response Interceptor
-// Response Interceptor
-api.interceptors.response.use(response => {
-    return response;
-}, error => {
-    return Promise.reject(error);
-});
+// Response Interceptor is configured via setupInterceptors
+export const setupInterceptors = (store) => {
+    api.interceptors.response.use(
+        response => response,
+        error => {
+            if (error.response && error.response.status === 401) {
+                // If token is invalid/expired, automatically logout
+                Toast.show({
+                    type: 'error',
+                    text1: 'Session Expired',
+                    text2: 'Please log in again to continue.',
+                });
+                store.dispatch(logoutUser());
+            }
+            return Promise.reject(error);
+        }
+    );
+};
 
 export default api;
