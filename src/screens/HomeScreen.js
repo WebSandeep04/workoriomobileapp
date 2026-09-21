@@ -67,7 +67,9 @@ const BOOTSTRAP_ICON_MAP = {
     'bi bi-check2-circle': 'checkmark-circle-outline',
     'bi bi-check2-square': 'checkbox-outline',
     'bi bi-calendar-check': 'calendar-outline',
-    'bi bi-camera': 'camera-outline'
+    'bi bi-camera': 'camera-outline',
+    'bi bi-whatsapp': 'logo-whatsapp',
+    'bi bi-bank': 'business-outline'
 };
 
 // --- Google Pay Inspired Pastel Color Palette (Fallbacks) ---
@@ -103,6 +105,9 @@ const getItemColor = (title, route, index) => {
     if (lowerRoute.includes('track') || lowerRoute.includes('geo') || lowerTitle.includes('gps')) return '#3B82F6';
     if (lowerTitle.includes('calendar') || lowerRoute.includes('calendar')) return '#6366F1';
     if (lowerRoute.includes('employee') || lowerTitle.includes('employee') || lowerRoute.includes('master')) return '#4F46E5';
+
+    // WhatsApp / Communication (Green)
+    if (lowerRoute.includes('whatsapp') || lowerTitle.includes('whatsapp') || lowerTitle.includes('inbox')) return '#22C55E';
 
     // Cash, Approvals & Financials (Emerald Green Suite)
     if (lowerRoute.includes('cash') || lowerRoute.includes('pay') || lowerTitle.includes('money')) return '#059669';
@@ -161,6 +166,24 @@ const SECTION_SPOTLIGHT_METADATA = {
         desc: 'Approve vouchers, attendance overrides, and critical request queues.',
         icon: 'shield-checkmark-outline',
         color: '#059669'
+    },
+    'wp_inbox': {
+        tag: 'Communications',
+        desc: 'Manage incoming WhatsApp messages and client communication.',
+        icon: 'logo-whatsapp',
+        color: '#22C55E'
+    },
+    'loan_advance': {
+        tag: 'Financial Requests',
+        desc: 'Apply for and manage employee loans and salary advances.',
+        icon: 'business-outline',
+        color: '#059669'
+    },
+    'contact_management': {
+        tag: 'Directory',
+        desc: 'Manage organization contacts and important personnel details.',
+        icon: 'people-outline',
+        color: '#3B82F6'
     }
 };
 
