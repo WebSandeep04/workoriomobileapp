@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "18456286709",
+    "project_id": "workorio-e8acf",
+    "storage_bucket": "workorio-e8acf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:18456286709:android:8f5d94c6340991a0adfcbc",
+        "android_client_info": {
+          "package_name": "com.workorio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWWme-w6EVNDLG8tty7Lxbn08MbBvApJk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
