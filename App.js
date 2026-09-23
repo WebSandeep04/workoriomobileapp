@@ -10,12 +10,14 @@ import { initAuth } from './src/store/slices/authSlice';
 
 import LocationTracker from './src/components/LocationTracker/LocationTracker';
 import NoInternetWarning from './src/components/NoInternetWarning';
+import usePushNotifications from './src/hooks/usePushNotifications';
 
 // Initialize global API interceptors (e.g., for automatic 401 logouts)
 setupInterceptors(store);
 
 function App() {
   const netInfo = useNetInfo();
+  usePushNotifications();
 
   useEffect(() => {
     store.dispatch(initAuth());
