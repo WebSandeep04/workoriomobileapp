@@ -42,6 +42,13 @@ const usePushNotifications = () => {
   };
 
   const sendTokenToBackend = async (token) => {
+    // Prevent unauthenticated API call on app startup which causes automatic logout
+    const authState = require('../store/store').store.getState().auth;
+    if (!authState || !authState.isAuthenticated || !authState.token) {
+        console.log('Skipping FCM token sync: user is not authenticated yet');
+        return;
+    }
+
     try {
       // Sending token to Laravel Backend API
       await client.post('/user/fcm-token', { fcm_token: token });
@@ -86,3 +93,4 @@ const usePushNotifications = () => {
 };
 
 export default usePushNotifications;
+

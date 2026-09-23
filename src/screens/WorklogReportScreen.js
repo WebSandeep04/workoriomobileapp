@@ -38,6 +38,7 @@ const WorklogReportScreen = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [selectedProject, setSelectedProject] = useState(null);
+    const [selectedService, setSelectedService] = useState('');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [groupByUser, setGroupByUser] = useState(true);
@@ -133,6 +134,7 @@ const WorklogReportScreen = () => {
                 params = {
                     customer_id: selectedCustomer?.id,
                     customer_project_id: selectedProject?.id,
+                    service_id: selectedService,
                     from: fromDate,
                     to: toDate,
                     group_by_user: groupByUser ? 1 : 0
@@ -148,6 +150,7 @@ const WorklogReportScreen = () => {
                     user_id: selectedUser.id,
                     customer_id: selectedCustomer?.id,
                     customer_project_id: selectedProject?.id,
+                    service_id: selectedService,
                     from: fromDate,
                     to: toDate
                 };

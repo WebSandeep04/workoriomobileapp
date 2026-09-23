@@ -18,6 +18,7 @@ export const mobileMenuConfig = [
       // { route: 'attendance.facekiosk', title: 'Face Kiosk Mode', icon: 'bi bi-camera', permission: 'attendance.entry' },
     ]
   },
+
   {
     key: 'admin_sales_operational',
     title: 'Sales & CRM',
@@ -87,6 +88,7 @@ export const mobileMenuConfig = [
       { route: 'payroll.report', title: 'Salary Report', icon: 'bi bi-cash-stack', permission: 'payroll.report', feature_flag: 'is_payroll_enabled' },
       { route: 'reports.worklog', title: 'Timesheet Report', icon: 'bi bi-journals', permission: 'reports.worklog', feature_flag: 'is_worklog_enabled' },
       { route: 'tracking.report', title: 'Tracking Report', icon: 'bi bi-geo-alt', permission: 'tracking.view', feature_flag: 'is_tracking_enabled' },
+      { route: 'whatsapp.report', title: 'WhatsApp Campaigns', icon: 'bi bi-whatsapp', permission: 'sales.alldata' },
     ]
   },
   {

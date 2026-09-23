@@ -16,6 +16,7 @@ import Header from '../components/Header';
 import Toast from 'react-native-toast-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../api/client';
+import FormPickerModal from '../components/FormPickerModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -31,6 +32,17 @@ const TrackingReportScreen = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [selectedMonth, setSelectedMonth] = useState(''); // 'YYYY-MM'
     const [selectedDate, setSelectedDate] = useState(''); // 'YYYY-MM-DD'
+    const [selectedBranch, setSelectedBranch] = useState('');
+    const [selectedDepartment, setSelectedDepartment] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
+
+    // Form Options & Generic Picker State
+    const [options, setOptions] = useState({ branches: [], departments: [] });
+    const [pickerVisible, setPickerVisible] = useState(false);
+    const [pickerData, setPickerData] = useState([]);
+    const [pickerTitle, setPickerTitle] = useState('');
+    const [pickerSearch, setPickerSearch] = useState('');
+    const [activePickerKey, setActivePickerKey] = useState('');
 
     // 4. Load Engines
     const [loading, setLoading] = useState(false);
@@ -63,7 +75,48 @@ const TrackingReportScreen = () => {
         setTempYear(curY);
 
         loadTrackerUsers();
+        loadFormOptions();
     }, []);
+
+    const loadFormOptions = async () => {
+        try {
+            const response = await api.get('/employees/form-options');
+            if (response.data && response.data.success) {
+                setOptions({
+                    branches: response.data.branches || [],
+                    departments: response.data.departments || []
+                });
+            }
+        } catch (error) {
+            console.log('Error loading form options:', error);
+        }
+    };
+
+    const triggerPicker = (key, title, data) => {
+        setActivePickerKey(key);
+        setPickerTitle(title);
+        setPickerData(data);
+        setPickerSearch('');
+        setPickerVisible(true);
+    };
+
+    const handlePickerSelect = (item) => {
+        if (activePickerKey === 'branch_id') {
+            setSelectedBranch(item.id);
+            setSelectedDepartment(''); // reset dept
+        } else if (activePickerKey === 'department_id') {
+            setSelectedDepartment(item.id);
+        } else if (activePickerKey === 'status') {
+            setSelectedStatus(item.id);
+        }
+        setPickerVisible(false);
+    };
+
+    const getLabelFromId = (id, array, key = 'name') => {
+        if (!id || !array) return '';
+        const matched = array.find(i => String(i.id) === String(id));
+        return matched ? matched[key] : '';
+    };
 
     // Automatically refresh grid data if navigation tab shifts
     useEffect(() => {
@@ -111,13 +164,13 @@ const TrackingReportScreen = () => {
                     return;
                 }
                 endpoint = '/tracking/report/user-wise';
-                params = { user_id: selectedUser.id, month: selectedMonth };
+                params = { user_id: selectedUser.id, month: selectedMonth, branch_id: selectedBranch, department_id: selectedDepartment, status: selectedStatus };
             } else if (activeTab === 'monthly') {
                 endpoint = '/tracking/report/monthly';
-                params = { month: selectedMonth };
+                params = { month: selectedMonth, branch_id: selectedBranch, department_id: selectedDepartment, status: selectedStatus };
             } else if (activeTab === 'date') {
                 endpoint = '/tracking/report/date-wise';
-                params = { date: selectedDate };
+                params = { date: selectedDate, branch_id: selectedBranch, department_id: selectedDepartment, status: selectedStatus };
             }
 
             const res = await api.get(endpoint, { params });
@@ -308,8 +361,33 @@ const TrackingReportScreen = () => {
     const renderFilterDashboard = () => {
         const displayMonthStr = selectedMonth ? `${monthsFull[parseInt(selectedMonth.split('-')[1]) - 1]} ${selectedMonth.split('-')[0]}` : 'N/A';
 
+        const filteredDept = options.departments.filter(d => 
+            !selectedBranch || String(d.branch_id) === String(selectedBranch)
+        );
+
         return (
             <View style={styles.filterPanel}>
+                {/* Generic Form Picker Group */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, marginHorizontal: -12, paddingHorizontal: 12 }} contentContainerStyle={{ gap: 8 }}>
+                    <TouchableOpacity style={[styles.controlBtn, { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, height: 'auto' }]} onPress={() => triggerPicker('branch_id', 'Select Branch', options.branches)}>
+                        <Ionicons name="business" size={14} color="#434AFA" style={{ marginRight: 4 }} />
+                        <Text style={{ fontSize: 12, color: '#334155' }}>{selectedBranch ? getLabelFromId(selectedBranch, options.branches) : 'All Branches'}</Text>
+                        <Ionicons name="chevron-down" size={12} color="#94A3B8" style={{ marginLeft: 4 }} />
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity style={[styles.controlBtn, { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, height: 'auto' }]} onPress={() => triggerPicker('department_id', 'Select Department', filteredDept)}>
+                        <Ionicons name="briefcase" size={14} color="#434AFA" style={{ marginRight: 4 }} />
+                        <Text style={{ fontSize: 12, color: '#334155' }}>{selectedDepartment ? getLabelFromId(selectedDepartment, options.departments) : 'All Departments'}</Text>
+                        <Ionicons name="chevron-down" size={12} color="#94A3B8" style={{ marginLeft: 4 }} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={[styles.controlBtn, { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, height: 'auto' }]} onPress={() => triggerPicker('status', 'Select Status', [{id:'active', name:'Active'}, {id:'inactive', name:'Inactive'}])}>
+                        <Ionicons name="shield-checkmark" size={14} color="#434AFA" style={{ marginRight: 4 }} />
+                        <Text style={{ fontSize: 12, color: '#334155' }}>{selectedStatus ? selectedStatus : 'All Status'}</Text>
+                        <Ionicons name="chevron-down" size={12} color="#94A3B8" style={{ marginLeft: 4 }} />
+                    </TouchableOpacity>
+                </ScrollView>
+
                 {activeTab === 'user' && (
                     <View style={styles.inputGrp}>
                         <Text style={styles.inputLabel}>Employee Profile</Text>
@@ -627,6 +705,16 @@ const TrackingReportScreen = () => {
 
     return (
         <View style={styles.mainSpace}>
+            <FormPickerModal 
+                visible={pickerVisible}
+                title={pickerTitle}
+                data={pickerData}
+                searchQuery={pickerSearch}
+                onSearchChange={setPickerSearch}
+                onClose={() => setPickerVisible(false)}
+                onSelect={handlePickerSelect}
+            />
+
             <Header title="Field Tracker Reports" />
 
             {/* Primary Matrix Tabs Row */}

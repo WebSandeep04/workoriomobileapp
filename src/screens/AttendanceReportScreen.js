@@ -16,12 +16,21 @@ import Header from '../components/Header';
 import Toast from 'react-native-toast-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../api/client';
+import FormPickerModal from '../components/FormPickerModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const AttendanceReportScreen = () => {
     // 1. Navigation Tabs State
-    const [activeTab, setActiveTab] = useState('user'); // 'user', 'monthly', 'date'
+    const [activeTab, setActiveTab] = useState('user'); // 'user', 'monthly', 'date', 'today'
+
+    // Form Options & Generic Picker State
+    const [options, setOptions] = useState({ branches: [], departments: [] });
+    const [pickerVisible, setPickerVisible] = useState(false);
+    const [pickerData, setPickerData] = useState([]);
+    const [pickerTitle, setPickerTitle] = useState('');
+    const [pickerSearch, setPickerSearch] = useState('');
+    const [activePickerKey, setActivePickerKey] = useState('');
 
     // 2. Data Feed Containers
     const [users, setUsers] = useState([]);
@@ -31,6 +40,9 @@ const AttendanceReportScreen = () => {
     const [selectedUser, setSelectedUser] = useState(null); // { id, name }
     const [selectedMonth, setSelectedMonth] = useState(''); // 'YYYY-MM'
     const [selectedDate, setSelectedDate] = useState(''); // 'YYYY-MM-DD'
+    const [selectedBranch, setSelectedBranch] = useState('');
+    const [selectedDepartment, setSelectedDepartment] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
     
     // 4. Load States
     const [loading, setLoading] = useState(false);
@@ -64,7 +76,48 @@ const AttendanceReportScreen = () => {
         setTempYear(curYear);
         
         loadReportUsers();
+        loadFormOptions();
     }, []);
+
+    const loadFormOptions = async () => {
+        try {
+            const response = await api.get('/employees/form-options');
+            if (response.data && response.data.success) {
+                setOptions({
+                    branches: response.data.branches || [],
+                    departments: response.data.departments || []
+                });
+            }
+        } catch (error) {
+            console.log('Error loading form options:', error);
+        }
+    };
+
+    const triggerPicker = (key, title, data) => {
+        setActivePickerKey(key);
+        setPickerTitle(title);
+        setPickerData(data);
+        setPickerSearch('');
+        setPickerVisible(true);
+    };
+
+    const handlePickerSelect = (item) => {
+        if (activePickerKey === 'branch_id') {
+            setSelectedBranch(item.id);
+            setSelectedDepartment(''); // reset dept
+        } else if (activePickerKey === 'department_id') {
+            setSelectedDepartment(item.id);
+        } else if (activePickerKey === 'status') {
+            setSelectedStatus(item.id);
+        }
+        setPickerVisible(false);
+    };
+
+    const getLabelFromId = (id, array, key = 'name') => {
+        if (!id || !array) return '';
+        const matched = array.find(i => String(i.id) === String(id));
+        return matched ? matched[key] : '';
+    };
 
     // Load Active Employees for Userwise dropdown
     const loadReportUsers = async () => {
@@ -102,13 +155,13 @@ const AttendanceReportScreen = () => {
                     return;
                 }
                 endpoint = '/attendance/report/user-wise';
-                params = { user_id: selectedUser.id, month: selectedMonth };
+                params = { user_id: selectedUser.id, month: selectedMonth, branch_id: selectedBranch, department_id: selectedDepartment, status: selectedStatus };
             } else if (activeTab === 'monthly') {
                 endpoint = '/attendance/report/monthly';
-                params = { month: selectedMonth };
-            } else if (activeTab === 'date') {
+                params = { month: selectedMonth, branch_id: selectedBranch, department_id: selectedDepartment, status: selectedStatus };
+            } else if (activeTab === 'date' || activeTab === 'today') {
                 endpoint = '/attendance/report/date-wise';
-                params = { date: selectedDate };
+                params = { date: selectedDate, branch_id: selectedBranch, department_id: selectedDepartment, status: selectedStatus };
             }
 
             const response = await api.get(endpoint, { params });
@@ -133,10 +186,16 @@ const AttendanceReportScreen = () => {
         }
     };
 
-    // Trigger Fetching when active tab switches or filter changes
     useEffect(() => {
         // Automatically fetch monthly/date summaries if defaults present
-        if (activeTab === 'monthly' || activeTab === 'date') {
+        if (activeTab === 'today') {
+            const today = new Date();
+            const curYear = today.getFullYear();
+            const curMonth = String(today.getMonth() + 1).padStart(2, '0');
+            const curDay = String(today.getDate()).padStart(2, '0');
+            setSelectedDate(`${curYear}-${curMonth}-${curDay}`);
+            fetchActiveReport();
+        } else if (activeTab === 'monthly' || activeTab === 'date') {
             fetchActiveReport();
         } else if (activeTab === 'user' && selectedUser) {
             fetchActiveReport();
@@ -356,8 +415,33 @@ const AttendanceReportScreen = () => {
     
     // Block: Filters Toolbar Layout
     const renderFiltersLayout = () => {
+        const filteredDept = options.departments.filter(d => 
+            !selectedBranch || String(d.branch_id) === String(selectedBranch)
+        );
+
         return (
             <View style={styles.filterToolbar}>
+                {/* Branch / Dept / Status Common Filters */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }} contentContainerStyle={{ gap: 8 }}>
+                    <TouchableOpacity style={styles.customTriggerMini} onPress={() => triggerPicker('branch_id', 'Select Branch', options.branches)}>
+                        <Ionicons name="business" size={14} color="#434AFA" />
+                        <Text style={styles.triggerTxtMini}>{selectedBranch ? getLabelFromId(selectedBranch, options.branches) : 'All Branches'}</Text>
+                        <Ionicons name="chevron-down" size={14} color="#94A3B8" />
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity style={styles.customTriggerMini} onPress={() => triggerPicker('department_id', 'Select Department', filteredDept)}>
+                        <Ionicons name="briefcase" size={14} color="#434AFA" />
+                        <Text style={styles.triggerTxtMini}>{selectedDepartment ? getLabelFromId(selectedDepartment, options.departments) : 'All Departments'}</Text>
+                        <Ionicons name="chevron-down" size={14} color="#94A3B8" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.customTriggerMini} onPress={() => triggerPicker('status', 'Select Status', [{id:'active', name:'Active'}, {id:'inactive', name:'Inactive'}])}>
+                        <Ionicons name="shield-checkmark" size={14} color="#434AFA" />
+                        <Text style={styles.triggerTxtMini}>{selectedStatus ? selectedStatus : 'All Status'}</Text>
+                        <Ionicons name="chevron-down" size={14} color="#94A3B8" />
+                    </TouchableOpacity>
+                </ScrollView>
+
                 {activeTab === 'user' && (
                     <View style={styles.fieldGroup}>
                         <Text style={styles.fieldLabel}>Target Employee</Text>
@@ -371,7 +455,7 @@ const AttendanceReportScreen = () => {
                     </View>
                 )}
 
-                {activeTab !== 'date' ? (
+                {activeTab === 'monthly' || activeTab === 'user' ? (
                     <View style={styles.fieldGroup}>
                         <Text style={styles.fieldLabel}>Statement Period (Month)</Text>
                         <TouchableOpacity style={styles.customTrigger} onPress={() => setMonthModalVisible(true)}>
@@ -382,7 +466,15 @@ const AttendanceReportScreen = () => {
                             <Ionicons name="chevron-down" size={16} color="#94A3B8" />
                         </TouchableOpacity>
                     </View>
-                ) : (
+                ) : activeTab === 'today' ? (
+                    <View style={styles.fieldGroup}>
+                        <Text style={styles.fieldLabel}>Today's Date</Text>
+                        <View style={[styles.customTrigger, { backgroundColor: '#F1F5F9' }]}>
+                            <Ionicons name="calendar" size={16} color="#94A3B8" />
+                            <Text style={[styles.triggerTxt, { color: '#94A3B8' }]}>{selectedDate}</Text>
+                        </View>
+                    </View>
+                ) : activeTab === 'date' ? (
                     <View style={styles.fieldGroup}>
                         <Text style={styles.fieldLabel}>Select Target Date</Text>
                         <TouchableOpacity style={styles.customTrigger} onPress={() => setCalendarModalVisible(true)}>
@@ -391,7 +483,7 @@ const AttendanceReportScreen = () => {
                             <Ionicons name="chevron-down" size={16} color="#94A3B8" />
                         </TouchableOpacity>
                     </View>
-                )}
+                ) : null}
 
                 <TouchableOpacity style={styles.actionBtn} onPress={fetchActiveReport} disabled={loading}>
                     {loading ? (
@@ -743,17 +835,32 @@ const AttendanceReportScreen = () => {
         <View style={styles.mainWrapper}>
             <Header title="Attendance Analytics" />
 
+            <FormPickerModal 
+                visible={pickerVisible}
+                title={pickerTitle}
+                data={pickerData}
+                searchQuery={pickerSearch}
+                onSearchChange={setPickerSearch}
+                onClose={() => setPickerVisible(false)}
+                onSelect={handlePickerSelect}
+            />
+
             {/* Top Segement Selection Navigation */}
-            <View style={styles.tabsBar}>
-                <TouchableOpacity style={[styles.tabBtn, activeTab === 'user' && styles.tabBtnActive]} onPress={() => setActiveTab('user')}>
-                    <Text style={[styles.tabBtnTxt, activeTab === 'user' && styles.tabBtnTxtActive]}>User Wise</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.tabBtn, activeTab === 'monthly' && styles.tabBtnActive]} onPress={() => setActiveTab('monthly')}>
-                    <Text style={[styles.tabBtnTxt, activeTab === 'monthly' && styles.tabBtnTxtActive]}>Monthly</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.tabBtn, activeTab === 'date' && styles.tabBtnActive]} onPress={() => setActiveTab('date')}>
-                    <Text style={[styles.tabBtnTxt, activeTab === 'date' && styles.tabBtnTxtActive]}>Date Wise</Text>
-                </TouchableOpacity>
+            <View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsBar}>
+                    <TouchableOpacity style={[styles.tabBtn, activeTab === 'today' && styles.tabBtnActive]} onPress={() => setActiveTab('today')}>
+                        <Text style={[styles.tabBtnTxt, activeTab === 'today' && styles.tabBtnTxtActive]}>Today</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.tabBtn, activeTab === 'user' && styles.tabBtnActive]} onPress={() => setActiveTab('user')}>
+                        <Text style={[styles.tabBtnTxt, activeTab === 'user' && styles.tabBtnTxtActive]}>User Wise</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.tabBtn, activeTab === 'monthly' && styles.tabBtnActive]} onPress={() => setActiveTab('monthly')}>
+                        <Text style={[styles.tabBtnTxt, activeTab === 'monthly' && styles.tabBtnTxtActive]}>Monthly</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.tabBtn, activeTab === 'date' && styles.tabBtnActive]} onPress={() => setActiveTab('date')}>
+                        <Text style={[styles.tabBtnTxt, activeTab === 'date' && styles.tabBtnTxtActive]}>Date Wise</Text>
+                    </TouchableOpacity>
+                </ScrollView>
             </View>
 
             {/* Central Panel Filters */}
@@ -770,7 +877,7 @@ const AttendanceReportScreen = () => {
                     <>
                         {activeTab === 'user' && renderUserWiseContent()}
                         {activeTab === 'monthly' && renderMonthlySummaryContent()}
-                        {activeTab === 'date' && renderDateWiseContent()}
+                        {activeTab === 'date' || activeTab === 'today' ? renderDateWiseContent() : null}
                     </>
                 )}
             </View>
@@ -797,7 +904,7 @@ const styles = StyleSheet.create({
         borderWidth: 1, 
         borderColor: '#E2E8F0' 
     },
-    tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
+    tabBtn: { paddingVertical: 10, paddingHorizontal: 14, alignItems: 'center', borderRadius: 8, marginRight: 2 },
     tabBtnActive: { backgroundColor: '#434AFA' },
     tabBtnTxt: { fontSize: 13, color: '#64748B', fontWeight: '600' },
     tabBtnTxtActive: { color: '#FFF', fontWeight: '800' },
@@ -819,17 +926,28 @@ const styles = StyleSheet.create({
     fieldGroup: { },
     fieldLabel: { fontSize: 11, color: '#64748B', fontWeight: '700', textTransform: 'capitalize', marginBottom: 4 },
     customTrigger: { 
-        height: 44, 
-        borderRadius: 8, 
-        borderWidth: 1, 
-        borderColor: '#CBD5E1', 
-        backgroundColor: '#F8FAFC',
         flexDirection: 'row', 
         alignItems: 'center', 
+        backgroundColor: '#F8FAFC', 
         paddingHorizontal: 12, 
-        gap: 8 
+        paddingVertical: 10, 
+        borderRadius: 8, 
+        borderWidth: 1, 
+        borderColor: '#E2E8F0',
+        justifyContent: 'space-between'
     },
-    triggerTxt: { flex: 1, fontSize: 13, color: '#1E293B', fontWeight: '600' },
+    triggerTxt: { flex: 1, fontSize: 13, color: '#1E293B', fontWeight: '500', marginLeft: 8 },
+    customTriggerMini: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F8FAFC',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    triggerTxtMini: { fontSize: 12, color: '#334155', marginHorizontal: 4 },
     actionBtn: { 
         height: 44, 
         backgroundColor: '#434AFA', 

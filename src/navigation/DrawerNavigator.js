@@ -33,6 +33,8 @@ import AttendanceUnlockScreen from '../screens/AttendanceUnlockScreen';
 import AttendanceReportScreen from '../screens/AttendanceReportScreen';
 import WorklogReportScreen from '../screens/WorklogReportScreen';
 import TrackingReportScreen from '../screens/TrackingReportScreen';
+import PayrollReportScreen from '../screens/PayrollReportScreen';
+import WhatsappCampaignReportScreen from '../screens/WhatsappCampaignReportScreen';
 import EmployeeScreen from '../screens/EmployeeScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import TrackingScreen from '../screens/TrackingScreen';
@@ -136,6 +138,8 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="attendance.report" component={AttendanceReportScreen} />
       <Drawer.Screen name="reports.worklog" component={WorklogReportScreen} />
       <Drawer.Screen name="tracking.report" component={TrackingReportScreen} />
+      <Drawer.Screen name="payroll.report" component={PayrollReportScreen} />
+      <Drawer.Screen name="whatsapp.report" component={WhatsappCampaignReportScreen} />
       <Drawer.Screen name="contactmanagement.index" component={Scanner} />
       <Drawer.Screen name="asset-management.index" component={PlaceholderScreen} />
       
