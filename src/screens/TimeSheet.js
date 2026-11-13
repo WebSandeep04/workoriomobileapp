@@ -39,9 +39,19 @@ import {
 
 const CustomPicker = ({ label, value, options, onSelect, placeholder = "Select...", disabled = false }) => {
     const [modalVisible, setModalVisible] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const selectedOption = options.find(opt => opt.id === value || opt.name === value);
     const displayText = selectedOption ? selectedOption.name : value || placeholder;
+
+    const filteredOptions = options.filter(opt =>
+        opt.name ? opt.name.toLowerCase().includes(searchQuery.toLowerCase()) : false
+    );
+
+    const handleClose = () => {
+        setModalVisible(false);
+        setSearchQuery('');
+    };
 
     return (
         <View style={styles.inputGroup}>
@@ -61,25 +71,52 @@ const CustomPicker = ({ label, value, options, onSelect, placeholder = "Select..
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={handleClose}
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Select {label}</Text>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                            <TouchableOpacity onPress={handleClose}>
                                 <Ionicons name="close" size={24} color={COLORS.text} />
                             </TouchableOpacity>
                         </View>
+
+                        {/* Search Bar */}
+                        <View style={styles.searchContainer}>
+                            <Ionicons name="search" size={18} color={COLORS.textLight} />
+                            <TextInput
+                                style={styles.searchInput}
+                                placeholder={`Search ${label.toLowerCase()}...`}
+                                placeholderTextColor={COLORS.textLight}
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                clearButtonMode="while-editing"
+                            />
+                            {searchQuery.length > 0 && (
+                                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                    <Ionicons name="close-circle" size={18} color={COLORS.textLight} />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+
                         <FlatList
-                            data={options}
+                            data={filteredOptions}
                             keyExtractor={(item) => item.id?.toString() || item.name}
+                            keyboardShouldPersistTaps="handled"
+                            ListEmptyComponent={
+                                <View style={styles.emptyOptions}>
+                                    <Text style={styles.emptyOptionsText}>No matching {label.toLowerCase()} found</Text>
+                                </View>
+                            }
                             renderItem={({ item }) => (
                                 <TouchableOpacity
                                     style={styles.optionItem}
                                     onPress={() => {
                                         onSelect(item);
-                                        setModalVisible(false);
+                                        handleClose();
                                     }}
                                 >
                                     <Text style={[

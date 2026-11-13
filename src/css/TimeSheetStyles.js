@@ -267,6 +267,31 @@ export const styles = StyleSheet.create({
         fontWeight: '700',
         color: COLORS.text,
     },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 10,
+        marginHorizontal: 16,
+        marginVertical: 10,
+        paddingHorizontal: 12,
+        height: 44,
+    },
+    searchInput: {
+        flex: 1,
+        marginLeft: 8,
+        fontSize: 15,
+        color: COLORS.text,
+        paddingVertical: 0,
+    },
+    emptyOptions: {
+        padding: 24,
+        alignItems: 'center',
+    },
+    emptyOptionsText: {
+        color: COLORS.textLight,
+        fontSize: 14,
+    },
     optionItem: {
         padding: 16,
         borderBottomWidth: 1,

@@ -77,6 +77,7 @@ const Task = ({ navigation, route }) => {
     };
     const [newTask, setNewTask] = useState(initialTaskState);
 
+    const [customerSearch, setCustomerSearch] = useState('');
     const [remark, setRemark] = useState('');
 
     // Calendar State
@@ -368,7 +369,17 @@ const Task = ({ navigation, route }) => {
         </Modal>
     );
 
-    const usersList = formData.users || [];
+    const usersList = (formData.users || []).filter(u => {
+        if (u.status !== undefined && u.status !== null) {
+            const s = String(u.status).toLowerCase();
+            return s === 'active' || s === '1' || u.status === 1 || u.status === true;
+        }
+        if (u.is_active !== undefined && u.is_active !== null) {
+            return u.is_active === 1 || u.is_active === true || String(u.is_active) === '1';
+        }
+        // If no explicit active flag, exclude the user
+        return false;
+    });
     const displayedTasks = activeTab === 'assigned' ? assignedTasks : createdTasks;
 
     return (
@@ -455,22 +466,59 @@ const Task = ({ navigation, route }) => {
                                     </TouchableOpacity>
 
                                     {newTask.showCustomerPicker && (
-                                        <View style={{ maxHeight: 200, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
-                                            <ScrollView nestedScrollEnabled={true}>
-                                                {formData.customers.map(c => (
-                                                    <TouchableOpacity
-                                                        key={c.id}
-                                                        style={{
-                                                            padding: 12,
-                                                            borderBottomWidth: 1,
-                                                            borderBottomColor: '#F3F4F6',
-                                                            backgroundColor: newTask.customer_id === c.id ? '#F3F4F6' : '#fff'
-                                                        }}
-                                                        onPress={() => setNewTask(prev => ({ ...prev, customer_id: c.id, showCustomerPicker: false }))}
-                                                    >
-                                                        <Text style={{ color: newTask.customer_id === c.id ? '#3B82F6' : '#374151' }}>{c.name}</Text>
+                                        <View style={{ maxHeight: 220, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
+                                            {/* Search Bar */}
+                                            <View style={{
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                backgroundColor: '#F3F4F6',
+                                                margin: 8,
+                                                paddingHorizontal: 10,
+                                                borderRadius: 6,
+                                                height: 38
+                                            }}>
+                                                <Ionicons name="search" size={16} color="#6B7280" />
+                                                <TextInput
+                                                    style={{ flex: 1, marginLeft: 6, fontSize: 13, color: '#111827', paddingVertical: 0 }}
+                                                    placeholder="Search customer..."
+                                                    placeholderTextColor="#9CA3AF"
+                                                    value={customerSearch}
+                                                    onChangeText={setCustomerSearch}
+                                                    autoCapitalize="none"
+                                                    autoCorrect={false}
+                                                />
+                                                {customerSearch.length > 0 && (
+                                                    <TouchableOpacity onPress={() => setCustomerSearch('')}>
+                                                        <Ionicons name="close-circle" size={16} color="#9CA3AF" />
                                                     </TouchableOpacity>
-                                                ))}
+                                                )}
+                                            </View>
+
+                                            <ScrollView nestedScrollEnabled={true}>
+                                                {formData.customers
+                                                    .filter(c => c.name ? c.name.toLowerCase().includes(customerSearch.toLowerCase()) : false)
+                                                    .map(c => (
+                                                        <TouchableOpacity
+                                                            key={c.id}
+                                                            style={{
+                                                                padding: 12,
+                                                                borderBottomWidth: 1,
+                                                                borderBottomColor: '#F3F4F6',
+                                                                backgroundColor: newTask.customer_id === c.id ? '#F3F4F6' : '#fff'
+                                                            }}
+                                                            onPress={() => {
+                                                                setNewTask(prev => ({ ...prev, customer_id: c.id, showCustomerPicker: false }));
+                                                                setCustomerSearch('');
+                                                            }}
+                                                        >
+                                                            <Text style={{ color: newTask.customer_id === c.id ? '#3B82F6' : '#374151' }}>{c.name}</Text>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                {formData.customers.filter(c => c.name ? c.name.toLowerCase().includes(customerSearch.toLowerCase()) : false).length === 0 && (
+                                                    <View style={{ padding: 16, alignItems: 'center' }}>
+                                                        <Text style={{ color: '#9CA3AF', fontSize: 13 }}>No customers found</Text>
+                                                    </View>
+                                                )}
                                             </ScrollView>
                                         </View>
                                     )}

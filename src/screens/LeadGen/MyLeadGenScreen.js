@@ -264,6 +264,7 @@ const MyLeadGenScreen = () => {
 
 
     const openProspectSearch = () => {
+        setProspectSearch('');
         setProspectPickerVisible(true);
         triggerProspectQuery('');
     };
@@ -910,17 +911,43 @@ const MyLeadGenScreen = () => {
                         </View>
                         
                         <View style={{ paddingHorizontal: 16, paddingBottom: 10 }}>
-                            <View style={[styles.searchFieldWrap, { borderColor: '#4F46E5' }]}>
-                                <Ionicons name="search" size={16} color="#4F46E5" />
+                            <View style={{
+                                height: 42,
+                                backgroundColor: '#F8FAFC',
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                borderColor: '#E2E8F0',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingHorizontal: 12
+                            }}>
+                                <Ionicons name="search" size={18} color="#6366F1" />
                                 <TextInput 
-                                    style={styles.searchInput} 
-                                    placeholder="Type to find Prospect..." 
+                                    style={{
+                                        flex: 1,
+                                        marginLeft: 8,
+                                        fontSize: 14,
+                                        color: '#1E293B',
+                                        paddingVertical: 0
+                                    }} 
+                                    placeholder="Search prospect by name..." 
+                                    placeholderTextColor="#94A3B8"
                                     value={prospectSearch}
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
                                     onChangeText={(val) => {
                                         setProspectSearch(val);
                                         triggerProspectQuery(val);
                                     }}
                                 />
+                                {prospectSearch.length > 0 && (
+                                    <TouchableOpacity onPress={() => {
+                                        setProspectSearch('');
+                                        triggerProspectQuery('');
+                                    }}>
+                                        <Ionicons name="close-circle" size={18} color="#94A3B8" />
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         </View>
 
@@ -930,10 +957,18 @@ const MyLeadGenScreen = () => {
                             </View>
                         ) : (
                             <FlatList
-                                data={prospectList}
+                                data={prospectList.filter(item => {
+                                    if (!prospectSearch.trim()) return true;
+                                    const q = prospectSearch.toLowerCase();
+                                    const name = (item.prospectus_name || '').toLowerCase();
+                                    const person = (item.contact_person || '').toLowerCase();
+                                    const phone = (item.contact_number || '').toLowerCase();
+                                    return name.includes(q) || person.includes(q) || phone.includes(q);
+                                })}
                                 keyExtractor={(item) => String(item.id)}
                                 style={{ flex: 1 }}
                                 contentContainerStyle={{ paddingHorizontal: 16 }}
+                                keyboardShouldPersistTaps="handled"
                                 renderItem={({ item }) => (
                                     <TouchableOpacity style={styles.prospectRecordRow} onPress={() => selectProspect(item)}>
                                         <Text style={styles.prospectRecordName}>{item.prospectus_name}</Text>
